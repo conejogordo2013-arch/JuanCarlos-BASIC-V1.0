@@ -765,7 +765,9 @@
                         return { type: 'IF', cond, thenStmts, elseStmts };
 
                     case 'FOR':
-                        let forVar = this.consume().value;
+                        let forVarToken = this.consume();
+                        if (forVarToken.type !== 'VAR') throw new BasicError(1, "Se esperaba variable en FOR");
+                        let forVar = forVarToken.value;
                         this.match('OPERATOR', '=');
                         let startExpr = this.parseExpression();
                         if (!this.match('KEYWORD', 'TO')) throw new BasicError(1, "Falta TO en FOR");
@@ -781,7 +783,9 @@
                         if (this.peek().type === 'VAR') {
                             nextVars.push(this.consume().value);
                             while (this.match('PUNCT', ',')) {
-                                nextVars.push(this.consume().value);
+                                let nv = this.consume();
+                                if (nv.type !== 'VAR') throw new BasicError(1, "Se esperaba variable en NEXT");
+                                nextVars.push(nv.value);
                             }
                         }
                         return { type: 'NEXT', vars: nextVars };
@@ -800,9 +804,13 @@
                             this.match('PUNCT', ';');
                         }
                         let inputVars = [];
-                        inputVars.push(this.consume().value);
+                        let firstInputVar = this.consume();
+                        if (firstInputVar.type !== 'VAR') throw new BasicError(1, "Se esperaba variable en INPUT");
+                        inputVars.push(firstInputVar.value);
                         while (this.match('PUNCT', ',')) {
-                            inputVars.push(this.consume().value);
+                            let iv = this.consume();
+                            if (iv.type !== 'VAR') throw new BasicError(1, "Se esperaba variable en INPUT");
+                            inputVars.push(iv.value);
                         }
                         return { type: 'INPUT', prompt: promptStr, vars: inputVars };
                     
@@ -861,7 +869,7 @@
                     case 'ON ERROR GOTO':
                         return { type: 'ON ERROR GOTO', line: this.parseExpression() };
                     case 'ON ERROR': // Simular ON ERROR RESUME NEXT quizas, o apagar
-                        if(this.peek().value === '0') { this.consume(); return { type: 'ON ERROR OFF' }; }
+                        if(this.peek().type === 'NUMBER' && this.peek().value === 0) { this.consume(); return { type: 'ON ERROR OFF' }; }
                         throw new BasicError(1, "ON ERROR requiere GOTO o 0");
                     case 'RESUME':
                         let resTarget = null;
@@ -904,30 +912,24 @@
         // --- NÚCLEO DEL INTÉRPRETE ---
         class BasicMachine {
             constructor() {
-                this.program = []; // { line: number, text: string, stmts: [] }
+                this.program = [];
                 this.vars = {};
                 this.arrays = {};
                 this.dataArray = [];
                 this.dataPtr = 0;
                 this.memory = new Uint8Array(65536);
                 this.segment = 0;
-                
-                this.pc = -1; // Indice en program array
-                this.stmtIdx = 0; // Indice en sentencias de la linea actual
+
+                this.pc = -1;
+                this.stmtIdx = 0;
                 this.isRunning = false;
                 this.awaitingInput = false;
 
-                this.stacks = {
-                    gosub: [],
-                    for: [],
-                    while: [],
-                    do: []
-                };
+                this.stacks = { gosub: [], for: [], while: [], do: [] };
 
                 this.trace = false;
                 this.angleMode = 1; // 0=RAD, 1=DEG, 2=GRA
-                
-                // Errores
+
                 this.onErrorLine = -1;
                 this.errCode = 0;
                 this.errLine = 0;
@@ -936,9 +938,63 @@
                 document.addEventListener('keydown', (e) => {
                     if (this.isRunning && !this.awaitingInput) {
                         this.keyBuffer.push(e.key);
-                        if(this.keyBuffer.length > 10) this.keyBuffer.shift();
+                        if (this.keyBuffer.length > 10) this.keyBuffer.shift();
                     }
                 });
+
+                // Registro modular de comandos/instrucciones
+                this.commandHandlers = this.buildCommandHandlers();
+            }
+
+            buildCommandHandlers() {
+                return {
+                    REM: async () => ({}),
+                    LET: async (stmt) => {
+                        this.setVar(stmt.varName, this.evalExpr(stmt.expr), stmt.isArray, stmt.indices);
+                        return {};
+                    },
+                    PRINT: async (stmt) => this.handlePrint(stmt),
+                    'PRINT USING': async (stmt) => this.handlePrintUsing(stmt),
+                    LOCATE: async (stmt) => {
+                        lcd.locate(this.evalExpr(stmt.col), this.evalExpr(stmt.row));
+                        return {};
+                    },
+                    CLS: async () => { lcd.clear(); return {}; },
+                    BEEP: async () => { this.beep(); return {}; },
+                    GOTO: async (stmt) => this.jumpToLine(this.evalExpr(stmt.lineExpr), 'GOTO'),
+                    GOSUB: async (stmt) => this.handleGosub(stmt),
+                    RETURN: async () => this.handleReturn(),
+                    IF: async (stmt) => this.handleIf(stmt),
+                    FOR: async (stmt) => this.handleFor(stmt),
+                    NEXT: async (stmt) => this.handleNext(stmt),
+                    WHILE: async (stmt) => this.handleWhile(stmt),
+                    WEND: async () => this.handleWend(),
+                    INPUT: async (stmt) => this.handleInput(stmt),
+                    DIM: async (stmt) => this.handleDim(stmt),
+                    READ: async (stmt) => this.handleRead(stmt),
+                    RESTORE: async () => { this.dataPtr = 0; return {}; },
+                    ON: async (stmt) => this.handleOn(stmt),
+                    POKE: async (stmt) => {
+                        this.memory[this.segment * 16 + Math.floor(this.evalExpr(stmt.addr))] = Math.floor(this.evalExpr(stmt.val)) & 255;
+                        return {};
+                    },
+                    DEFSEG: async (stmt) => { this.segment = Math.floor(this.evalExpr(stmt.val)); return {}; },
+                    'ON ERROR GOTO': async (stmt) => { this.onErrorLine = this.evalExpr(stmt.line); return {}; },
+                    'ON ERROR OFF': async () => { this.onErrorLine = -1; return {}; },
+                    RESUME: async (stmt) => this.handleResume(stmt),
+                    STOP: async () => {
+                        printTerm('Break in ' + this.program[this.pc].line);
+                        this.isRunning = false;
+                        return { halted: true };
+                    },
+                    END: async () => {
+                        this.isRunning = false;
+                        this.pc = this.program.length;
+                        return { halted: true };
+                    },
+                    TRON: async () => { this.trace = true; document.getElementById('ind-tron').classList.add('active'); return {}; },
+                    TROFF: async () => { this.trace = false; document.getElementById('ind-tron').classList.remove('active'); return {}; }
+                };
             }
 
             resetState() {
@@ -980,65 +1036,50 @@
                 this.dataArray = [];
                 for (let p of this.program) {
                     for (let s of p.stmts) {
-                        if (s.type === 'DATA') {
-                            this.dataArray.push(...s.values);
-                        }
+                        if (s.type === 'DATA') this.dataArray.push(...s.values);
                     }
                 }
                 this.dataPtr = 0;
             }
 
-            // --- Evaluador de Expresiones ---
             evalExpr(node) {
                 if (node.type === 'LITERAL') return node.value;
                 if (node.type === 'VAR_ACCESS') {
-                    if (!(node.name in this.vars)) {
-                        // Init variable
-                        this.vars[node.name] = node.name.endsWith('$') ? "" : 0;
-                    }
+                    if (!(node.name in this.vars)) this.vars[node.name] = node.name.endsWith('$') ? '' : 0;
                     return this.vars[node.name];
                 }
                 if (node.type === 'ARRAY_ACCESS') {
                     let arr = this.arrays[node.name];
                     if (!arr) throw new BasicError(5, `Array ${node.name} no dimensionado`);
                     let idxs = node.indices.map(i => this.evalExpr(i));
-                    if (idxs.length !== arr.dims.length) throw new BasicError(5, "Dimensiones incorrectas");
-                    
+                    if (idxs.length !== arr.dims.length) throw new BasicError(5, 'Dimensiones incorrectas');
+
                     let flatIdx = 0;
                     let mult = 1;
-                    for(let i = idxs.length - 1; i >= 0; i--) {
+                    for (let i = idxs.length - 1; i >= 0; i--) {
                         let idx = Math.floor(idxs[i]);
-                        if (idx < 0 || idx > arr.dims[i]) throw new BasicError(5, "Subíndice fuera de rango");
+                        if (idx < 0 || idx > arr.dims[i]) throw new BasicError(5, 'Subíndice fuera de rango');
                         flatIdx += idx * mult;
                         mult *= (arr.dims[i] + 1);
                     }
-                    if(arr.data[flatIdx] === undefined) {
-                        arr.data[flatIdx] = node.name.endsWith('$') ? "" : 0;
-                    }
+                    if (arr.data[flatIdx] === undefined) arr.data[flatIdx] = node.name.endsWith('$') ? '' : 0;
                     return arr.data[flatIdx];
                 }
                 if (node.type === 'UNARY') {
                     let v = this.evalExpr(node.expr);
                     if (node.op === '-') return -v;
-                    if (node.op === 'NOT') {
-                        // BASIC TRUE=-1, FALSE=0. Bitwise NOT in JS handles integers.
-                        return ~Math.floor(v);
-                    }
+                    if (node.op === 'NOT') return ~Math.floor(v);
                 }
                 if (node.type === 'BINARY') {
                     let l = this.evalExpr(node.left);
                     let r = this.evalExpr(node.right);
-                    switch(node.op) {
-                        case '+': 
-                            if(typeof l === 'string' || typeof r === 'string') return String(l) + String(r);
-                            return l + r;
+                    switch (node.op) {
+                        case '+': return (typeof l === 'string' || typeof r === 'string') ? String(l) + String(r) : l + r;
                         case '-': return l - r;
                         case '*': return l * r;
-                        case '/': 
-                            if(r === 0) throw new BasicError(3, "División por cero");
-                            return l / r;
+                        case '/': if (r === 0) throw new BasicError(3, 'División por cero'); return l / r;
                         case '^': return Math.pow(l, r);
-                        case '=': return (l === r) ? -1 : 0; // BASIC true is -1
+                        case '=': return (l === r) ? -1 : 0;
                         case '<>': return (l !== r) ? -1 : 0;
                         case '<': return (l < r) ? -1 : 0;
                         case '>': return (l > r) ? -1 : 0;
@@ -1048,9 +1089,7 @@
                         case 'OR': return (Math.floor(l) | Math.floor(r));
                     }
                 }
-                if (node.type === 'CALL') {
-                    return this.callFunc(node.name, node.args.map(a => this.evalExpr(a)));
-                }
+                if (node.type === 'CALL') return this.callFunc(node.name, node.args.map(a => this.evalExpr(a)));
             }
 
             degToRad(val) {
@@ -1066,87 +1105,74 @@
 
             callFunc(name, args) {
                 let v = args[0];
-                switch(name) {
+                switch (name) {
                     case 'SIN': return this.radToDeg(Math.sin(this.degToRad(v)));
                     case 'COS': return this.radToDeg(Math.cos(this.degToRad(v)));
                     case 'TAN': return this.radToDeg(Math.tan(this.degToRad(v)));
                     case 'ASN': return this.radToDeg(Math.asin(v));
                     case 'ACS': return this.radToDeg(Math.acos(v));
                     case 'ATN': return this.radToDeg(Math.atan(v));
-                    
                     case 'HSIN': return Math.sinh(v);
                     case 'HCOS': return Math.cosh(v);
                     case 'HTAN': return Math.tanh(v);
-                    
                     case 'LOG': return Math.log10(v);
                     case 'LN': return Math.log(v);
                     case 'EXP': return Math.exp(v);
-                    case 'SQR': 
-                        if (v < 0) throw new BasicError(12, "Cantidad ilegal (SQR)");
-                        return Math.sqrt(v);
+                    case 'SQR': if (v < 0) throw new BasicError(12, 'Cantidad ilegal (SQR)'); return Math.sqrt(v);
                     case 'ABS': return Math.abs(v);
                     case 'SGN': return Math.sign(v);
                     case 'INT': return Math.floor(v);
                     case 'FIX': return Math.trunc(v);
                     case 'FRAC': return v - Math.trunc(v);
-                    case 'ROUND': return Math.round(v); // simplificado, usualmente toma 2 args
-                    
+                    case 'ROUND': return Math.round(v);
                     case 'RAN#': return Math.random();
                     case 'PI': return Math.PI;
-                    
-                    case 'FACT': 
-                        let f = 1; for(let i=2; i<=Math.floor(v); i++) f*=i; return f;
-                    
+                    case 'FACT': { let f = 1; for (let i = 2; i <= Math.floor(v); i++) f *= i; return f; }
                     case 'CHR$': return String.fromCharCode(Math.floor(v));
                     case 'ASC': return String(v).charCodeAt(0) || 0;
-                    case 'STR$': return " " + String(v);
+                    case 'STR$': return ' ' + String(v);
                     case 'VAL': return parseFloat(v) || 0;
                     case 'LEN': return String(v).length;
-                    
                     case 'LEFT$': return String(v).substring(0, args[1]);
-                    case 'RIGHT$': let s=String(v); return s.substring(s.length - args[1]);
-                    case 'MID$': return String(v).substring(args[1]-1, args[1]-1+args[2]);
-
+                    case 'RIGHT$': { let s = String(v); return s.substring(s.length - args[1]); }
+                    case 'MID$': return String(v).substring(args[1] - 1, args[1] - 1 + args[2]);
                     case 'PEEK': return this.memory[this.segment * 16 + Math.floor(v)];
-                    
-                    case 'INKEY$': 
-                        if (this.keyBuffer.length > 0) return this.keyBuffer.shift().toUpperCase();
-                        return "";
-
-                    default: throw new BasicError(1, "Función no implementada: " + name);
+                    case 'INKEY$': return this.keyBuffer.length > 0 ? this.keyBuffer.shift().toUpperCase() : '';
+                    default: throw new BasicError(1, 'Función no implementada: ' + name);
                 }
             }
 
-            // --- Setters de Variables ---
-            setVar(name, val, isArray=false, indices=[]) {
+            setVar(name, val, isArray = false, indices = []) {
                 if (name.endsWith('$') && typeof val !== 'string') val = String(val);
                 if (!name.endsWith('$') && typeof val === 'string') val = parseFloat(val) || 0;
 
                 if (!isArray) {
                     this.vars[name] = val;
-                } else {
-                    let arr = this.arrays[name];
-                    if (!arr) throw new BasicError(5, `Array ${name} no dimensionado`);
-                    let idxs = indices.map(i => this.evalExpr(i));
-                    let flatIdx = 0;
-                    let mult = 1;
-                    for(let i = idxs.length - 1; i >= 0; i--) {
-                        let idx = Math.floor(idxs[i]);
-                        if (idx < 0 || idx > arr.dims[i]) throw new BasicError(5, "Subíndice fuera de rango");
-                        flatIdx += idx * mult;
-                        mult *= (arr.dims[i] + 1);
-                    }
-                    arr.data[flatIdx] = val;
+                    return;
                 }
+
+                let arr = this.arrays[name];
+                if (!arr) throw new BasicError(5, `Array ${name} no dimensionado`);
+                let idxs = indices.map(i => this.evalExpr(i));
+                if (idxs.length !== arr.dims.length) throw new BasicError(5, 'Dimensiones incorrectas');
+
+                let flatIdx = 0;
+                let mult = 1;
+                for (let i = idxs.length - 1; i >= 0; i--) {
+                    let idx = Math.floor(idxs[i]);
+                    if (idx < 0 || idx > arr.dims[i]) throw new BasicError(5, 'Subíndice fuera de rango');
+                    flatIdx += idx * mult;
+                    mult *= (arr.dims[i] + 1);
+                }
+                arr.data[flatIdx] = val;
             }
 
-            // --- Ejecución I/O Asíncrona ---
             async promptInput(promptText) {
                 this.awaitingInput = true;
-                termIn.value = "";
+                termIn.value = '';
                 promptChar.textContent = promptText;
                 termIn.focus();
-                
+
                 return new Promise(resolve => {
                     const handler = (e) => {
                         if (e.key === 'Enter') {
@@ -1154,8 +1180,8 @@
                             let val = termIn.value;
                             printTerm(promptText + val);
                             this.awaitingInput = false;
-                            promptChar.textContent = ">";
-                            termIn.value = "";
+                            promptChar.textContent = '>';
+                            termIn.value = '';
                             resolve(val);
                         }
                     };
@@ -1163,329 +1189,243 @@
                 });
             }
 
-            // --- Motor Principal ---
-            async executeStatement(stmt) {
-                switch(stmt.type) {
-                    case 'REM': break;
-                    
-                    case 'LET':
-                        let val = this.evalExpr(stmt.expr);
-                        this.setVar(stmt.varName, val, stmt.isArray, stmt.indices);
-                        break;
-                    
-                    case 'PRINT':
-                        let outStr = "";
-                        for (let arg of stmt.args) {
-                            if (arg.type === 'SEP') {
-                                if (arg.value === ',') outStr += " ".repeat(14 - (outStr.length % 14)); // Columnas
-                            } else {
-                                outStr += this.evalExpr(arg);
-                            }
-                        }
-                        if (stmt.args.length === 0 || stmt.args[stmt.args.length-1].type !== 'SEP' || stmt.args[stmt.args.length-1].value !== ';') {
-                            lcd.print(outStr + '\n');
-                            printTerm(outStr);
-                        } else {
-                            lcd.print(outStr);
-                            termOut.textContent += outStr; // No newline
-                        }
-                        break;
-                    
-                    case 'PRINT USING':
-                        let format = this.evalExpr(stmt.format);
-                        // Implementación muy básica de USING
-                        let v = this.evalExpr(stmt.args[0]);
-                        let res = "";
-                        if (format.includes('#')) {
-                            // simple padd
-                            let len = format.replace(/[^#]/g, '').length;
-                            res = String(v).substring(0, len).padStart(len, ' ');
-                        } else { res = String(v); }
-                        lcd.print(res + '\n');
-                        printTerm(res);
-                        break;
+            beep() {
+                try {
+                    let ctx = new (window.AudioContext || window.webkitAudioContext)();
+                    let osc = ctx.createOscillator();
+                    osc.connect(ctx.destination);
+                    osc.frequency.value = 800;
+                    osc.start();
+                    osc.stop(ctx.currentTime + 0.1);
+                } catch (e) {}
+            }
 
-                    case 'LOCATE':
-                        lcd.locate(this.evalExpr(stmt.col), this.evalExpr(stmt.row));
-                        break;
-                    
-                    case 'CLS':
-                        lcd.clear();
-                        break;
-                    
-                    case 'BEEP':
-                        // Simple audio beep si el navegador lo permite
-                        try {
-                            let ctx = new (window.AudioContext || window.webkitAudioContext)();
-                            let osc = ctx.createOscillator();
-                            osc.connect(ctx.destination);
-                            osc.frequency.value = 800;
-                            osc.start();
-                            osc.stop(ctx.currentTime + 0.1);
-                        } catch(e){}
-                        break;
+            jumpToLine(lineNumber, sourceCmd = 'GOTO') {
+                let idx = this.findLineIndex(lineNumber);
+                if (idx === -1) throw new BasicError(2, `Línea no definida en ${sourceCmd}`);
+                this.pc = idx;
+                this.stmtIdx = 0;
+                return { jumped: true };
+            }
 
-                    case 'GOTO': {
-    let target = this.evalExpr(stmt.lineExpr);
-    let idx = this.findLineIndex(target);
-
-    if (idx === -1) throw new BasicError(2, "Línea no definida en GOTO");
-
-    this.pc = idx;
-    this.stmtIdx = 0;
-
-    return true;
-}
-                    
-                 case 'GOSUB': {
-    let tgtSub = this.evalExpr(stmt.lineExpr);
-    let idxSub = this.findLineIndex(tgtSub);
-
-    if (idxSub === -1) {
-        throw new BasicError(2, "Línea no definida en GOSUB");
-    }
-
-    let returnPc = this.pc;
-    let returnStmt = this.stmtIdx + 1;
-
-    if (returnStmt >= this.program[returnPc].stmts.length) {
-        returnPc++;
-        returnStmt = 0;
-    }
-
-    this.stacks.gosub.push({
-        pc: returnPc,
-        stmtIdx: returnStmt
-    });
-
-    this.pc = idxSub;
-    this.stmtIdx = 0;
-
-    return true; // 🔥 ESTO ES LO QUE TE FALTABA
-}
-
-                    case 'RETURN': {
-    if (this.stacks.gosub.length === 0) {
-        throw new BasicError(9, "RETURN sin GOSUB");
-    }
-
-    let frame = this.stacks.gosub.pop();
-
-    this.pc = frame.pc;
-    this.stmtIdx = frame.stmtIdx;
-
-    return true; // 🔥 importante también
-}
-
-                    case 'IF':
-                        let cond = this.evalExpr(stmt.cond);
-                        let stmtsToExec = cond !== 0 ? stmt.thenStmts : stmt.elseStmts;
-                        if (stmtsToExec) {
-                            // Ejecutar las sentencias de la rama seleccionada
-                            // En un intérprete puro, esto cambiaría el puntero interno. 
-                            // Aquí las ejecutamos secuencialmente.
-                            for(let i=0; i<stmtsToExec.length; i++) {
-                                await this.executeStatement(stmtsToExec[i]);
-                                // Si una sentencia fue un GOTO, pc habrá cambiado. Debemos romper
-                                if (stmtsToExec[i].type === 'GOTO' || stmtsToExec[i].type === 'RETURN') break;
-                            }
-                        }
-                        // Después del IF, el resto de la línea original se ignora si la condición es falsa
-                        // Si era verdadera, ¿se ejecuta el resto? Depende del dialecto. FX880: IF A=1 THEN B=2: C=3 ejecuta C=3 solo si A=1.
-                        // Nuestra estructura agrupa todo bajo thenStmts, así que movemos el puntero al final para evitar re-ejecución.
-                        this.stmtIdx = this.program[this.pc].stmts.length; 
-                        break;
-
-                    case 'FOR': {
-    let startV = this.evalExpr(stmt.start);
-    let toV = this.evalExpr(stmt.to);
-    let stepV = stmt.step ? this.evalExpr(stmt.step) : 1;
-
-    this.setVar(stmt.varName, startV);
-
-    // Eliminar FOR previo de la misma variable
-    this.stacks.for = this.stacks.for.filter(f => f.v !== stmt.varName);
-
-    this.stacks.for.push({
-        v: stmt.varName,
-        limit: toV,
-        step: stepV,
-        pc: this.pc,
-        stmtIdx: this.stmtIdx
-    });
-
-    break;
-}
-
-                    case 'NEXT': {
-    let vars = stmt.vars;
-
-    if (vars.length === 0) {
-        if (this.stacks.for.length === 0)
-            throw new BasicError(8, "NEXT sin FOR");
-        vars = [this.stacks.for[this.stacks.for.length - 1].v];
-    }
-
-    for (let vName of vars) {
-        let fStackIdx = this.stacks.for.findIndex(f => f.v === vName);
-        if (fStackIdx === -1)
-            throw new BasicError(8, "NEXT sin FOR para " + vName);
-
-        let f = this.stacks.for[fStackIdx];
-
-        let currVal = this.vars[vName] + f.step;
-        this.vars[vName] = currVal;
-
-        let loopCont =
-            (f.step > 0 && currVal <= f.limit) ||
-            (f.step < 0 && currVal >= f.limit);
-
-        if (loopCont) {
-            this.pc = f.pc;
-            this.stmtIdx = f.stmtIdx;
-            return true; // 🔥 IMPORTANTE: salir inmediatamente
-        } else {
-            this.stacks.for.splice(fStackIdx, 1);
-        }
-    }
-
-    break;
-}
-
-                    case 'WHILE':
-                        let wCond = this.evalExpr(stmt.cond);
-                        if (wCond === 0) {
-                            // Buscar WEND correspondiente (simple scan hacia adelante)
-                            let found = false;
-                            let wDepth = 1;
-                            for(let i=this.pc; i<this.program.length; i++) {
-                                let stmts = this.program[i].stmts;
-                                let jStart = (i === this.pc) ? this.stmtIdx + 1 : 0;
-                                for(let j=jStart; j<stmts.length; j++) {
-                                    if(stmts[j].type === 'WHILE') wDepth++;
-                                    if(stmts[j].type === 'WEND') wDepth--;
-                                    if(wDepth === 0) {
-                                        this.pc = i; this.stmtIdx = j;
-                                        found = true; break;
-                                    }
-                                }
-                                if(found) break;
-                            }
-                        } else {
-                            this.stacks.while.push({ pc: this.pc, stmtIdx: this.stmtIdx, cond: stmt.cond });
-                        }
-                        break;
-                    
-                    case 'WEND':
-                        if (this.stacks.while.length === 0) throw new BasicError(10, "WEND sin WHILE");
-                        let w = this.stacks.while[this.stacks.while.length-1];
-                        this.pc = w.pc;
-                        this.stmtIdx = w.stmtIdx - 1; // Re-evaluar
-                        this.stacks.while.pop(); // Se pushea de nuevo al pasar por WHILE si es true
-                        break;
-
-              case 'INPUT':
-    let inStr = await this.promptInput(stmt.prompt + "? ");
-
-    let parts;
-
-    if (stmt.vars.length === 1) {
-        parts = [inStr];
-    } else {
-        parts = inStr.split(',');
-    }
-
-    parts = parts.map(s => s.trim());
-
-    for (let i = 0; i < stmt.vars.length; i++) {
-        let p = parts[i] || "0";
-        this.setVar(stmt.vars[i], p);
-    }
-    break;
-
-                    case 'DIM':
-                        for (let a of stmt.arrays) {
-                            let ds = a.sizes.map(s => Math.floor(this.evalExpr(s)));
-                            if(ds.length > 10) throw new BasicError(1, "Máximo 10 dimensiones");
-                            let totalSize = 1;
-                            for(let d of ds) totalSize *= (d+1);
-                            this.arrays[a.name] = { dims: ds, data: new Array(totalSize).fill(a.name.endsWith('$') ? "" : 0) };
-                        }
-                        break;
-
-                    case 'READ':
-                        for(let v of stmt.vars) {
-                            if(this.dataPtr >= this.dataArray.length) throw new BasicError(6, "Out of DATA");
-                            this.setVar(v, this.dataArray[this.dataPtr++]);
-                        }
-                        break;
-                    
-                    case 'RESTORE':
-                        this.dataPtr = 0;
-                        break;
-                    
-                    case 'ON':
-                        let onVal = Math.floor(this.evalExpr(stmt.expr));
-                        if(onVal >= 1 && onVal <= stmt.lines.length) {
-                            let onTarget = this.evalExpr(stmt.lines[onVal - 1]);
-                            let onIdx = this.findLineIndex(onTarget);
-                            if(onIdx === -1) throw new BasicError(2, "Línea indefinida");
-                            
-                            if(stmt.action === 'GOSUB') {
-                                this.stacks.gosub.push({ pc: this.pc, stmtIdx: this.stmtIdx });
-                            }
-                            this.pc = onIdx;
-                            this.stmtIdx = -1;
-                        }
-                        break;
-
-                    case 'POKE':
-                        this.memory[this.segment * 16 + Math.floor(this.evalExpr(stmt.addr))] = Math.floor(this.evalExpr(stmt.val)) & 255;
-                        break;
-                    
-                    case 'DEFSEG':
-                        this.segment = Math.floor(this.evalExpr(stmt.val));
-                        break;
-                    
-                    case 'ON ERROR GOTO':
-                        let errTgt = this.evalExpr(stmt.line);
-                        this.onErrorLine = errTgt;
-                        break;
-                    case 'ON ERROR OFF':
-                        this.onErrorLine = -1;
-                        break;
-                    case 'RESUME':
-                        // Simple resume a la línea que falló o NEXT
-                        // Simplificado: resume next linea
-                        if (stmt.target === 'NEXT') {
-                            // saltar a sig instruccion, complejo sin guardar estado exacto.
-                            // Por ahora, solo RESUME = reinicia en linea de error.
-                            let errIdx = this.findLineIndex(this.errLine);
-                            if (errIdx !== -1) {
-                                this.pc = errIdx; this.stmtIdx = -1;
-                            }
-                        } else if (stmt.target) {
-                             let rIdx = this.findLineIndex(stmt.target);
-                             if(rIdx !== -1) { this.pc = rIdx; this.stmtIdx = -1; }
-                        }
-                        this.errCode = 0;
-                        break;
-
-                    case 'STOP': {
-    printTerm("Break in " + this.program[this.pc].line);
-    this.isRunning = false;
-    return true;
-}
-                    case 'END': {
-    this.isRunning = false;
-    this.pc = this.program.length; // 🔥 cortar ejecución totalmente
-    return true;
-}
-
-                    // Comandos interactivos dentro del programa (raro pero posible)
-                    case 'TRON': this.trace = true; document.getElementById('ind-tron').classList.add('active'); break;
-                    case 'TROFF': this.trace = false; document.getElementById('ind-tron').classList.remove('active'); break;
+            async handlePrint(stmt) {
+                let outStr = '';
+                for (let arg of stmt.args) {
+                    if (arg.type === 'SEP') {
+                        if (arg.value === ',') outStr += ' '.repeat(14 - (outStr.length % 14));
+                    } else {
+                        outStr += this.evalExpr(arg);
+                    }
                 }
+
+                let hasTrailingSemicolon = stmt.args.length > 0 && stmt.args[stmt.args.length - 1].type === 'SEP' && stmt.args[stmt.args.length - 1].value === ';';
+                if (hasTrailingSemicolon) {
+                    lcd.print(outStr);
+                    termOut.textContent += outStr;
+                } else {
+                    lcd.print(outStr + '\n');
+                    printTerm(outStr);
+                }
+                return {};
+            }
+
+            async handlePrintUsing(stmt) {
+                let format = String(this.evalExpr(stmt.format));
+                let v = stmt.args.length > 0 ? this.evalExpr(stmt.args[0]) : '';
+                let res = '';
+                if (format.includes('#')) {
+                    let len = format.replace(/[^#]/g, '').length;
+                    res = String(v).substring(0, len).padStart(len, ' ');
+                } else {
+                    res = String(v);
+                }
+                lcd.print(res + '\n');
+                printTerm(res);
+                return {};
+            }
+
+            async handleGosub(stmt) {
+                let tgtSub = this.evalExpr(stmt.lineExpr);
+                let idxSub = this.findLineIndex(tgtSub);
+                if (idxSub === -1) throw new BasicError(2, 'Línea no definida en GOSUB');
+
+                let returnPc = this.pc;
+                let returnStmt = this.stmtIdx + 1;
+                if (returnPc >= 0 && returnStmt >= this.program[returnPc].stmts.length) {
+                    returnPc++;
+                    returnStmt = 0;
+                }
+
+                this.stacks.gosub.push({ pc: returnPc, stmtIdx: returnStmt });
+                this.pc = idxSub;
+                this.stmtIdx = 0;
+                return { jumped: true };
+            }
+
+            async handleReturn() {
+                if (this.stacks.gosub.length === 0) throw new BasicError(9, 'RETURN sin GOSUB');
+                let frame = this.stacks.gosub.pop();
+                this.pc = frame.pc;
+                this.stmtIdx = frame.stmtIdx;
+                return { jumped: true };
+            }
+
+            async handleIf(stmt) {
+                let cond = this.evalExpr(stmt.cond);
+                let stmtsToExec = cond !== 0 ? stmt.thenStmts : stmt.elseStmts;
+                let jumped = false;
+                if (stmtsToExec) {
+                    for (let i = 0; i < stmtsToExec.length; i++) {
+                        let result = await this.executeStatement(stmtsToExec[i]);
+                        if (result && result.halted) return result;
+                        if (result && result.jumped) { jumped = true; break; }
+                    }
+                }
+                if (!jumped && this.pc >= 0) this.stmtIdx = this.program[this.pc].stmts.length;
+                return { jumped };
+            }
+
+            async handleFor(stmt) {
+                let startV = this.evalExpr(stmt.start);
+                let toV = this.evalExpr(stmt.to);
+                let stepV = stmt.step ? this.evalExpr(stmt.step) : 1;
+                if (stepV === 0) throw new BasicError(12, 'STEP no puede ser 0');
+
+                this.setVar(stmt.varName, startV);
+                this.stacks.for = this.stacks.for.filter(f => f.v !== stmt.varName);
+                this.stacks.for.push({ v: stmt.varName, limit: toV, step: stepV, pc: this.pc, stmtIdx: this.stmtIdx });
+                return {};
+            }
+
+            async handleNext(stmt) {
+                let vars = stmt.vars;
+                if (vars.length === 0) {
+                    if (this.stacks.for.length === 0) throw new BasicError(8, 'NEXT sin FOR');
+                    vars = [this.stacks.for[this.stacks.for.length - 1].v];
+                }
+
+                for (let vName of vars) {
+                    let fStackIdx = this.stacks.for.findIndex(f => f.v === vName);
+                    if (fStackIdx === -1) throw new BasicError(8, 'NEXT sin FOR para ' + vName);
+
+                    let f = this.stacks.for[fStackIdx];
+                    let currVal = this.vars[vName] + f.step;
+                    this.vars[vName] = currVal;
+
+                    let loopCont = (f.step > 0 && currVal <= f.limit) || (f.step < 0 && currVal >= f.limit);
+                    if (loopCont) {
+                        this.pc = f.pc;
+                        this.stmtIdx = f.stmtIdx + 1;
+                        return { jumped: true };
+                    }
+                    this.stacks.for.splice(fStackIdx, 1);
+                }
+                return {};
+            }
+
+            async handleWhile(stmt) {
+                let wCond = this.evalExpr(stmt.cond);
+                if (wCond === 0) {
+                    let found = false;
+                    let wDepth = 1;
+                    for (let i = this.pc; i < this.program.length; i++) {
+                        let stmts = this.program[i].stmts;
+                        let jStart = (i === this.pc) ? this.stmtIdx + 1 : 0;
+                        for (let j = jStart; j < stmts.length; j++) {
+                            if (stmts[j].type === 'WHILE') wDepth++;
+                            if (stmts[j].type === 'WEND') wDepth--;
+                            if (wDepth === 0) {
+                                this.pc = i;
+                                this.stmtIdx = j + 1;
+                                found = true;
+                                break;
+                            }
+                        }
+                        if (found) break;
+                    }
+                    return { jumped: found };
+                }
+
+                this.stacks.while.push({ pc: this.pc, stmtIdx: this.stmtIdx, cond: stmt.cond });
+                return {};
+            }
+
+            async handleWend() {
+                if (this.stacks.while.length === 0) throw new BasicError(10, 'WEND sin WHILE');
+                let w = this.stacks.while[this.stacks.while.length - 1];
+                this.pc = w.pc;
+                this.stmtIdx = w.stmtIdx;
+                this.stacks.while.pop();
+                return { jumped: true };
+            }
+
+            async handleInput(stmt) {
+                let inStr = await this.promptInput(stmt.prompt + '? ');
+                let parts = (stmt.vars.length === 1 ? [inStr] : inStr.split(',')).map(s => s.trim());
+                for (let i = 0; i < stmt.vars.length; i++) this.setVar(stmt.vars[i], parts[i] || '0');
+                return {};
+            }
+
+            async handleDim(stmt) {
+                for (let a of stmt.arrays) {
+                    let ds = a.sizes.map(s => Math.floor(this.evalExpr(s)));
+                    if (ds.length > 10) throw new BasicError(1, 'Máximo 10 dimensiones');
+                    let totalSize = 1;
+                    for (let d of ds) {
+                        if (d < 0) throw new BasicError(5, 'Subíndice fuera de rango');
+                        totalSize *= (d + 1);
+                    }
+                    this.arrays[a.name] = { dims: ds, data: new Array(totalSize).fill(a.name.endsWith('$') ? '' : 0) };
+                }
+                return {};
+            }
+
+            async handleRead(stmt) {
+                for (let v of stmt.vars) {
+                    if (this.dataPtr >= this.dataArray.length) throw new BasicError(6, 'Out of DATA');
+                    this.setVar(v, this.dataArray[this.dataPtr++]);
+                }
+                return {};
+            }
+
+            async handleOn(stmt) {
+                let onVal = Math.floor(this.evalExpr(stmt.expr));
+                if (onVal < 1 || onVal > stmt.lines.length) return {};
+
+                let onTarget = this.evalExpr(stmt.lines[onVal - 1]);
+                let onIdx = this.findLineIndex(onTarget);
+                if (onIdx === -1) throw new BasicError(2, 'Línea indefinida');
+
+                if (stmt.action === 'GOSUB') {
+                    this.stacks.gosub.push({ pc: this.pc, stmtIdx: this.stmtIdx + 1 });
+                }
+                this.pc = onIdx;
+                this.stmtIdx = 0;
+                return { jumped: true };
+            }
+
+            async handleResume(stmt) {
+                if (stmt.target === 'NEXT') {
+                    let errIdx = this.findLineIndex(this.errLine);
+                    if (errIdx !== -1) {
+                        this.pc = errIdx + 1;
+                        this.stmtIdx = 0;
+                    }
+                } else if (stmt.target) {
+                    let rIdx = this.findLineIndex(stmt.target);
+                    if (rIdx !== -1) {
+                        this.pc = rIdx;
+                        this.stmtIdx = 0;
+                    }
+                }
+                this.errCode = 0;
+                return { jumped: true };
+            }
+
+            async executeStatement(stmt) {
+                let handler = this.commandHandlers[stmt.type];
+                if (!handler) throw new BasicError(1, 'Comando no implementado en runtime: ' + stmt.type);
+                return await handler(stmt);
             }
 
             async runProgram() {
@@ -1495,22 +1435,36 @@
                 this.scanData();
                 this.isRunning = true;
                 this.pc = 0;
-                
+                this.stmtIdx = 0;
+
                 let lastYield = Date.now();
 
-                while (this.isRunning && this.pc < this.program.length) {
+                while (this.isRunning && this.pc >= 0 && this.pc < this.program.length) {
                     let lineObj = this.program[this.pc];
-                    
-                    if (this.trace && this.stmtIdx === 0) {
-                        printTerm(`[${lineObj.line}]`);
-                    }
 
-                    this.stmtIdx = 0;
+                    if (this.trace && this.stmtIdx === 0) printTerm(`[${lineObj.line}]`);
+
                     while (this.isRunning && this.stmtIdx < lineObj.stmts.length) {
                         let stmt = lineObj.stmts[this.stmtIdx];
                         try {
-                           await this.executeStatement(stmt);
-this.stmtIdx++;
+                            let prevPc = this.pc;
+                            let prevStmt = this.stmtIdx;
+                            let result = await this.executeStatement(stmt) || {};
+
+                            if (!this.isRunning || result.halted) break;
+
+                            let jumped = !!result.jumped || this.pc !== prevPc || this.stmtIdx !== prevStmt;
+                            if (!jumped) {
+                                this.stmtIdx++;
+                                continue;
+                            }
+
+                            if (this.pc !== prevPc) {
+                                lineObj = this.program[this.pc];
+                                continue;
+                            }
+
+                            if (this.stmtIdx === prevStmt) this.stmtIdx++;
                         } catch (e) {
                             if (e instanceof BasicError) {
                                 this.errCode = e.code;
@@ -1519,20 +1473,22 @@ this.stmtIdx++;
                                     let errIdx = this.findLineIndex(this.onErrorLine);
                                     if (errIdx !== -1) {
                                         this.pc = errIdx;
-                                        this.stmtIdx = lineObj.stmts.length; // romper inner loop
-                                        break; 
+                                        this.stmtIdx = 0;
+                                        lineObj = this.program[this.pc];
+                                        continue;
                                     }
                                 }
-                                printTerm(`\n?${ERR_CODES[e.code] || "Error"} in ${lineObj.line}`);
+                                printTerm(`
+?${ERR_CODES[e.code] || 'Error'} in ${lineObj.line}`);
                             } else {
-                                printTerm(`\n?JS Error: ${e.message} in ${lineObj.line}`);
+                                printTerm(`
+?JS Error: ${e.message} in ${lineObj.line}`);
                             }
                             this.isRunning = false;
                             break;
                         }
                     }
 
-                    // Prevenir bloqueo del navegador
                     if (Date.now() - lastYield > 20) {
                         await new Promise(r => setTimeout(r, 0));
                         lastYield = Date.now();
@@ -1540,42 +1496,36 @@ this.stmtIdx++;
 
                     if (this.isRunning && this.stmtIdx >= lineObj.stmts.length) {
                         this.pc++;
+                        this.stmtIdx = 0;
                     }
                 }
 
                 this.isRunning = false;
                 document.getElementById('ind-run').classList.remove('active');
-                printTerm("READY");
+                printTerm('READY');
             }
 
             async execImmediate(cmdStr) {
                 try {
                     let tokens = tokenize(cmdStr);
-                    if(tokens.length === 0) return;
+                    if (tokens.length === 0) return;
 
-                    // Check for Line Number
                     if (tokens[0].type === 'NUMBER') {
                         let lineNum = tokens[0].value;
                         let text = cmdStr.substring(String(lineNum).length).trim();
-                        if (text.length === 0) {
-                            this.deleteLine(lineNum);
-                        } else {
-                            this.insertLine(lineNum, text);
-                        }
+                        if (text.length === 0) this.deleteLine(lineNum);
+                        else this.insertLine(lineNum, text);
                         return;
                     }
 
-                    // Parse as statement
                     let parser = new Parser(tokens);
                     let stmts = parser.parseStatementList();
-                    
+
                     for (let stmt of stmts) {
                         if (stmt.type === 'RUN') {
                             await this.runProgram();
-                            return; // RUN takes over
-                        } else if (stmt.type === 'LIST') {
-                            for (let p of this.program) printTerm(`${p.line} ${p.text}`);
-                        } else if (stmt.type === 'LIST ALL') {
+                            return;
+                        } else if (stmt.type === 'LIST' || stmt.type === 'LIST ALL') {
                             for (let p of this.program) printTerm(`${p.line} ${p.text}`);
                         } else if (stmt.type === 'NEW' || stmt.type === 'NEW ALL') {
                             this.program = [];
@@ -1587,27 +1537,24 @@ this.stmtIdx++;
                             for (let k in this.vars) printTerm(`${k} = ${this.vars[k]}`);
                             for (let k in this.arrays) printTerm(`${k}() [Array]`);
                         } else if (stmt.type === 'FRE') {
-                            printTerm(`65536 BYTES FREE`);
+                            printTerm('65536 BYTES FREE');
                         } else if (stmt.type === 'TRON') {
-                            this.trace = true; document.getElementById('ind-tron').classList.add('active');
+                            this.trace = true;
+                            document.getElementById('ind-tron').classList.add('active');
                         } else if (stmt.type === 'TROFF') {
-                            this.trace = false; document.getElementById('ind-tron').classList.remove('active');
+                            this.trace = false;
+                            document.getElementById('ind-tron').classList.remove('active');
                         } else {
-                            // Run in immediate mode
-                            // Temporarily set a mock environment
                             this.pc = -1;
+                            this.stmtIdx = 0;
                             await this.executeStatement(stmt);
                         }
                     }
-                    printTerm("READY");
-
+                    printTerm('READY');
                 } catch (e) {
-                    if (e instanceof BasicError) {
-                        printTerm(`?${ERR_CODES[e.code] || e.message}`);
-                    } else {
-                        printTerm(`?Error: ${e.message}`);
-                    }
-                    printTerm("READY");
+                    if (e instanceof BasicError) printTerm(`?${ERR_CODES[e.code] || e.message}`);
+                    else printTerm(`?Error: ${e.message}`);
+                    printTerm('READY');
                 }
             }
         }
