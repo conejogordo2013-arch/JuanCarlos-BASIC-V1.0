@@ -1,0 +1,7 @@
+10 CLS
+20 DIM A(5),B$(2)
+30 FOR I=0 TO 5:A(I)=I*I:NEXT I
+40 B$(0)="FX":B$(1)="880":B$(2)="P"
+50 FOR I=0 TO 5:PRINT A(I);:NEXT I
+60 PRINT B$(0)+B$(1)+B$(2)
+70 END
