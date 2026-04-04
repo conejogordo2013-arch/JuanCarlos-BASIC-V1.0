@@ -1,0 +1,4 @@
+10 CLS
+20 K$=INKEY$()
+30 PRINT "KEY=";K$
+40 END
