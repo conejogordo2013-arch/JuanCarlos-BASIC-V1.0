@@ -1,0 +1,5 @@
+10 CLS
+20 INPUT "N";N
+30 PRINT USING "#####";N;
+40 PRINT " <- USING"
+50 END
