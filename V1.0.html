@@ -1,0 +1,1591 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Intérprete BASIC JuanCarlos</title>
+    <style>
+        :root {
+            --lcd-bg: #9ba89e;
+            --lcd-text: #2a332d;
+            --calc-body: #2c2c2c;
+            --terminal-bg: #1e1e1e;
+            --terminal-text: #00ff00;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #121212;
+            color: #fff;
+            font-family: 'Courier New', Courier, monospace;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        h1 {
+            color: #ccc;
+            margin-top: 20px;
+            font-size: 1.5rem;
+            text-shadow: 1px 1px 2px #000;
+        }
+
+        .container {
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+            max-width: 800px;
+            gap: 20px;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        /* Calculator Screen Simulation */
+        .calculator {
+            background-color: var(--calc-body);
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: inset 0px 5px 15px rgba(0,0,0,0.8), 0px 10px 30px rgba(0,0,0,0.5);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .brand {
+            width: 100%;
+            text-align: left;
+            color: #ccc;
+            font-family: sans-serif;
+            font-weight: bold;
+            font-style: italic;
+            margin-bottom: 15px;
+            font-size: 1.2rem;
+            letter-spacing: 2px;
+        }
+
+        .lcd-bezel {
+            background-color: #111;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: inset 0px 2px 10px rgba(0,0,0,0.9);
+            width: 100%;
+            box-sizing: border-box;
+            display: flex;
+            justify-content: center;
+        }
+
+        .lcd-screen {
+            background-color: var(--lcd-bg);
+            color: var(--lcd-text);
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 18px;
+            line-height: 1.2;
+            width: 100%;
+            height: calc(18px * 1.2 * 2 + 10px); /* 2 rows + padding */
+            padding: 5px 10px;
+            box-sizing: border-box;
+            border-radius: 4px;
+            box-shadow: inset 2px 2px 5px rgba(0,0,0,0.3), inset -2px -2px 5px rgba(255,255,255,0.2);
+            position: relative;
+            overflow: hidden;
+            white-space: pre;
+            text-transform: uppercase;
+        }
+
+        #lcd-content {
+            position: absolute;
+            top: 5px;
+            left: 10px;
+            margin: 0;
+            pointer-events: none;
+            text-shadow: 1px 1px 0px rgba(255,255,255,0.2);
+        }
+
+        .cursor {
+            background-color: var(--lcd-text);
+            color: var(--lcd-bg);
+            animation: blink 1s step-end infinite;
+        }
+
+        @keyframes blink {
+            0%, 100% { background-color: transparent; color: var(--lcd-text); }
+            50% { background-color: var(--lcd-text); color: var(--lcd-bg); }
+        }
+
+        /* Terminal / Editor Area */
+        .terminal-area {
+            background-color: var(--terminal-bg);
+            border: 2px solid #444;
+            border-radius: 8px;
+            display: flex;
+            flex-direction: column;
+            height: 400px;
+            box-shadow: 0px 5px 20px rgba(0,0,0,0.6);
+        }
+
+        .terminal-header {
+            background-color: #333;
+            padding: 5px 10px;
+            font-size: 0.8rem;
+            color: #aaa;
+            border-top-left-radius: 6px;
+            border-top-right-radius: 6px;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        #terminal-output {
+            flex-grow: 1;
+            padding: 10px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+            color: var(--terminal-text);
+            font-size: 14px;
+            margin: 0;
+        }
+
+        .input-line {
+            display: flex;
+            padding: 10px;
+            background-color: #1a1a1a;
+            border-bottom-left-radius: 6px;
+            border-bottom-right-radius: 6px;
+            border-top: 1px solid #333;
+        }
+
+        .prompt {
+            color: var(--terminal-text);
+            margin-right: 8px;
+            font-weight: bold;
+        }
+
+        #cmd-input {
+            flex-grow: 1;
+            background: transparent;
+            border: none;
+            color: var(--terminal-text);
+            font-family: inherit;
+            font-size: 14px;
+            outline: none;
+            text-transform: uppercase;
+        }
+
+        /* Scrollbar styles */
+        ::-webkit-scrollbar { width: 10px; }
+        ::-webkit-scrollbar-track { background: var(--terminal-bg); }
+        ::-webkit-scrollbar-thumb { background: #555; border-radius: 5px; }
+        ::-webkit-scrollbar-thumb:hover { background: #777; }
+
+        .indicators {
+            display: flex;
+            justify-content: flex-end;
+            gap: 15px;
+            margin-top: 10px;
+            font-size: 0.7rem;
+            color: #777;
+            font-family: sans-serif;
+        }
+        .indicator {
+            padding: 2px 6px;
+            border-radius: 3px;
+            background-color: #222;
+        }
+        .indicator.active {
+            color: #ff3333;
+            background-color: #441111;
+            box-shadow: 0 0 5px #ff0000;
+        }
+
+    </style>
+</head>
+<body>
+
+    <h1>JuanCarlos</h1>
+
+    <div class="container">
+        <!-- Calculator Body (LCD) -->
+        <div class="calculator">
+            <div class="brand">JuanCarlos <span style="font-size: 0.8rem; font-weight: normal;">BASIC JC V1.0</span></div>
+            <div class="lcd-bezel">
+                <div class="lcd-screen" id="lcd-container">
+                    <pre id="lcd-content"></pre>
+                </div>
+            </div>
+            <div class="indicators">
+                <div class="indicator" id="ind-run">RUN</div>
+                <div class="indicator" id="ind-deg">DEG</div>
+                <div class="indicator" id="ind-rad">RAD</div>
+                <div class="indicator" id="ind-gra">GRA</div>
+                <div class="indicator" id="ind-tron">TRON</div>
+            </div>
+        </div>
+
+        <!-- Terminal Interface -->
+        <div class="terminal-area">
+            <div class="terminal-header">
+                <span>TERMINAL I/O & EDITOR</span>
+                <span id="mem-free">65536 BYTES FREE</span>
+            </div>
+            <pre id="terminal-output">JuanCarlos BASIC V1.0 INICIALIZADO.\nREADY\n</pre>
+            <div class="input-line">
+                <span class="prompt" id="prompt-char">></span>
+                <input type="text" id="cmd-input" autocomplete="off" spellcheck="false" autofocus>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- UTILIDADES DEL SISTEMA ---
+        const termOut = document.getElementById('terminal-output');
+        const termIn = document.getElementById('cmd-input');
+        const lcdContent = document.getElementById('lcd-content');
+        const promptChar = document.getElementById('prompt-char');
+
+        function printTerm(text, newline = true) {
+            termOut.textContent += text + (newline ? '\n' : '');
+            termOut.scrollTop = termOut.scrollHeight;
+        }
+
+        // --- PANTALLA LCD SIMULADA (32x2) ---
+        class LCD {
+            constructor() {
+                this.cols = 32;
+                this.rows = 2;
+                this.buffer = Array(this.rows).fill('').map(() => ' '.repeat(this.cols));
+                this.cx = 0; // 0 a 31
+                this.cy = 0; // 0 a 1
+                this.updateDisplay();
+            }
+
+            clear() {
+                this.buffer = Array(this.rows).fill('').map(() => ' '.repeat(this.cols));
+                this.cx = 0;
+                this.cy = 0;
+                this.updateDisplay();
+            }
+
+            locate(col, row) {
+                // BASIC es 1-indexed generalmente
+                this.cx = Math.max(0, Math.min(this.cols - 1, col - 1));
+                this.cy = Math.max(0, Math.min(this.rows - 1, row - 1));
+                this.updateDisplay();
+            }
+
+            print(text) {
+                let str = text.toString().toUpperCase();
+                for (let i = 0; i < str.length; i++) {
+                    let char = str[i];
+                    if (char === '\n') {
+                        this.cx = 0;
+                        this.cy++;
+                        this.checkScroll();
+                        continue;
+                    }
+                    
+                    let line = this.buffer[this.cy].split('');
+                    line[this.cx] = char;
+                    this.buffer[this.cy] = line.join('').substring(0, this.cols);
+                    
+                    this.cx++;
+                    if (this.cx >= this.cols) {
+                        this.cx = 0;
+                        this.cy++;
+                        this.checkScroll();
+                    }
+                }
+                this.updateDisplay();
+            }
+
+            checkScroll() {
+                if (this.cy >= this.rows) {
+                    this.buffer.shift();
+                    this.buffer.push(' '.repeat(this.cols));
+                    this.cy = this.rows - 1;
+                }
+            }
+
+            updateDisplay() {
+                let out = this.buffer[0] + '\n' + this.buffer[1];
+                // Insertar cursor lógico si está dentro de la pantalla
+                if (this.cy < this.rows && this.cx < this.cols && document.activeElement !== termIn) {
+                    // Solo simulamos cursor en LCD si no estamos escribiendo en terminal
+                }
+                lcdContent.textContent = out;
+            }
+        }
+
+        const lcd = new LCD();
+
+        // --- DEFINICIONES DE LENGUAJE ---
+        const KEYWORDS = [
+            "NEW ALL", "NEW", "CLEAR", "RUN", "LIST ALL", "LIST", "EDIT", "VARLIST", "PASS", "FRE", "TROFF", "TRON",
+            "GOTO", "GOSUB", "RETURN", "ON ERROR GOTO", "ON ERROR", "RESUME", "ERR", "ERL", "ON",
+            "IF", "THEN", "ELSE", "FOR", "TO", "STEP", "NEXT", "WHILE", "WEND", "DO", "UNTIL",
+            "STOP", "END", "REM", "LET", "PRINT USING", "PRINT", "INPUT$", "INPUT", "LOCATE", "CLS", "BEEP",
+            "DIM", "DATA", "READ", "RESTORE",
+            "PEEK", "POKE", "DEFSEG", "OPEN", "CLOSE", "SAVE", "LOAD"
+        ];
+
+        const FUNCTIONS = [
+            "HSIN", "HCOS", "HTAN", "HASN", "HACS", "HATN",
+            "SIN", "COS", "TAN", "ASN", "ACS", "ATN",
+            "LOG", "LN", "EXP", "SQR", "ABS", "SGN", "INT", "FIX", "FRAC", "ROUND",
+            "RAN#", "PI", "FACT", "NPR", "NCR", "POL", "REC", "ANGLE",
+            "CHR$", "ASC", "STR$", "VAL", "LEFT$", "RIGHT$", "MID$", "LEN", "INKEY$"
+        ];
+
+        const OPERATORS = ["<>", "<=", ">=", "^", "*", "/", "+", "-", "=", "<", ">", "AND", "OR", "NOT"];
+
+        // --- MANEJO DE ERRORES ---
+        class BasicError extends Error {
+            constructor(code, message, line = 0) {
+                super(message);
+                this.code = code;
+                this.basicLine = line;
+            }
+        }
+
+        const ERR_CODES = {
+            1: "Syntax error",
+            2: "Undefined line",
+            3: "Division by zero",
+            4: "Out of memory",
+            5: "Subscript out of range",
+            6: "Out of DATA",
+            7: "Type mismatch",
+            8: "NEXT without FOR",
+            9: "RETURN without GOSUB",
+            10: "WEND without WHILE",
+            11: "UNTIL without DO",
+            12: "Illegal quantity"
+        };
+
+        // --- ANALIZADOR LÉXICO (LEXER) ---
+        function tokenize(codeStr) {
+            let tokens = [];
+            let i = 0;
+            codeStr = codeStr.trim();
+
+            while (i < codeStr.length) {
+                let char = codeStr[i];
+
+                // Espacios
+                if (/\s/.test(char)) { i++; continue; }
+
+                // Separador de sentencias
+                if (char === ':') {
+                    tokens.push({ type: 'SEP', value: ':' });
+                    i++; continue;
+                }
+
+                // Comentarios (')
+                if (char === "'") {
+                    tokens.push({ type: 'REM', value: codeStr.substring(i + 1) });
+                    break;
+                }
+
+                // Números Hexadecimales (&H...)
+                if (codeStr.substring(i, i+2).toUpperCase() === '&H') {
+                    let hexStr = "";
+                    i += 2;
+                    while (i < codeStr.length && /[0-9A-F]/i.test(codeStr[i])) {
+                        hexStr += codeStr[i];
+                        i++;
+                    }
+                    tokens.push({ type: 'NUMBER', value: parseInt(hexStr, 16) });
+                    continue;
+                }
+
+                // Números (Decimales)
+                if (/[0-9]/.test(char) || (char === '.' && /[0-9]/.test(codeStr[i+1]))) {
+                    let numStr = "";
+                    while (i < codeStr.length && /[0-9.]/.test(codeStr[i])) {
+                        numStr += codeStr[i];
+                        i++;
+                    }
+                    if (codeStr[i] === 'E' || codeStr[i] === 'e') {
+                        numStr += codeStr[i]; i++;
+                        if (codeStr[i] === '+' || codeStr[i] === '-') { numStr += codeStr[i]; i++; }
+                        while (i < codeStr.length && /[0-9]/.test(codeStr[i])) { numStr += codeStr[i]; i++; }
+                    }
+                    tokens.push({ type: 'NUMBER', value: parseFloat(numStr) });
+                    continue;
+                }
+
+                // Cadenas de texto
+                if (char === '"') {
+                    let str = "";
+                    i++;
+                    while (i < codeStr.length && codeStr[i] !== '"') {
+                        str += codeStr[i];
+                        i++;
+                    }
+                    i++; // saltar comilla final
+                    tokens.push({ type: 'STRING', value: str });
+                    continue;
+                }
+
+                // Operadores (Buscar el más largo primero)
+                let matchedOp = null;
+                for (let op of OPERATORS) {
+                    if (codeStr.substring(i, i + op.length).toUpperCase() === op) {
+                        matchedOp = op;
+                        break;
+                    }
+                }
+                if (matchedOp) {
+                    tokens.push({ type: 'OPERATOR', value: matchedOp });
+                    i += matchedOp.length;
+                    continue;
+                }
+
+                // Paréntesis y comas
+                if (char === '(' || char === ')' || char === ',' || char === ';') {
+                    tokens.push({ type: 'PUNCT', value: char });
+                    i++; continue;
+                }
+
+                // Identificadores (Keywords, Funciones, Variables)
+                if (/[A-Za-z_]/.test(char)) {
+                    let idStr = "";
+                    while (i < codeStr.length && /[A-Za-z0-9_$#]/.test(codeStr[i])) {
+                        idStr += codeStr[i];
+                        i++;
+                    }
+                    let upperId = idStr.toUpperCase();
+
+                    // Check Keywords and Functions
+                    let isKeyword = KEYWORDS.includes(upperId);
+                    let isFunc = FUNCTIONS.includes(upperId);
+
+                    // Handle special case: REM
+                    if (upperId === "REM") {
+                        tokens.push({ type: 'REM', value: codeStr.substring(i) });
+                        break;
+                    }
+
+                    if (isKeyword) {
+                        tokens.push({ type: 'KEYWORD', value: upperId });
+                    } else if (isFunc) {
+                        tokens.push({ type: 'FUNCTION', value: upperId });
+                    } else {
+                        // Variable or Array
+                        tokens.push({ type: 'VAR', value: upperId });
+                    }
+                    continue;
+                }
+
+                // Si no coincide con nada, lanzar error de sintaxis en tokenizer
+                throw new BasicError(1, "Sintaxis irreconocible: " + char);
+            }
+            return tokens;
+        }
+
+        // --- PARSER DE EXPRESIONES (Sin eval) ---
+        class Parser {
+            constructor(tokens) {
+                this.tokens = tokens;
+                this.pos = 0;
+            }
+
+            peek() { return this.tokens[this.pos] || { type: 'EOF' }; }
+            consume() { return this.tokens[this.pos++]; }
+            match(type, value) {
+                let t = this.peek();
+                if (t.type === type && (value === undefined || t.value === value)) {
+                    return this.consume();
+                }
+                return null;
+            }
+
+            parseExpression() {
+                return this.parseLogicalOr();
+            }
+
+            parseLogicalOr() {
+                let node = this.parseLogicalAnd();
+                while (this.match('OPERATOR', 'OR')) {
+                    node = { type: 'BINARY', op: 'OR', left: node, right: this.parseLogicalAnd() };
+                }
+                return node;
+            }
+
+            parseLogicalAnd() {
+                let node = this.parseLogicalNot();
+                while (this.match('OPERATOR', 'AND')) {
+                    node = { type: 'BINARY', op: 'AND', left: node, right: this.parseLogicalNot() };
+                }
+                return node;
+            }
+
+            parseLogicalNot() {
+                if (this.match('OPERATOR', 'NOT')) {
+                    return { type: 'UNARY', op: 'NOT', expr: this.parseRelational() };
+                }
+                return this.parseRelational();
+            }
+
+            parseRelational() {
+                let node = this.parseTerm();
+                let t = this.peek();
+                if (t.type === 'OPERATOR' && ['=', '<>', '<', '>', '<=', '>='].includes(t.value)) {
+                    this.consume();
+                    node = { type: 'BINARY', op: t.value, left: node, right: this.parseTerm() };
+                }
+                return node;
+            }
+
+            parseTerm() {
+                let node = this.parseFactor();
+                while (true) {
+                    let t = this.peek();
+                    if (t.type === 'OPERATOR' && ['+', '-'].includes(t.value)) {
+                        this.consume();
+                        node = { type: 'BINARY', op: t.value, left: node, right: this.parseFactor() };
+                    } else break;
+                }
+                return node;
+            }
+
+            parseFactor() {
+                let node = this.parsePower();
+                while (true) {
+                    let t = this.peek();
+                    if (t.type === 'OPERATOR' && ['*', '/'].includes(t.value)) {
+                        this.consume();
+                        node = { type: 'BINARY', op: t.value, left: node, right: this.parsePower() };
+                    } else break;
+                }
+                return node;
+            }
+
+            parsePower() {
+                let node = this.parseUnary();
+                if (this.match('OPERATOR', '^')) {
+                    node = { type: 'BINARY', op: '^', left: node, right: this.parsePower() }; // Right associative
+                }
+                return node;
+            }
+
+            parseUnary() {
+                if (this.match('OPERATOR', '-')) return { type: 'UNARY', op: '-', expr: this.parseUnary() };
+                if (this.match('OPERATOR', '+')) return this.parseUnary();
+                return this.parsePrimary();
+            }
+
+            parsePrimary() {
+                let t = this.peek();
+
+                if (t.type === 'NUMBER' || t.type === 'STRING') {
+                    this.consume();
+                    return { type: 'LITERAL', value: t.value };
+                }
+
+                if (t.type === 'PUNCT' && t.value === '(') {
+                    this.consume();
+                    let expr = this.parseExpression();
+                    if (!this.match('PUNCT', ')')) throw new BasicError(1, "Falta ')'");
+                    return expr;
+                }
+
+                if (t.type === 'FUNCTION') {
+                    this.consume();
+                    let funcName = t.value;
+                    let args = [];
+                    // Handle functions without parenthesis like PI, RAN#
+                    if (funcName === 'PI' || funcName === 'RAN#') {
+                        return { type: 'CALL', name: funcName, args: [] };
+                    }
+                    
+                    if (this.match('PUNCT', '(')) {
+                        if (this.peek().value !== ')') {
+                            args.push(this.parseExpression());
+                            while (this.match('PUNCT', ',')) {
+                                args.push(this.parseExpression());
+                            }
+                        }
+                        if (!this.match('PUNCT', ')')) throw new BasicError(1, "Falta ')' en función");
+                    } else {
+                         throw new BasicError(1, "Se esperaba '(' después de función");
+                    }
+                    return { type: 'CALL', name: funcName, args: args };
+                }
+
+                if (t.type === 'VAR') {
+    this.consume();
+    let varName = t.value;
+
+    if (this.match('PUNCT', '(')) {
+        // Array access
+        let indices = [];
+        indices.push(this.parseExpression());
+        while (this.match('PUNCT', ',')) {
+            indices.push(this.parseExpression());
+        }
+        if (!this.match('PUNCT', ')')) throw new BasicError(1, "Falta ')' en array");
+
+        return { type: 'ARRAY_ACCESS', name: varName, indices: indices };
+    }
+
+    return { type: 'VAR_ACCESS', name: varName };
+}
+
+                throw new BasicError(1, "Expresión inválida en: " + (t.value || "fin"));
+            }
+
+            parseStatementList() {
+                let statements = [];
+                while (this.peek().type !== 'EOF') {
+                    statements.push(this.parseStatement());
+                    if (!this.match('SEP', ':') && this.peek().type !== 'EOF') {
+                        throw new BasicError(1, "Se esperaba ':' o fin de línea");
+                    }
+                }
+                return statements;
+            }
+
+            parseStatement() {
+                let t = this.peek();
+                
+                // Asignación implícita: A = 5
+                if (t.type === 'VAR') {
+                    let varToken = this.consume();
+                    let isArray = false;
+                    let indices = [];
+                    if (this.match('PUNCT', '(')) {
+                        isArray = true;
+                        indices.push(this.parseExpression());
+                        while (this.match('PUNCT', ',')) {
+                            indices.push(this.parseExpression());
+                        }
+                        if (!this.match('PUNCT', ')')) throw new BasicError(1, "Falta ')' en asignación de array");
+                    }
+                    if (!this.match('OPERATOR', '=')) throw new BasicError(1, "Se esperaba '=' en asignación");
+                    let expr = this.parseExpression();
+                    return { type: 'LET', varName: varToken.value, isArray, indices, expr };
+                }
+
+                if (t.type !== 'KEYWORD' && t.type !== 'REM') {
+                     throw new BasicError(1, "Comando desconocido: " + (t.value || "vacío"));
+                }
+                
+                this.consume();
+                let cmd = t.value;
+
+                switch(cmd) {
+                    case 'REM': return { type: 'REM' };
+                    case 'LET':
+                        let lvar = this.consume();
+                        if (lvar.type !== 'VAR') throw new BasicError(1, "Se esperaba variable en LET");
+                        let isArr = false, lIndices = [];
+                        if (this.match('PUNCT', '(')) {
+                            isArr = true;
+                            lIndices.push(this.parseExpression());
+                            while(this.match('PUNCT', ',')) lIndices.push(this.parseExpression());
+                            this.match('PUNCT', ')');
+                        }
+                        this.match('OPERATOR', '=');
+                        return { type: 'LET', varName: lvar.value, isArray: isArr, indices: lIndices, expr: this.parseExpression() };
+                    
+                    case 'PRINT':
+                        let pArgs = [];
+                        while (this.peek().type !== 'EOF' && this.peek().type !== 'SEP') {
+                            if (this.peek().type === 'PUNCT' && (this.peek().value === ';' || this.peek().value === ',')) {
+                                pArgs.push({ type: 'SEP', value: this.consume().value });
+                            } else {
+                                pArgs.push(this.parseExpression());
+                            }
+                        }
+                        return { type: 'PRINT', args: pArgs };
+                    
+                    case 'PRINT USING':
+                        let format = this.parseExpression();
+                        this.match('PUNCT', ';');
+                        let puArgs = [];
+                        while (this.peek().type !== 'EOF' && this.peek().type !== 'SEP') {
+                            if (this.peek().type === 'PUNCT' && (this.peek().value === ';' || this.peek().value === ',')) {
+                                this.consume(); // Ignorar separadores en USING
+                            } else {
+                                puArgs.push(this.parseExpression());
+                            }
+                        }
+                        return { type: 'PRINT USING', format, args: puArgs };
+                    
+                    case 'GOTO':
+                        return { type: 'GOTO', lineExpr: this.parseExpression() };
+                    
+                    case 'GOSUB':
+                        return { type: 'GOSUB', lineExpr: this.parseExpression() };
+                    
+                    case 'RETURN': return { type: 'RETURN' };
+                    case 'END': return { type: 'END' };
+                    case 'STOP': return { type: 'STOP' };
+                    case 'CLS': return { type: 'CLS' };
+                    case 'BEEP': return { type: 'BEEP' };
+                    
+                    case 'LOCATE':
+                        let col = this.parseExpression();
+                        this.match('PUNCT', ',');
+                        let row = this.parseExpression();
+                        return { type: 'LOCATE', col, row };
+
+                    case 'IF':
+                        let cond = this.parseExpression();
+                        if (!this.match('KEYWORD', 'THEN')) throw new BasicError(1, "Falta THEN en IF");
+                        
+                        // En BASIC, THEN puede ir seguido de un número de línea o sentencias
+                        let thenStmts = [];
+                        let p = this.peek();
+                        if (p.type === 'NUMBER') {
+                            thenStmts.push({ type: 'GOTO', lineExpr: { type: 'LITERAL', value: this.consume().value }});
+                        } else {
+                            // Leer sentencias hasta EOF, SEP(:) o ELSE
+                            while(this.peek().type !== 'EOF' && this.peek().value !== 'ELSE') {
+                                thenStmts.push(this.parseStatement());
+                                if (this.match('SEP', ':')) continue;
+                                break;
+                            }
+                        }
+
+                        let elseStmts = [];
+                        if (this.match('KEYWORD', 'ELSE')) {
+                            let pe = this.peek();
+                            if (pe.type === 'NUMBER') {
+                                elseStmts.push({ type: 'GOTO', lineExpr: { type: 'LITERAL', value: this.consume().value }});
+                            } else {
+                                while(this.peek().type !== 'EOF') {
+                                    elseStmts.push(this.parseStatement());
+                                    if (this.match('SEP', ':')) continue;
+                                    break;
+                                }
+                            }
+                        }
+                        return { type: 'IF', cond, thenStmts, elseStmts };
+
+                    case 'FOR':
+                        let forVarToken = this.consume();
+                        if (forVarToken.type !== 'VAR') throw new BasicError(1, "Se esperaba variable en FOR");
+                        let forVar = forVarToken.value;
+                        this.match('OPERATOR', '=');
+                        let startExpr = this.parseExpression();
+                        if (!this.match('KEYWORD', 'TO')) throw new BasicError(1, "Falta TO en FOR");
+                        let toExpr = this.parseExpression();
+                        let stepExpr = { type: 'LITERAL', value: 1 };
+                        if (this.match('KEYWORD', 'STEP')) {
+                            stepExpr = this.parseExpression();
+                        }
+                        return { type: 'FOR', varName: forVar, start: startExpr, to: toExpr, step: stepExpr };
+                    
+                    case 'NEXT':
+                        let nextVars = [];
+                        if (this.peek().type === 'VAR') {
+                            nextVars.push(this.consume().value);
+                            while (this.match('PUNCT', ',')) {
+                                let nv = this.consume();
+                                if (nv.type !== 'VAR') throw new BasicError(1, "Se esperaba variable en NEXT");
+                                nextVars.push(nv.value);
+                            }
+                        }
+                        return { type: 'NEXT', vars: nextVars };
+                    
+                    case 'WHILE':
+                        return { type: 'WHILE', cond: this.parseExpression() };
+                    case 'WEND': return { type: 'WEND' };
+                    case 'DO': return { type: 'DO' };
+                    case 'UNTIL':
+                        return { type: 'UNTIL', cond: this.parseExpression() };
+                    
+                    case 'INPUT':
+                        let promptStr = "?";
+                        if (this.peek().type === 'STRING') {
+                            promptStr = this.consume().value;
+                            this.match('PUNCT', ';');
+                        }
+                        let inputVars = [];
+                        let firstInputVar = this.consume();
+                        if (firstInputVar.type !== 'VAR') throw new BasicError(1, "Se esperaba variable en INPUT");
+                        inputVars.push(firstInputVar.value);
+                        while (this.match('PUNCT', ',')) {
+                            let iv = this.consume();
+                            if (iv.type !== 'VAR') throw new BasicError(1, "Se esperaba variable en INPUT");
+                            inputVars.push(iv.value);
+                        }
+                        return { type: 'INPUT', prompt: promptStr, vars: inputVars };
+                    
+                    case 'DIM':
+                        let dims = [];
+                        do {
+                            let arrName = this.consume().value;
+                            if (!this.match('PUNCT', '(')) throw new BasicError(1, "Falta '(' en DIM");
+                            let sizes = [];
+                            sizes.push(this.parseExpression());
+                            while (this.match('PUNCT', ',')) {
+                                sizes.push(this.parseExpression());
+                            }
+                            if (!this.match('PUNCT', ')')) throw new BasicError(1, "Falta ')' en DIM");
+                            dims.push({ name: arrName, sizes });
+                        } while (this.match('PUNCT', ','));
+                        return { type: 'DIM', arrays: dims };
+
+                    case 'DATA':
+                        let dataVals = [];
+                        do {
+                            let pt = this.peek();
+                            if (pt.type === 'NUMBER' || pt.type === 'STRING') {
+                                dataVals.push(this.consume().value);
+                            } else if (pt.type === 'OPERATOR' && pt.value === '-') {
+                                this.consume();
+                                let num = this.consume().value;
+                                dataVals.push(-num);
+                            } else {
+                                // Tratar vars como strings sin comillas si no son comillas (comportamiento de algunos BASICs)
+                                // Para simplicidad estricta exigimos strings o numeros
+                                throw new BasicError(1, "Se esperaba valor literal en DATA");
+                            }
+                        } while (this.match('PUNCT', ','));
+                        return { type: 'DATA', values: dataVals };
+                    
+                    case 'READ':
+                        let readVars = [];
+                        readVars.push(this.consume().value);
+                        while (this.match('PUNCT', ',')) {
+                            readVars.push(this.consume().value);
+                        }
+                        return { type: 'READ', vars: readVars };
+                    
+                    case 'RESTORE': return { type: 'RESTORE' };
+                    
+                    case 'ON':
+                        let onExpr = this.parseExpression();
+                        let targetType = this.consume().value; // GOTO o GOSUB
+                        if (targetType !== 'GOTO' && targetType !== 'GOSUB') throw new BasicError(1, "Se esperaba GOTO/GOSUB en ON");
+                        let lines = [];
+                        lines.push(this.parseExpression());
+                        while(this.match('PUNCT', ',')) lines.push(this.parseExpression());
+                        return { type: 'ON', expr: onExpr, action: targetType, lines };
+
+                    case 'ON ERROR GOTO':
+                        return { type: 'ON ERROR GOTO', line: this.parseExpression() };
+                    case 'ON ERROR': // Simular ON ERROR RESUME NEXT quizas, o apagar
+                        if(this.peek().type === 'NUMBER' && this.peek().value === 0) { this.consume(); return { type: 'ON ERROR OFF' }; }
+                        throw new BasicError(1, "ON ERROR requiere GOTO o 0");
+                    case 'RESUME':
+                        let resTarget = null;
+                        if(this.peek().type === 'NUMBER' || this.peek().type === 'KEYWORD') {
+                            resTarget = this.consume().value; // Line number o 'NEXT'
+                        }
+                        return { type: 'RESUME', target: resTarget };
+
+                    case 'PEEK':
+                        // PEEK is usually a function, but sometimes implemented as command PEEK addr, var
+                        // User requested PEEK(addr) so it's handled in expressions.
+                        break;
+                    case 'POKE':
+                        let addr = this.parseExpression();
+                        this.match('PUNCT', ',');
+                        let val = this.parseExpression();
+                        return { type: 'POKE', addr, val };
+                    case 'DEFSEG':
+                        let seg = this.parseExpression();
+                        return { type: 'DEFSEG', val: seg };
+
+                    // Interactive / Management commands
+                    case 'RUN': return { type: 'RUN' };
+                    case 'LIST': return { type: 'LIST' };
+                    case 'LIST ALL': return { type: 'LIST ALL' };
+                    case 'NEW': return { type: 'NEW' };
+                    case 'NEW ALL': return { type: 'NEW ALL' };
+                    case 'CLEAR': return { type: 'CLEAR' };
+                    case 'TRON': return { type: 'TRON' };
+                    case 'TROFF': return { type: 'TROFF' };
+                    case 'VARLIST': return { type: 'VARLIST' };
+                    case 'FRE': return { type: 'FRE' }; // Often a function, but can be a command to print it
+
+                    default:
+                        throw new BasicError(1, "Comando no implementado: " + cmd);
+                }
+            }
+        }
+
+        // --- NÚCLEO DEL INTÉRPRETE ---
+        class BasicMachine {
+            constructor() {
+                this.program = [];
+                this.vars = {};
+                this.arrays = {};
+                this.dataArray = [];
+                this.dataPtr = 0;
+                this.memory = new Uint8Array(65536);
+                this.segment = 0;
+
+                this.pc = -1;
+                this.stmtIdx = 0;
+                this.isRunning = false;
+                this.awaitingInput = false;
+
+                this.stacks = { gosub: [], for: [], while: [], do: [] };
+
+                this.trace = false;
+                this.angleMode = 1; // 0=RAD, 1=DEG, 2=GRA
+
+                this.onErrorLine = -1;
+                this.errCode = 0;
+                this.errLine = 0;
+
+                this.keyBuffer = [];
+                document.addEventListener('keydown', (e) => {
+                    if (this.isRunning && !this.awaitingInput) {
+                        this.keyBuffer.push(e.key);
+                        if (this.keyBuffer.length > 10) this.keyBuffer.shift();
+                    }
+                });
+
+                // Registro modular de comandos/instrucciones
+                this.commandHandlers = this.buildCommandHandlers();
+            }
+
+            buildCommandHandlers() {
+                return {
+                    REM: async () => ({}),
+                    LET: async (stmt) => {
+                        this.setVar(stmt.varName, this.evalExpr(stmt.expr), stmt.isArray, stmt.indices);
+                        return {};
+                    },
+                    PRINT: async (stmt) => this.handlePrint(stmt),
+                    'PRINT USING': async (stmt) => this.handlePrintUsing(stmt),
+                    LOCATE: async (stmt) => {
+                        lcd.locate(this.evalExpr(stmt.col), this.evalExpr(stmt.row));
+                        return {};
+                    },
+                    CLS: async () => { lcd.clear(); return {}; },
+                    BEEP: async () => { this.beep(); return {}; },
+                    GOTO: async (stmt) => this.jumpToLine(this.evalExpr(stmt.lineExpr), 'GOTO'),
+                    GOSUB: async (stmt) => this.handleGosub(stmt),
+                    RETURN: async () => this.handleReturn(),
+                    IF: async (stmt) => this.handleIf(stmt),
+                    FOR: async (stmt) => this.handleFor(stmt),
+                    NEXT: async (stmt) => this.handleNext(stmt),
+                    WHILE: async (stmt) => this.handleWhile(stmt),
+                    WEND: async () => this.handleWend(),
+                    INPUT: async (stmt) => this.handleInput(stmt),
+                    DIM: async (stmt) => this.handleDim(stmt),
+                    READ: async (stmt) => this.handleRead(stmt),
+                    RESTORE: async () => { this.dataPtr = 0; return {}; },
+                    ON: async (stmt) => this.handleOn(stmt),
+                    POKE: async (stmt) => {
+                        this.memory[this.segment * 16 + Math.floor(this.evalExpr(stmt.addr))] = Math.floor(this.evalExpr(stmt.val)) & 255;
+                        return {};
+                    },
+                    DEFSEG: async (stmt) => { this.segment = Math.floor(this.evalExpr(stmt.val)); return {}; },
+                    'ON ERROR GOTO': async (stmt) => { this.onErrorLine = this.evalExpr(stmt.line); return {}; },
+                    'ON ERROR OFF': async () => { this.onErrorLine = -1; return {}; },
+                    RESUME: async (stmt) => this.handleResume(stmt),
+                    STOP: async () => {
+                        printTerm('Break in ' + this.program[this.pc].line);
+                        this.isRunning = false;
+                        return { halted: true };
+                    },
+                    END: async () => {
+                        this.isRunning = false;
+                        this.pc = this.program.length;
+                        return { halted: true };
+                    },
+                    TRON: async () => { this.trace = true; document.getElementById('ind-tron').classList.add('active'); return {}; },
+                    TROFF: async () => { this.trace = false; document.getElementById('ind-tron').classList.remove('active'); return {}; }
+                };
+            }
+
+            resetState() {
+                this.vars = {};
+                this.arrays = {};
+                this.dataArray = [];
+                this.dataPtr = 0;
+                this.pc = -1;
+                this.stmtIdx = 0;
+                this.stacks = { gosub: [], for: [], while: [], do: [] };
+                this.errCode = 0;
+                this.errLine = 0;
+                this.onErrorLine = -1;
+                lcd.clear();
+            }
+
+            deleteLine(lineNum) {
+                this.program = this.program.filter(p => p.line !== lineNum);
+            }
+
+            insertLine(lineNum, text) {
+                this.deleteLine(lineNum);
+                try {
+                    let tokens = tokenize(text);
+                    let parser = new Parser(tokens);
+                    let stmts = parser.parseStatementList();
+                    this.program.push({ line: lineNum, text: text, stmts: stmts });
+                    this.program.sort((a, b) => a.line - b.line);
+                } catch (e) {
+                    printTerm(`Error in line ${lineNum}: ${e.message}`);
+                }
+            }
+
+            findLineIndex(lineNum) {
+                return this.program.findIndex(p => p.line === lineNum);
+            }
+
+            scanData() {
+                this.dataArray = [];
+                for (let p of this.program) {
+                    for (let s of p.stmts) {
+                        if (s.type === 'DATA') this.dataArray.push(...s.values);
+                    }
+                }
+                this.dataPtr = 0;
+            }
+
+            evalExpr(node) {
+                if (node.type === 'LITERAL') return node.value;
+                if (node.type === 'VAR_ACCESS') {
+                    if (!(node.name in this.vars)) this.vars[node.name] = node.name.endsWith('$') ? '' : 0;
+                    return this.vars[node.name];
+                }
+                if (node.type === 'ARRAY_ACCESS') {
+                    let arr = this.arrays[node.name];
+                    if (!arr) throw new BasicError(5, `Array ${node.name} no dimensionado`);
+                    let idxs = node.indices.map(i => this.evalExpr(i));
+                    if (idxs.length !== arr.dims.length) throw new BasicError(5, 'Dimensiones incorrectas');
+
+                    let flatIdx = 0;
+                    let mult = 1;
+                    for (let i = idxs.length - 1; i >= 0; i--) {
+                        let idx = Math.floor(idxs[i]);
+                        if (idx < 0 || idx > arr.dims[i]) throw new BasicError(5, 'Subíndice fuera de rango');
+                        flatIdx += idx * mult;
+                        mult *= (arr.dims[i] + 1);
+                    }
+                    if (arr.data[flatIdx] === undefined) arr.data[flatIdx] = node.name.endsWith('$') ? '' : 0;
+                    return arr.data[flatIdx];
+                }
+                if (node.type === 'UNARY') {
+                    let v = this.evalExpr(node.expr);
+                    if (node.op === '-') return -v;
+                    if (node.op === 'NOT') return ~Math.floor(v);
+                }
+                if (node.type === 'BINARY') {
+                    let l = this.evalExpr(node.left);
+                    let r = this.evalExpr(node.right);
+                    switch (node.op) {
+                        case '+': return (typeof l === 'string' || typeof r === 'string') ? String(l) + String(r) : l + r;
+                        case '-': return l - r;
+                        case '*': return l * r;
+                        case '/': if (r === 0) throw new BasicError(3, 'División por cero'); return l / r;
+                        case '^': return Math.pow(l, r);
+                        case '=': return (l === r) ? -1 : 0;
+                        case '<>': return (l !== r) ? -1 : 0;
+                        case '<': return (l < r) ? -1 : 0;
+                        case '>': return (l > r) ? -1 : 0;
+                        case '<=': return (l <= r) ? -1 : 0;
+                        case '>=': return (l >= r) ? -1 : 0;
+                        case 'AND': return (Math.floor(l) & Math.floor(r));
+                        case 'OR': return (Math.floor(l) | Math.floor(r));
+                    }
+                }
+                if (node.type === 'CALL') return this.callFunc(node.name, node.args.map(a => this.evalExpr(a)));
+            }
+
+            degToRad(val) {
+                if (this.angleMode === 1) return val * (Math.PI / 180);
+                if (this.angleMode === 2) return val * (Math.PI / 200);
+                return val;
+            }
+            radToDeg(val) {
+                if (this.angleMode === 1) return val * (180 / Math.PI);
+                if (this.angleMode === 2) return val * (200 / Math.PI);
+                return val;
+            }
+
+            callFunc(name, args) {
+                let v = args[0];
+                switch (name) {
+                    case 'SIN': return this.radToDeg(Math.sin(this.degToRad(v)));
+                    case 'COS': return this.radToDeg(Math.cos(this.degToRad(v)));
+                    case 'TAN': return this.radToDeg(Math.tan(this.degToRad(v)));
+                    case 'ASN': return this.radToDeg(Math.asin(v));
+                    case 'ACS': return this.radToDeg(Math.acos(v));
+                    case 'ATN': return this.radToDeg(Math.atan(v));
+                    case 'HSIN': return Math.sinh(v);
+                    case 'HCOS': return Math.cosh(v);
+                    case 'HTAN': return Math.tanh(v);
+                    case 'LOG': return Math.log10(v);
+                    case 'LN': return Math.log(v);
+                    case 'EXP': return Math.exp(v);
+                    case 'SQR': if (v < 0) throw new BasicError(12, 'Cantidad ilegal (SQR)'); return Math.sqrt(v);
+                    case 'ABS': return Math.abs(v);
+                    case 'SGN': return Math.sign(v);
+                    case 'INT': return Math.floor(v);
+                    case 'FIX': return Math.trunc(v);
+                    case 'FRAC': return v - Math.trunc(v);
+                    case 'ROUND': return Math.round(v);
+                    case 'RAN#': return Math.random();
+                    case 'PI': return Math.PI;
+                    case 'FACT': { let f = 1; for (let i = 2; i <= Math.floor(v); i++) f *= i; return f; }
+                    case 'CHR$': return String.fromCharCode(Math.floor(v));
+                    case 'ASC': return String(v).charCodeAt(0) || 0;
+                    case 'STR$': return ' ' + String(v);
+                    case 'VAL': return parseFloat(v) || 0;
+                    case 'LEN': return String(v).length;
+                    case 'LEFT$': return String(v).substring(0, args[1]);
+                    case 'RIGHT$': { let s = String(v); return s.substring(s.length - args[1]); }
+                    case 'MID$': return String(v).substring(args[1] - 1, args[1] - 1 + args[2]);
+                    case 'PEEK': return this.memory[this.segment * 16 + Math.floor(v)];
+                    case 'INKEY$': return this.keyBuffer.length > 0 ? this.keyBuffer.shift().toUpperCase() : '';
+                    default: throw new BasicError(1, 'Función no implementada: ' + name);
+                }
+            }
+
+            setVar(name, val, isArray = false, indices = []) {
+                if (name.endsWith('$') && typeof val !== 'string') val = String(val);
+                if (!name.endsWith('$') && typeof val === 'string') val = parseFloat(val) || 0;
+
+                if (!isArray) {
+                    this.vars[name] = val;
+                    return;
+                }
+
+                let arr = this.arrays[name];
+                if (!arr) throw new BasicError(5, `Array ${name} no dimensionado`);
+                let idxs = indices.map(i => this.evalExpr(i));
+                if (idxs.length !== arr.dims.length) throw new BasicError(5, 'Dimensiones incorrectas');
+
+                let flatIdx = 0;
+                let mult = 1;
+                for (let i = idxs.length - 1; i >= 0; i--) {
+                    let idx = Math.floor(idxs[i]);
+                    if (idx < 0 || idx > arr.dims[i]) throw new BasicError(5, 'Subíndice fuera de rango');
+                    flatIdx += idx * mult;
+                    mult *= (arr.dims[i] + 1);
+                }
+                arr.data[flatIdx] = val;
+            }
+
+            async promptInput(promptText) {
+                this.awaitingInput = true;
+                termIn.value = '';
+                promptChar.textContent = promptText;
+                termIn.focus();
+
+                return new Promise(resolve => {
+                    const handler = (e) => {
+                        if (e.key === 'Enter') {
+                            termIn.removeEventListener('keydown', handler);
+                            let val = termIn.value;
+                            printTerm(promptText + val);
+                            this.awaitingInput = false;
+                            promptChar.textContent = '>';
+                            termIn.value = '';
+                            resolve(val);
+                        }
+                    };
+                    termIn.addEventListener('keydown', handler);
+                });
+            }
+
+            beep() {
+                try {
+                    let ctx = new (window.AudioContext || window.webkitAudioContext)();
+                    let osc = ctx.createOscillator();
+                    osc.connect(ctx.destination);
+                    osc.frequency.value = 800;
+                    osc.start();
+                    osc.stop(ctx.currentTime + 0.1);
+                } catch (e) {}
+            }
+
+            jumpToLine(lineNumber, sourceCmd = 'GOTO') {
+                let idx = this.findLineIndex(lineNumber);
+                if (idx === -1) throw new BasicError(2, `Línea no definida en ${sourceCmd}`);
+                this.pc = idx;
+                this.stmtIdx = 0;
+                return { jumped: true };
+            }
+
+            async handlePrint(stmt) {
+                let outStr = '';
+                for (let arg of stmt.args) {
+                    if (arg.type === 'SEP') {
+                        if (arg.value === ',') outStr += ' '.repeat(14 - (outStr.length % 14));
+                    } else {
+                        outStr += this.evalExpr(arg);
+                    }
+                }
+
+                let hasTrailingSemicolon = stmt.args.length > 0 && stmt.args[stmt.args.length - 1].type === 'SEP' && stmt.args[stmt.args.length - 1].value === ';';
+                if (hasTrailingSemicolon) {
+                    lcd.print(outStr);
+                    termOut.textContent += outStr;
+                } else {
+                    lcd.print(outStr + '\n');
+                    printTerm(outStr);
+                }
+                return {};
+            }
+
+            async handlePrintUsing(stmt) {
+                let format = String(this.evalExpr(stmt.format));
+                let v = stmt.args.length > 0 ? this.evalExpr(stmt.args[0]) : '';
+                let res = '';
+                if (format.includes('#')) {
+                    let len = format.replace(/[^#]/g, '').length;
+                    res = String(v).substring(0, len).padStart(len, ' ');
+                } else {
+                    res = String(v);
+                }
+                lcd.print(res + '\n');
+                printTerm(res);
+                return {};
+            }
+
+            async handleGosub(stmt) {
+                let tgtSub = this.evalExpr(stmt.lineExpr);
+                let idxSub = this.findLineIndex(tgtSub);
+                if (idxSub === -1) throw new BasicError(2, 'Línea no definida en GOSUB');
+
+                let returnPc = this.pc;
+                let returnStmt = this.stmtIdx + 1;
+                if (returnPc >= 0 && returnStmt >= this.program[returnPc].stmts.length) {
+                    returnPc++;
+                    returnStmt = 0;
+                }
+
+                this.stacks.gosub.push({ pc: returnPc, stmtIdx: returnStmt });
+                this.pc = idxSub;
+                this.stmtIdx = 0;
+                return { jumped: true };
+            }
+
+            async handleReturn() {
+                if (this.stacks.gosub.length === 0) throw new BasicError(9, 'RETURN sin GOSUB');
+                let frame = this.stacks.gosub.pop();
+                this.pc = frame.pc;
+                this.stmtIdx = frame.stmtIdx;
+                return { jumped: true };
+            }
+
+            async handleIf(stmt) {
+                let cond = this.evalExpr(stmt.cond);
+                let stmtsToExec = cond !== 0 ? stmt.thenStmts : stmt.elseStmts;
+                let jumped = false;
+                if (stmtsToExec) {
+                    for (let i = 0; i < stmtsToExec.length; i++) {
+                        let result = await this.executeStatement(stmtsToExec[i]);
+                        if (result && result.halted) return result;
+                        if (result && result.jumped) { jumped = true; break; }
+                    }
+                }
+                if (!jumped && this.pc >= 0) this.stmtIdx = this.program[this.pc].stmts.length;
+                return { jumped };
+            }
+
+            async handleFor(stmt) {
+                let startV = this.evalExpr(stmt.start);
+                let toV = this.evalExpr(stmt.to);
+                let stepV = stmt.step ? this.evalExpr(stmt.step) : 1;
+                if (stepV === 0) throw new BasicError(12, 'STEP no puede ser 0');
+
+                this.setVar(stmt.varName, startV);
+                this.stacks.for = this.stacks.for.filter(f => f.v !== stmt.varName);
+                this.stacks.for.push({ v: stmt.varName, limit: toV, step: stepV, pc: this.pc, stmtIdx: this.stmtIdx });
+                return {};
+            }
+
+            async handleNext(stmt) {
+                let vars = stmt.vars;
+                if (vars.length === 0) {
+                    if (this.stacks.for.length === 0) throw new BasicError(8, 'NEXT sin FOR');
+                    vars = [this.stacks.for[this.stacks.for.length - 1].v];
+                }
+
+                for (let vName of vars) {
+                    let fStackIdx = this.stacks.for.findIndex(f => f.v === vName);
+                    if (fStackIdx === -1) throw new BasicError(8, 'NEXT sin FOR para ' + vName);
+
+                    let f = this.stacks.for[fStackIdx];
+                    let currVal = this.vars[vName] + f.step;
+                    this.vars[vName] = currVal;
+
+                    let loopCont = (f.step > 0 && currVal <= f.limit) || (f.step < 0 && currVal >= f.limit);
+                    if (loopCont) {
+                        this.pc = f.pc;
+                        this.stmtIdx = f.stmtIdx + 1;
+                        return { jumped: true };
+                    }
+                    this.stacks.for.splice(fStackIdx, 1);
+                }
+                return {};
+            }
+
+            async handleWhile(stmt) {
+                let wCond = this.evalExpr(stmt.cond);
+                if (wCond === 0) {
+                    let found = false;
+                    let wDepth = 1;
+                    for (let i = this.pc; i < this.program.length; i++) {
+                        let stmts = this.program[i].stmts;
+                        let jStart = (i === this.pc) ? this.stmtIdx + 1 : 0;
+                        for (let j = jStart; j < stmts.length; j++) {
+                            if (stmts[j].type === 'WHILE') wDepth++;
+                            if (stmts[j].type === 'WEND') wDepth--;
+                            if (wDepth === 0) {
+                                this.pc = i;
+                                this.stmtIdx = j + 1;
+                                found = true;
+                                break;
+                            }
+                        }
+                        if (found) break;
+                    }
+                    return { jumped: found };
+                }
+
+                this.stacks.while.push({ pc: this.pc, stmtIdx: this.stmtIdx, cond: stmt.cond });
+                return {};
+            }
+
+            async handleWend() {
+                if (this.stacks.while.length === 0) throw new BasicError(10, 'WEND sin WHILE');
+                let w = this.stacks.while[this.stacks.while.length - 1];
+                this.pc = w.pc;
+                this.stmtIdx = w.stmtIdx;
+                this.stacks.while.pop();
+                return { jumped: true };
+            }
+
+            async handleInput(stmt) {
+                let inStr = await this.promptInput(stmt.prompt + '? ');
+                let parts = (stmt.vars.length === 1 ? [inStr] : inStr.split(',')).map(s => s.trim());
+                for (let i = 0; i < stmt.vars.length; i++) this.setVar(stmt.vars[i], parts[i] || '0');
+                return {};
+            }
+
+            async handleDim(stmt) {
+                for (let a of stmt.arrays) {
+                    let ds = a.sizes.map(s => Math.floor(this.evalExpr(s)));
+                    if (ds.length > 10) throw new BasicError(1, 'Máximo 10 dimensiones');
+                    let totalSize = 1;
+                    for (let d of ds) {
+                        if (d < 0) throw new BasicError(5, 'Subíndice fuera de rango');
+                        totalSize *= (d + 1);
+                    }
+                    this.arrays[a.name] = { dims: ds, data: new Array(totalSize).fill(a.name.endsWith('$') ? '' : 0) };
+                }
+                return {};
+            }
+
+            async handleRead(stmt) {
+                for (let v of stmt.vars) {
+                    if (this.dataPtr >= this.dataArray.length) throw new BasicError(6, 'Out of DATA');
+                    this.setVar(v, this.dataArray[this.dataPtr++]);
+                }
+                return {};
+            }
+
+            async handleOn(stmt) {
+                let onVal = Math.floor(this.evalExpr(stmt.expr));
+                if (onVal < 1 || onVal > stmt.lines.length) return {};
+
+                let onTarget = this.evalExpr(stmt.lines[onVal - 1]);
+                let onIdx = this.findLineIndex(onTarget);
+                if (onIdx === -1) throw new BasicError(2, 'Línea indefinida');
+
+                if (stmt.action === 'GOSUB') {
+                    this.stacks.gosub.push({ pc: this.pc, stmtIdx: this.stmtIdx + 1 });
+                }
+                this.pc = onIdx;
+                this.stmtIdx = 0;
+                return { jumped: true };
+            }
+
+            async handleResume(stmt) {
+                if (stmt.target === 'NEXT') {
+                    let errIdx = this.findLineIndex(this.errLine);
+                    if (errIdx !== -1) {
+                        this.pc = errIdx + 1;
+                        this.stmtIdx = 0;
+                    }
+                } else if (stmt.target) {
+                    let rIdx = this.findLineIndex(stmt.target);
+                    if (rIdx !== -1) {
+                        this.pc = rIdx;
+                        this.stmtIdx = 0;
+                    }
+                }
+                this.errCode = 0;
+                return { jumped: true };
+            }
+
+            async executeStatement(stmt) {
+                let handler = this.commandHandlers[stmt.type];
+                if (!handler) throw new BasicError(1, 'Comando no implementado en runtime: ' + stmt.type);
+                return await handler(stmt);
+            }
+
+            async runProgram() {
+                if (this.program.length === 0) return;
+                document.getElementById('ind-run').classList.add('active');
+                this.resetState();
+                this.scanData();
+                this.isRunning = true;
+                this.pc = 0;
+                this.stmtIdx = 0;
+
+                let lastYield = Date.now();
+
+                while (this.isRunning && this.pc >= 0 && this.pc < this.program.length) {
+                    let lineObj = this.program[this.pc];
+
+                    if (this.trace && this.stmtIdx === 0) printTerm(`[${lineObj.line}]`);
+
+                    while (this.isRunning && this.stmtIdx < lineObj.stmts.length) {
+                        let stmt = lineObj.stmts[this.stmtIdx];
+                        try {
+                            let prevPc = this.pc;
+                            let prevStmt = this.stmtIdx;
+                            let result = await this.executeStatement(stmt) || {};
+
+                            if (!this.isRunning || result.halted) break;
+
+                            let jumped = !!result.jumped || this.pc !== prevPc || this.stmtIdx !== prevStmt;
+                            if (!jumped) {
+                                this.stmtIdx++;
+                                continue;
+                            }
+
+                            if (this.pc !== prevPc) {
+                                lineObj = this.program[this.pc];
+                                continue;
+                            }
+
+                            if (this.stmtIdx === prevStmt) this.stmtIdx++;
+                        } catch (e) {
+                            if (e instanceof BasicError) {
+                                this.errCode = e.code;
+                                this.errLine = lineObj.line;
+                                if (this.onErrorLine !== -1) {
+                                    let errIdx = this.findLineIndex(this.onErrorLine);
+                                    if (errIdx !== -1) {
+                                        this.pc = errIdx;
+                                        this.stmtIdx = 0;
+                                        lineObj = this.program[this.pc];
+                                        continue;
+                                    }
+                                }
+                                printTerm(`
+?${ERR_CODES[e.code] || 'Error'} in ${lineObj.line}`);
+                            } else {
+                                printTerm(`
+?JS Error: ${e.message} in ${lineObj.line}`);
+                            }
+                            this.isRunning = false;
+                            break;
+                        }
+                    }
+
+                    if (Date.now() - lastYield > 20) {
+                        await new Promise(r => setTimeout(r, 0));
+                        lastYield = Date.now();
+                    }
+
+                    if (this.isRunning && this.stmtIdx >= lineObj.stmts.length) {
+                        this.pc++;
+                        this.stmtIdx = 0;
+                    }
+                }
+
+                this.isRunning = false;
+                document.getElementById('ind-run').classList.remove('active');
+                printTerm('READY');
+            }
+
+            async execImmediate(cmdStr) {
+                try {
+                    let tokens = tokenize(cmdStr);
+                    if (tokens.length === 0) return;
+
+                    if (tokens[0].type === 'NUMBER') {
+                        let lineNum = tokens[0].value;
+                        let text = cmdStr.substring(String(lineNum).length).trim();
+                        if (text.length === 0) this.deleteLine(lineNum);
+                        else this.insertLine(lineNum, text);
+                        return;
+                    }
+
+                    let parser = new Parser(tokens);
+                    let stmts = parser.parseStatementList();
+
+                    for (let stmt of stmts) {
+                        if (stmt.type === 'RUN') {
+                            await this.runProgram();
+                            return;
+                        } else if (stmt.type === 'LIST' || stmt.type === 'LIST ALL') {
+                            for (let p of this.program) printTerm(`${p.line} ${p.text}`);
+                        } else if (stmt.type === 'NEW' || stmt.type === 'NEW ALL') {
+                            this.program = [];
+                            this.resetState();
+                        } else if (stmt.type === 'CLEAR') {
+                            this.vars = {};
+                            this.arrays = {};
+                        } else if (stmt.type === 'VARLIST') {
+                            for (let k in this.vars) printTerm(`${k} = ${this.vars[k]}`);
+                            for (let k in this.arrays) printTerm(`${k}() [Array]`);
+                        } else if (stmt.type === 'FRE') {
+                            printTerm('65536 BYTES FREE');
+                        } else if (stmt.type === 'TRON') {
+                            this.trace = true;
+                            document.getElementById('ind-tron').classList.add('active');
+                        } else if (stmt.type === 'TROFF') {
+                            this.trace = false;
+                            document.getElementById('ind-tron').classList.remove('active');
+                        } else {
+                            this.pc = -1;
+                            this.stmtIdx = 0;
+                            await this.executeStatement(stmt);
+                        }
+                    }
+                    printTerm('READY');
+                } catch (e) {
+                    if (e instanceof BasicError) printTerm(`?${ERR_CODES[e.code] || e.message}`);
+                    else printTerm(`?Error: ${e.message}`);
+                    printTerm('READY');
+                }
+            }
+        }
+
+        const machine = new BasicMachine();
+
+        // --- MANEJO DE UI ---
+        termIn.addEventListener('keydown', async (e) => {
+            if (e.key === 'Enter' && !machine.isRunning) {
+                let cmd = termIn.value.trim();
+                printTerm("> " + cmd);
+                termIn.value = "";
+                await machine.execImmediate(cmd);
+                termOut.scrollTop = termOut.scrollHeight;
+            }
+        });
+
+        // Initialize display
+        document.getElementById('ind-deg').classList.add('active');
+        lcd.print("READY\n");
+
+        // Preload a small demo program
+        machine.insertLine(10, 'CLS');
+        machine.insertLine(20, 'PRINT "Hola JuanCarlos BASIC!"');
+        machine.insertLine(30, 'FOR I=1 TO 5');
+        machine.insertLine(40, 'PRINT "HOLA ";I');
+        machine.insertLine(50, 'NEXT I');
+        machine.insertLine(60, 'INPUT "SU NOMBRE";N$');
+        machine.insertLine(70, 'PRINT "BIENVENIDO, ";N$');
+        machine.insertLine(80, 'END');
+
+    </script>
+</body>
+</html>
