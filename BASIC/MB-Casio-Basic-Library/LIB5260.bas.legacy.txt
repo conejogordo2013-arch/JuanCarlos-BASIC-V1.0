@@ -1,0 +1,28 @@
+5 X=0
+10 X=0
+20 CLS:PRINT"Jn(x)         (0�n�9,0�x�30)";
+30 LOCATE 0,1:PRINT c$;"n?   :x?      :J=";
+40 LOCATE 2,1:INPUT @3;n$:LOCATE 0,0:n=VALF(LEFT$ (n$,3)):u=ABSn:IF n<0 OR u>=10 OR FRACu<>0 THEN 400
+60 LOCATE 8,1:INPUT @6;x$:LOCATE 0,0:x=VALF(LEFT$ (x$,6)):v=ABSx:IF x<0 OR v>30 THEN 410
+80 LOCATE 17,1:PRINT" .....";:GOSUB 200
+100 IF n<0 THEN r=r*(-1)^u
+110 IF r<>0 AND ABSr>=1e-90 THEN r=ROUND(r,LOG(ABSr)-7)
+115 IF r<>0 AND ABSr<1e-90 THEN r=r*1e10:r=ROUND(r,LOG(ABSr)-7):r=r/1e10
+120 LOCATE 18,1:PRINT"     ";:LOCATE 17,1:PRINT r;:z$=INPUT $(1,@):GO TO 30
+200 IF v+u=0 THEN r=1:RETURN
+210 IF v=0 THEN r=0:RETURN
+220 k=INT(1+3*v^(1/12)+9*v^(1/3)+(ABS(u-v)+ABS(u+v))/2)
+230 s=0:b=1.5:c=0
+240 a=2*k/x*b-c:k=k-1
+250 IF k=u THEN r=a
+260 IF k=0 THEN 290
+270 IF (k MOD 2)=0 THEN s=s+a
+280 X=0
+290 s=2*s+a:r=r/s
+300 RETURN
+400 X=0
+410 X=0
+500 X=0
+510 X=0
+520 X=0
+530 LOCATE 17,1:PRINT"not found";:z$=INPUT $(1,@):RESUME20

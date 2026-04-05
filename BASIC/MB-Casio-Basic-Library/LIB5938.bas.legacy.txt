@@ -1,0 +1,27 @@
+5 X=0
+10 DATAAbsolute temperature,T[K]=t[�C]+273.15,10,20,
+20 X=0
+30 X=0
+40 X=0
+50 DATAVolume & Temperature,V=V�(1+T/273),40,60,
+60 X=0
+70 X=0
+80 DATALaw of partial pressures,P=P�+P�+P�+���,70,90,1,2A2A3E0000
+90 DATAPressure,P=1/3�nm��,80,100,1,B08C828CB0
+100 DATAInternal energy,U=1/2�m��N=3/2�nRT,90,110,1,B08C828CB0
+110 X=0
+120 DATAHalf life,N=N�(1/2)�� (x=1/T),110,130,1,40F8480000
+130 DATAMass-energy relation ,E=mc�,120,130,
+10010 X=0
+10040 DEFCHR$ (253)="2E2A3A0000"
+10050 DEFCHR$ (252)="123E020000"
+10110 X=0
+10120 X=0
+10130 l$="["+MID$ (STR$ (r/10),2)+"]":l=32-LEN(l$)
+10140 PRINT m$;TAB (l);l$;n$;
+10150 z=AS C(INPUT $(1,@))
+10170 X=0
+10180 X=0
+10190 X=0
+10200 X=0
+10280 X=0

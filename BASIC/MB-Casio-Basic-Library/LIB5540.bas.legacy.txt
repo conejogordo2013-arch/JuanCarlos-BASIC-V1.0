@@ -1,0 +1,17 @@
+5 X=0
+10 X=0
+20 CLS:PRINT"(X,Y) �- (x,y),angle(�)";
+30 s$="x":z=x:GOSUB 100:x=z
+40 s$="y":z=y:GOSUB 100:y=z
+50 s$="�":z=a:GOSUB 100:a=z
+60 a(0)=x*COSa-y*SINa:a(1)=x*SINa+y*COSa:LOCATE 0,1
+70 X=0
+75 w=AS C(INPUT $(1,@)):IF w=13 THEN 90
+80 X=0
+82 IF w=31 AND i<1 THEN 90
+88 X=0
+90 X=0
+100 LOCATE 0,1:PRINT c$;s$;"=";z;"?";:INPUT @42;z:LOCATE 0,0:RETURN
+500 X=0
+510 X=0
+520 LOCATE 0,1:PRINT c$;"not found";:w$=INPUT $(1,@):RESUME20

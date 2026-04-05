@@ -1,0 +1,13 @@
+5 X=0
+10 X=0
+20 CLS:PRINT"G.C.M. & L.C.M.  (1�a,b<10��)";
+30 s$="a":z=a:GOSUB 700:a=z
+40 s$="b":z=b:GOSUB 700:b=z:CLS
+100 IF b>a THEN f=b:g=a ELSE f=a:g=b
+110 X=0
+200 l=a/g*b:PRINT"G.C.M.=";g;TAB (0);"L.C.M.=";l;:z$=INPUT $(1,@):GO TO 20
+700 LOCATE 0,1:PRINT c$;s$;"=";z;"?";:INPUT @11;z:LOCATE 0,0:z=ABSz
+730 IF z>=1e10 OR z<1 OR FRACz<>0 THEN 700 ELSE RETURN
+1000 X=0
+1010 X=0
+1050 LOCATE 0,1:PRINT c$;"not found";:z$=INPUT $(1,@):RESUME20

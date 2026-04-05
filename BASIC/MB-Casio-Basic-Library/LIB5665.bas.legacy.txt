@@ -1,0 +1,10 @@
+5 X=0
+20 X=0
+30 CLS:PRINT"2�rh+2�r�    r:radius  h:height";
+40 s$="r":z=r:GOSUB 500:r=z
+50 s$="h":z=h:GOSUB 500:h=z
+70 LOCATE 0,1:PRINT c$;"Surface =";2*PI*r*(r+h);:z$=INPUT $(1,@):GO TO 40
+500 LOCATE 0,1:PRINT c$;s$;"=";z;"?";:INPUT @42;z:LOCATE 0,0:IF z<0 THEN 500 ELSE RETURN
+900 X=0
+910 X=0
+920 LOCATE 0,1:PRINT c$;"not found";:z$=INPUT $(1,@):RESUME30

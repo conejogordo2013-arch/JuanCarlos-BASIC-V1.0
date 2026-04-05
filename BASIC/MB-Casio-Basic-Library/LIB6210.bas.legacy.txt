@@ -1,0 +1,11 @@
+10 X=0
+20 CLS:PRINT"Upper probability   N(0,1�)";
+30 LOCATE 0,1:PRINT c$;"x=";x;"?";:INPUT @10;x:LOCATE 0,0
+60 LOCATE 0,1:PRINT c$;".....";
+70 X=0
+75 IF p THEN p=ROUND(p,LOG(ABSp)-6)
+80 PRINT c$;"p=";p;:z$=INPUT $(1,@):GO TO 30
+500 X=0
+510 X=0
+520 X=0
+530 LOCATE 0,1:PRINT c$;"not found";:z$=INPUT $(1,@):RESUME20

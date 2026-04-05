@@ -1,0 +1,13 @@
+10 X=0
+20 CLS:PRINT"Cumulative frequency  P(x,�)";
+30 z=k:s$="�":GOSUB 400:k=z:IF k<0 THEN 30
+40 z=x:s$="x":GOSUB 400:x=z:IF x<0 OR FRACx<>0 THEN 40
+60 LOCATE 0,1:PRINT c$;".....";
+70 X=0
+75 IF s THEN s=ROUND(s,LOG(ABSs)-6)
+80 PRINT c$;"p=";s;:z$=INPUT $(1,@):GO TO 30
+400 LOCATE 0,1:PRINT c$;s$;"=";z;"?";:INPUT @10;z:LOCATE 0,0:RETURN
+500 X=0
+510 X=0
+520 X=0
+530 LOCATE 0,1:PRINT c$;"not found";:z$=INPUT $(1,@):RESUME20

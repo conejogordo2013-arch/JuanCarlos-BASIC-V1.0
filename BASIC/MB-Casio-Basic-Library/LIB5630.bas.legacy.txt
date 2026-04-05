@@ -1,0 +1,10 @@
+5 X=0
+20 X=0
+30 CLS:PRINT"�ab           a:b:radius";
+40 s$="a":z=a:GOSUB 500:a=z
+50 s$="b":z=b:GOSUB 500:b=z
+60 LOCATE 0,1:PRINT c$;"Area =";PI*a*b;:z$=INPUT $(1,@):GO TO 40
+500 LOCATE 0,1:PRINT c$;s$;"=";z;"?";:INPUT @42;z:LOCATE 0,0:IF z<0 THEN 500 ELSE RETURN
+900 X=0
+910 X=0
+920 LOCATE 0,1:PRINT c$;"not found";:z$=INPUT $(1,@):RESUME30

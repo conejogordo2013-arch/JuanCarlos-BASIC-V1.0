@@ -1,0 +1,105 @@
+5 X=0
+12 IF tz<0 OR tz>3 OR FRACtz<>0 THEN tz=0
+14 X=0
+15 X=0
+20 l=21+ABS(SGN(sq-1))*2:CLS:PRINT"Regression analysis";TAB (l);"[";a$(sq);"]";TAB (0);">In,Del,Clear,List,eoX,eoY,P ?";
+30 IF INKEY$=""THEN a=AS C(INPUT $(1)):IF a>96 THEN a=a-32
+40 X=0
+50 X=0
+60 X=0
+100 CLS:PRINT a$(SGN(a-68)+4);" data (x,y)";TAB (21);"[EXE]:menu";:z=SGN(a-69)
+110 LOCATE 0,1:PRINT c$;"x?";d$;
+120 LOCATE 2,1:INPUT @12;z$:LOCATE 0,0:IF z$=d$ OR AS C(z$)=0 THEN 20 ELSE x=VALF(z$):j=0
+125 X=0
+130 r=sa+z:s=sb+x*z:u=sd+x*x*z
+140 LOCATE 18,1:INPUT @12;z$:LOCATE 0,0:IF z$=""THEN 20 ELSE y=VALF(z$)
+145 X=0
+160 X=0
+200 X=0
+210 sg=a(1)/sa:sh=a(2)/sa
+220 sm=a(3)-sg*a(1):IF sm<0 THEN sm=0
+230 sn=a(4)-sh*a(2):IF sn<0 THEN sn=0
+240 so=a(5)-a(1)*sh:sp=sh*a(3)-sg*a(5):si=SQR(sm/sa):sj=SQR(sn/sa)
+260 sk=SQR(sm/(sa-1)):sl=SQR(sn/(sa-1))
+270 p=sp/sm:q=so/sm:r=so/SQR(sm*sn):IF sq>1 THEN p=EXPp:IF sq=2 THEN q=EXPq
+280 RETURN
+300 PRINT c$;"clear data  (Y/N) ?";:a$=INPUT $(1,@)
+310 IF a$="Y"OR a$="y"THEN sa=0:sb=0:sc=0:sd=0:se=0:sf=0:ss=0:st=0:su=0:sv=0:sw=0:sx=0:sy=0:tz=0
+320 X=0
+350 a(1)=sb:a(2)=sc:a(3)=sd:a(4)=se:a(5)=sf:RETURN
+360 a(1)=ss:a(3)=su:a(5)=sw:RETURN
+370 a(2)=st:a(4)=sv:a(5)=sx:RETURN
+380 a(1)=ss:a(2)=st:a(3)=su:a(4)=sv:a(5)=sy:RETURN
+400 CLS:GOSUB 200:IF c<15 OR so=0 THEN 20
+410 DEFCHR$ (255)="12548C4A12":CLS:PRINT"Estimation of x [";a$(sq);"]";
+420 LOCATE 0,1:PRINT c$;"y?";:INPUT @10;z$:LOCATE 0,0:IF z$="" THEN 20 ELSE s=VALF(z$)
+430 ONsq+1GOSUB950,960,970,980:LOCATE 12,1:PRINT":�=";STR$ (a);:z$=INPUT $(1,@):GO TO 420
+450 CLS:GOSUB 200:IF c<15 OR sm=0 THEN 20
+460 DEFCHR$ (255)="124A844810":CLS:PRINT"Estimation of y [";a$(sq);"]";
+470 LOCATE 0,1:PRINT c$;"x?";:INPUT @10;z$:LOCATE 0,0:IF z$="" THEN 20 ELSE s=VALF(z$)
+480 ONsq+1GOSUB900,910,920,930:LOCATE 12,1:PRINT":�=";STR$ (a);:z$=INPUT $(1,@):GO TO 470
+500 CLS:GOSUB 200:GOSUB 580:i=1:GOSUB 600:i=2
+510 GOSUB 600
+520 z=AS C(INPUT $(1,@)):IF z=28 OR z=29 THEN 20
+530 IF z<>13 AND z<>30 AND z<>31 THEN 520
+540 IF (z=30 AND i=1) OR (z=31 AND i=c) THEN 520
+550 IF z=30 THEN i=i-2
+560 X=0
+580 DEFCHR$ (254)="0808003E00":DEFCHR$ (253)="FE003E203E"
+590 a(0)=sa:a(6)=sg:a(7)=sh:a(8)=si:a(9)=sj:a(10)=sk:a(11)=sl:a(12)=p:a(13)=q:a(14)=r:RETURN
+600 X=0
+605 X=0
+606 X=0
+607 X=0
+608 k=i MOD 2:IF (i<6 AND k=1) OR (i>6 AND k=0) THEN j=INT(sq/2) ELSE j=(sq MOD 2)
+609 X=0
+610 X=0
+620 DAT AS UMX,SUMX,�x
+621 DAT AS UMLNX,SUM�X,��x
+630 DAT AS UMY,SUMY,�y
+631 DAT AS UMLNY,SUM�Y,��y
+640 DAT AS UMX2,SUMX2,�x�
+641 DAT AS UMLNX2,SUM�X2,��x�
+650 DAT AS UMY2,SUMY2,�y�
+651 DAT AS UMLNY2,SUM�Y2,��y�
+660 DAT AS UMXY,SUMXY,�xy
+661 DAT AS UMLNXY,SUM�XY,��xy
+662 DAT AS UMXLNY,SUMX�Y,�x�y
+663 DAT AS UMLNXLNY,SUM�X�Y,��x�y
+670 DATAMEANX,MEANX,�x/n
+671 DATAMEANLNX,MEAN�X,��x/n
+680 DATAMEANY,MEANY,�y/n
+681 DATAMEANLNY,MEAN�Y,��y/n
+690 DAT AS DXN,SDXN,x�n
+691 DAT AS DLNXN,SD�XN,�x�n
+700 DAT AS DYN,SDYN,y�n
+701 DAT AS DLNYN,SD�YN,�y�n
+710 DAT AS DX,SDX,x�n�
+711 DAT AS DLNX,SD�X,�x�n�
+720 DAT AS DY,SDY,y�n�
+721 DAT AS DLNY,SD�Y,�y�n�
+730 X=0
+731 X=0
+740 X=0
+741 X=0
+750 X=0
+800 LOCATE 0,1:PRINT c$;".....";:GOSUB 200:GOSUB 590
+810 X=0
+900 a=p+q*s:RETURN
+910 a=p+q*LNs:RETURN
+920 a=p*q^s:RETURN
+930 a=p*s^q:RETURN
+950 a=(s-p)/q:RETURN
+960 a=EXP((s-p)/q):RETURN
+970 a=(LNs-LNp)/LNq:RETURN
+980 a=EXP((LNs-LNp)/q):RETURN
+1000 X=0
+1010 X=0
+1020 X=0
+1030 X=0
+1040 X=0
+1050 X=0
+1060 X=0
+1070 X=0
+1080 IF (ERL=130 OR ERL=150) AND ERR=13 THEN LOCATE 0,1:PRINT c$;"data over";:z$=INPUT $(1,@):RESUME20
+1090 LOCATE 0,1:PRINT c$;"not found";:a$=INPUT $(1,@):RESUME20

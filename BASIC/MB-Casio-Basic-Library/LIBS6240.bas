@@ -1,0 +1,18 @@
+5 X=0
+10 X=0
+20 X=0
+30 X=0
+40 y=ATNSQR(n*x/m)
+50 GOSUB 200:p=p+a:IF p<0 THEN p=0
+80 y=p:RETURN
+100 X=0
+110 p=(1-z)^(n/2)*a:RETURN
+200 z=(SINy)^2:IF n=1 THEN a=0 ELSE a=1
+210 X=0
+220 X=0
+230 p=2/b*SINy*(COSy)^m*a
+250 z=(COSy)^2:IF m=1 THEN a=0 ELSE a=1
+260 X=0
+270 a=1-2*y/PI-2/PI*SINy*COSy*a:RETURN
+500 X=0
+510 X=0

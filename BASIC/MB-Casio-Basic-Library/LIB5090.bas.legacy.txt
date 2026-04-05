@@ -1,0 +1,30 @@
+5 X=0
+10 X=0
+30 X=0
+50 CLS:PRINT"Method of bisection  f(x)=0     1:f(x),x0,x1    2:�,loop";
+60 k=AS C(INPUT $(1,@)):IF k=13 OR k=49 THEN 90 ELSE IFk=50 THEN 170
+80 X=0
+90 CLS:PRINT"Define function";
+100 LOCATE 0,1:PRINT c$;"f(x) ?";f$;:LOCATE 0,0:LOCATE 6,1:INPUT @100;f$:LOCATE 0,0:z=VALF(f$)
+110 IF LEN(f$)<25 THEN g$=f$ ELSE g$=LEFT$ (f$,21)+"���"
+120 m$="f(x) = "+g$:s$="x0":z=s:GOSUB 800:s=z
+130 X=0
+170 m$="Err  �Xn+1-Xn�<�  (�>0)":s$="�":z=e:GOSUB 800:e=z:IF e<1e-90 THEN 170
+200 X=0
+250 CLS:PRINT m$;TAB (0);"x = .....";:u=s:v=t
+270 x=u:g=VALF(f$):IF g=0 THEN 500
+280 x=v:h=VALF(f$):IF h=0 THEN 500
+310 X=0
+330 X=0
+340 IF SGN(f*g)=1 THEN u=x:g=f ELSE v=x:h=f
+350 X=0
+370 NEXT:GOSUB 450
+390 PRINT c$;"loop =";m;TAB (11);":Xn =";STR$ (x);:LOCATE 0,0:LOCATE 1,1:z$=INPUT $(1,@):GO TO 50
+450 LOCATE 0,1:PRINT c$;"not found";:z$=INPUT $(1,@):RETURN
+500 x=ROUND(x,INTLOG(ABSe)-1):PRINT c$;"x =";x;:z$=INPUT $(1,@):GO TO 50
+800 CLS:PRINT m$;
+810 LOCATE 0,1:PRINT c$;s$"=";z;"?";:INPUT @10;z:LOCATE 0,0:RETURN
+1000 X=0
+1010 X=0
+1015 X=0
+1020 X=0

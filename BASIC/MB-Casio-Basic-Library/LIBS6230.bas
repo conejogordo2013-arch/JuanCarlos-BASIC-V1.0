@@ -1,0 +1,8 @@
+5 X=0
+10 X=0
+20 IF n MOD 2=0 THEN a=SINy/2:b=.5 ELSE b=.5+y/PI:IF n=1 THEN a=0 ELSE a=SINy*COSy/PI
+30 X=0
+40 p=1-(b+a*y):IF p<0 THEN p=0
+80 y=p:RETURN
+500 X=0
+510 X=0

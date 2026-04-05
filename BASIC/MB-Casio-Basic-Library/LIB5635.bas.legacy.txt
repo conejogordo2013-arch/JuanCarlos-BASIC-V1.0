@@ -1,0 +1,19 @@
+5 X=0
+10 X=0
+20 X=0
+30 CLS:PRINT"Area (polygon)";TAB (0);"1:n,r�A   2:n,R�A   3:n,l�A";
+31 f=AS C(INPUT $(1,@))-48:IF f<1 OR f>3 THEN 31
+32 m$="Polygon  "
+35 s$="n:number":z=n:GOSUB 500:n=z:IF n<3 OR n>=1e7 OR FRACn<>0 THEN 35
+36 m$=m$+"(n="+MID$ (STR$ (n),2)+")  "
+37 s$=a$(f-1):z=a(f-1):GOSUB 500:a(f-1)=z
+40 X=0
+41 X=0
+42 X=0
+43 s=n*a(2)^2/TAN(180/n)/4
+50 LOCATE 0,1:PRINT c$;"Area =";ABSs;:z$=INPUT $(1,@):GO TO 30
+500 CLS:PRINT m$;s$;
+510 LOCATE 0,1:PRINT c$;LEFT$ (s$,1);"=";z;"?";:INPUT @42;z:LOCATE 0,0:IF z<0 THEN 510 ELSE RETURN
+900 X=0
+910 X=0
+920 LOCATE 0,1:PRINT c$;"not found";:z$=INPUT $(1,@):RESUME30

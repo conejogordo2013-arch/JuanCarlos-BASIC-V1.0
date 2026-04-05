@@ -1,0 +1,31 @@
+5 X=0
+10 X=0
+20 X=0
+30 X=0
+40 DATADC power & Joule heat,"P=IV=I�R , W=IVt=Pt",30,50,
+50 X=0
+60 X=0
+70 DATAWheatstone bridge,R�R�=R�R�,60,80,1,2A2A3E0000
+80 X=0
+90 X=0
+100 DATAAC power,P=VI=V�I�/2,90,110,
+110 DATAPower factor,P=VI�cos�,100,120,
+120 X=0
+130 X=0
+140 X=0
+150 DATANatural frequency (circuit),f�=1/2�(LC),140,160,
+160 DATAElectric oscillation,1/2�Q�/C+1/2�LI�=Constant,150,160,
+10010 X=0
+10020 DEFCHR$ (255)="3E020C223E"
+10040 DEFCHR$ (253)="2E2A3A0000"
+10050 DEFCHR$ (252)="123E020000"
+10110 X=0
+10120 X=0
+10130 l$="["+MID$ (STR$ (r/10),2)+"]":l=32-LEN(l$)
+10140 PRINT m$;TAB (l);l$;n$;
+10150 z=AS C(INPUT $(1,@))
+10170 X=0
+10180 X=0
+10190 X=0
+10200 X=0
+10280 X=0
