@@ -105,6 +105,24 @@ Sugerencia de ruta de aprendizaje:
 - Nivel 4: `INPUT`, `DATA/READ`, arreglos.
 - Nivel 5: `PEEK/POKE`, control de errores (`ON ERROR`, `RESUME`).
 
+### Protocolo fijo contigo (a partir de ahora)
+
+Cada vez que me mandes un programa BASIC (o yo te proponga uno), voy a seguir este checklist:
+
+1. Ejecutarlo en el intérprete real con `node run_prg.js`.
+2. Verificar que en la salida aparezca `READY` al finalizar.
+3. Comparar salida real vs salida esperada y marcar **correcto/incorrecto**.
+4. Si falla, corregir el programa y volver a ejecutarlo hasta que termine en `READY` y con resultado correcto.
+
+Formato de validación que usaré:
+
+- **Programa probado:** `<archivo o bloque>`
+- **Comando:** `node run_prg.js ...`
+- **¿Termina en READY?:** Sí / No
+- **Resultado esperado:** `...`
+- **Resultado real:** `...`
+- **Veredicto:** ✅ Correcto / ❌ Requiere ajuste
+
 ## 9) Comandos útiles de validación rápida
 
 ```bash

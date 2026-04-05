@@ -1,0 +1,11 @@
+10 CLS
+20 PRINT "DEMO INT$"
+30 A=123.987
+40 B=-45.67
+50 C=7/3
+60 PRINT "A=";A;" INT$(A)=";INT$(A)
+70 PRINT "B=";B;" INT$(B)=";INT$(B)
+80 PRINT "C=";C;" INT$(C)=";INT$(C)
+90 PRINT "INT$ devuelve TEXTO (STRING) sin decimales"
+100 PRINT "FIN"
+110 END
