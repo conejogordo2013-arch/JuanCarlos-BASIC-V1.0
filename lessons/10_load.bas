@@ -1,0 +1,4 @@
+10 PRINT "LECCION 10 LOAD"
+20 LOAD("lessons/import_math.bas")
+30 PRINT "FIN LOAD"
+40 END

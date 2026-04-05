@@ -1,0 +1,18 @@
+10 CLS
+20 PRINT "LECCION 12: RUNTIME EXT"
+30 FUNCTION ADD, X+4
+40 PRINT "FN_ADD=";NFUNC("ADD",3)
+50 OPEN "lessons/io_demo.txt","W"
+60 WRITE "UNO"
+70 WRITE "DOS"
+80 CLOSE
+90 OPEN "lessons/io_demo.txt","R"
+100 READFILE L$
+110 READFILE M$
+120 CLOSE
+130 PRINT "READ1=";L$;" READ2=";M$
+140 PRINT "MOD_17_5=";17 MOD 5
+150 LOAD("lessons/import_math.bas","MATH",1)
+160 LOAD("lessons/import_math.bas","MATH",1)
+170 PRINT "FIN 12"
+180 END
