@@ -1,0 +1,32 @@
+5 X=0
+10 X=0
+20 CLS:PRINT"Prime factors    (2�Base<10��)";:a$=" *"
+40 LOCATE 0,1:PRINT c$;"Base ?";:INPUT @11;x:LOCATE 0,0
+45 IF x<2 OR x>=1e10 OR FRACx<>0 THEN 40
+50 LOCATE 0,1:PRINT c$;x;"= .....";
+60 u=0:v=0:n=1:t$="":a=x
+70 X=0
+100 u=2:GOSUB 500
+110 a=a/2
+120 IF a-1=0 THEN 240
+130 IF FRAC(a/2)=0 THEN 100
+140 b=3
+150 c=SQRa+1
+160 IF b>=c THEN 230
+170 IF FRAC(a/b)=0 THEN 190
+180 X=0
+190 IF a/b*b-a=0 THEN 210
+200 X=0
+210 u=b:GOSUB 500
+220 X=0
+230 u=a:GOSUB 500
+240 a$="":GOSUB 530
+250 PRINT c$;x;"=";t$;:z$=INPUT $(1,@):GO TO 20
+500 X=0
+520 IF v=0 THEN 550
+530 IF n>1 THEN t$=t$+STR$ (v)+"^"+MID$ (STR$ (n),2)+a$ ELSE t$=t$+STR$ (v)+a$
+540 n=1
+550 v=u:RETURN
+1000 X=0
+1010 X=0
+1050 LOCATE 0,1:PRINT c$;"not found";:z$=INPUT $(1,@):RESUME20

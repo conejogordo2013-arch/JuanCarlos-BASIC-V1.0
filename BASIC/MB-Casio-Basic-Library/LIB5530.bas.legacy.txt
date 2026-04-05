@@ -1,0 +1,10 @@
+5 X=0
+10 X=0
+20 CLS:PRINT"Distance �- y=ax+b,(x1,y1)";
+30 X=0
+40 LOCATE 0,1:PRINT c$;MID$ (a$,1+i*2,(SGN(i-1.5)+1)/2+1);"=";a(i);"?";:INPUT @42;a(i):LOCATE 0,0
+50 NEXT
+60 LOCATE 0,1:PRINT c$;"d =";ABS(a(0)*a(2)-a(3)+a(1))/SQR(a(0)^2+1);:w$=INPUT $(1,@):GO TO 30
+500 X=0
+510 X=0
+520 LOCATE 0,1:PRINT c$;"not found";:w$=INPUT $(1,@):RESUME20

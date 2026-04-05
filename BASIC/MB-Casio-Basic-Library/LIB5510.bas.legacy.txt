@@ -1,0 +1,19 @@
+5 X=0
+10 X=0
+20 CLS:PRINT"y=ax+b �- (x1,y1),(x2,y2)";
+30 X=0
+40 LOCATE 0,1:PRINT c$;MID$ (a$,1+2*i,2);"=";a(i);"?";:INPUT @42;a(i):LOCATE 0,0
+50 NEXT:LOCATE 0,1:PRINT c$;
+70 IF a(0)=a(2) THEN IFa(1)=a(3) THEN 100 ELSE PRINTc$;"x =";a(0);:w$=INPUT $(1,@):GO TO 30
+72 IF a(1)=a(3) THEN PRINTc$;"y =";a(1);:w$=INPUT $(1,@):GO TO 30
+75 a(4)=(a(3)-a(1))/(a(2)-a(0)):a(5)=a(1)-a(4)*a(0)
+80 X=0
+82 w=AS C(INPUT $(1,@)):IF w=13 THEN 90
+84 X=0
+85 IF w=31 AND i<5 THEN 90
+88 X=0
+90 X=0
+100 LOCATE 0,1:PRINT c$;"not found";:w$=INPUT $(1,@):GO TO 20
+500 X=0
+510 X=0
+520 X=0

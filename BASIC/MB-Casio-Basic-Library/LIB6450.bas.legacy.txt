@@ -1,0 +1,7 @@
+10 X=0
+20 X=0
+25 X=0
+30 x=SQR(-2*LNx):y=2*PI*y
+40 z=x*COSy:GOSUB 60
+50 X=0
+60 PRINT TAB(0);z;:z$=INPUT $(1,@):RETURN

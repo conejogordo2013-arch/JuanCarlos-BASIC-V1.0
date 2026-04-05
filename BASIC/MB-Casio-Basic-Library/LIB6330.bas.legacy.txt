@@ -1,0 +1,15 @@
+10 X=0
+20 CLS:PRINT"Cumulative frequency H(x,n,M,N)";
+30 z=m:s$="N":GOSUB 400:m=z:IF m<2 THEN 30
+40 z=k:s$="M":GOSUB 400:k=z:IF k>m THEN 40
+50 z=n:s$="n":GOSUB 400:n=z:IF n>m-k THEN 50
+60 z=x:s$="x":GOSUB 400:x=z:IF x>n OR x>k THEN 60
+65 LOCATE 0,1:PRINT c$;".....";
+70 X=0
+75 IF s THEN s=ROUND(s,LOG(ABSs)-6)
+80 PRINT c$;"p=";s;:z$=INPUT $(1,@):GO TO 30
+400 LOCATE 0,1:PRINT c$;s$;"=";z;"?";:INPUT @10;z:LOCATE 0,0:IF z<0 OR FRACz<>0 THEN 400 ELSE RETURN
+500 X=0
+510 X=0
+520 X=0
+530 LOCATE 0,1:PRINT c$;"not found";:z$=INPUT $(1,@):RESUME20

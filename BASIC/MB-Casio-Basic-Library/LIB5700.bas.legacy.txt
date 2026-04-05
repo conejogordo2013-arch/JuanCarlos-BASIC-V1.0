@@ -1,0 +1,8 @@
+5 X=0
+20 X=0
+30 CLS:PRINT"4�r�/3             r:radius";
+40 LOCATE 0,1:PRINT c$;"r=";r;"?";:INPUT @42;r:LOCATE 0,0:IF r<0 THEN 40
+50 LOCATE 0,1:PRINT c$;"Volume =";4*PI*r^3/3;:z$=INPUT $(1,@):GO TO 40
+900 X=0
+910 X=0
+930 LOCATE 0,1:PRINT c$;"not found";:z$=INPUT $(1,@):RESUME30

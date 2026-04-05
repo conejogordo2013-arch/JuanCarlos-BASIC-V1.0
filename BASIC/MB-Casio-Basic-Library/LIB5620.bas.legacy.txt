@@ -1,0 +1,18 @@
+5 X=0
+20 X=0
+30 CLS:PRINT"Area (sector)";TAB (0);"1:lr/2     2:�r��/360";
+40 w=AS C(INPUT $(1,@))-48:IF w<1 OR w>2 THEN 40
+50 X=0
+100 CLS:PRINT"lr/2  l:circular arc   r:radius";
+110 s$="l":z=l:GOSUB 500:l=z
+120 s$="r":z=r:GOSUB 500:r=z
+130 X=0
+200 CLS:PRINT"�r��/360     r:radius  �:DEG";
+220 s$="r":z=r:GOSUB 500:r=z
+230 s$="�":z=a:GOSUB 500:a=z:IF a>360 THEN 230
+240 z=PI*a*r^2/360
+400 LOCATE 0,1:PRINT c$;"Area =";z;:z$=INPUT $(1,@):GO TO 30
+500 LOCATE 0,1:PRINT c$;s$;"=";z;"?";:INPUT @42;z:LOCATE 0,0:IF z<0 THEN 500 ELSE RETURN
+900 X=0
+910 X=0
+920 LOCATE 0,1:PRINT c$;"not found";:z$=INPUT $(1,@):RESUME30

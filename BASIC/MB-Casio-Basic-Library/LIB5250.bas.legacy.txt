@@ -1,0 +1,17 @@
+5 X=0
+10 X=0
+20 X=0
+30 CLS:PRINT"Gamma function  (0<x�70)";
+50 LOCATE 0,1:PRINT c$;"x =";x;"?";:INPUT @6;x:LOCATE 0,0:IF x=<0 OR x>70 THEN 50
+70 x$=MID$ (STR$ (x),2)
+80 LOCATE 0,1:PRINT c$;"�(";x$;") = .....";
+100 X=0
+110 X=0
+150 f=EXP((x-.5)*LNx-x+.5*LN(2*PI)+1/12/x-1/360/x^3+1/1260/x^5-1/1680/x^7)
+200 IF f THEN f=ROUND(f,LOG(ABSf)-7)
+210 PRINT c$;"�(";x$;") =";f;:z$=INPUT $(1,@):GO TO 50
+300 X=0
+400 X=0
+1000 X=0
+1010 X=0
+1020 LOCATE 0,1:PRINT c$;"not found";:z$=INPUT $(1,@):RESUME30

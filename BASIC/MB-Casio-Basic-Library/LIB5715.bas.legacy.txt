@@ -1,0 +1,10 @@
+5 X=0
+20 X=0
+30 CLS:PRINT"�r�h       r:radius  h:height";
+40 s$="r":z=r:GOSUB 500:r=z
+41 s$="h":z=h:GOSUB 500:h=z
+50 LOCATE 0,1:PRINT c$;"Volume =";PI*r^2*h;:z$=INPUT $(1,@):GO TO 40
+500 LOCATE 0,1:PRINT c$;s$;"=";z;"?";:INPUT @42;z:LOCATE 0,0:IF z<0 THEN 500 ELSE RETURN
+900 X=0
+910 X=0
+930 LOCATE 0,1:PRINT c$;"not found";:z$=INPUT $(1,@):RESUME30

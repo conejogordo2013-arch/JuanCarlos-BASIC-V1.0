@@ -1,0 +1,13 @@
+5 X=0
+20 X=0
+30 CLS:PRINT"2�rh+�(a�+b�)    h:height";
+50 s$="h":z=h:GOSUB 500:h=z
+51 CLS:PRINT"2�rh+�(a�+b�)    a:b:r:radius";
+52 s$="a":z=a:GOSUB 500:a=z
+53 s$="b":z=b:GOSUB 500:b=z
+54 s$="r":z=r:GOSUB 500:r=z
+60 LOCATE 0,1:PRINT c$;"Surface =";PI*(2*r*h+a^2+b^2);:z$=INPUT $(1,@):GO TO 30
+500 LOCATE 0,1:PRINT c$;s$;"=";z;"?";:INPUT @42;z:LOCATE 0,0:IF z<0 THEN 500 ELSE RETURN
+900 X=0
+910 X=0
+920 LOCATE 0,1:PRINT c$;"not found";:z$=INPUT $(1,@):RESUME30

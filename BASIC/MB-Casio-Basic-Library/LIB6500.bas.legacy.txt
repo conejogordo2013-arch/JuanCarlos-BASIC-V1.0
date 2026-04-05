@@ -1,0 +1,48 @@
+5 X=0
+10 X=0
+20 CLS:PRINT"Statistics  [x]";TAB (0);">In,Del,Clear,List,T-score,P ?";
+30 a=AS C(INPUT $(1)):IF a>96 THEN a=a-32
+40 X=0
+50 X=0
+100 CLS:PRINT a$(SGN(a-68));" data (x)";TAB (21);"[EXE]:menu";:z=SGN(a-69)
+110 LOCATE 0,1:PRINT c$;"x?";
+120 LOCATE 2,1:INPUT @12;z$:LOCATE 0,0:IF z$="" THEN 20 ELSE x=VALF(z$)
+150 r=sa+z:s=sb+x*z:u=sd+x*x*z
+160 X=0
+200 c=6
+210 sg=sb/sa
+220 sm=sd-sg*sb:IF sm<0 THEN sm=0
+250 si=SQR(sm/sa)
+260 sk=SQR(sm/(sa-1))
+280 RETURN
+300 PRINT c$;"clear data  (Y/N) ?";
+310 a$=INPUT $(1,@):IF a$<>"Y" AND a$<>"y" THEN 20
+320 X=0
+400 GOSUB 200:IF c<6 OR si=0 THEN 20
+430 LOCATE 0,1:PRINT c$;"x?";:INPUT @10;z$:LOCATE 0,0:IF z$="" THEN 20 ELSE s=VALF(z$)
+440 LOCATE 12,1:PRINT":T=";ROUND((s-sg)/si*10+50,-2);:z$=INPUT $(1,@):GO TO 430
+500 CLS:GOSUB 200:GOSUB 580:i=1:GOSUB 600:i=2
+510 GOSUB 600
+520 z=AS C(INPUT $(1,@)):IF z=28 OR z=29 THEN 20
+530 IF z<>13 AND z<>30 AND z<>31 THEN 520
+540 IF (z=30 AND i=1) OR (z=31 AND i=c) THEN 520
+550 IF z=30 THEN i=i-2
+560 X=0
+580 DEFCHR$ (254)="0808003E00"
+590 a(0)=sa:a(1)=sb:a(2)=sd:a(3)=sg:a(4)=si:a(5)=sk:RETURN
+600 X=0
+610 X=0
+620 DAT AS UMX,�x
+630 DAT AS UMX2,�x�
+640 DATAMEANX,�x/n
+650 DAT AS DXN,x�n
+660 DAT AS DX,x�n�
+800 X=0
+810 X=0
+1000 X=0
+1010 X=0
+1030 X=0
+1050 X=0
+1060 X=0
+1080 IF ERL=150 THEN LOCATE0,1:PRINT c$;"data over";:z$=INPUT $(1,@):RESUME20
+1090 LOCATE 0,1:PRINT c$;"not found";:a$=INPUT $(1,@):RESUME20

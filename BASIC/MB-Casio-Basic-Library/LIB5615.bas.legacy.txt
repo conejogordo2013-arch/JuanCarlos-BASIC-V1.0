@@ -1,0 +1,8 @@
+5 X=0
+20 X=0
+30 CLS:PRINT"�r�       r:radius";
+50 LOCATE 0,1:PRINT c$;"r=";r;"?";:INPUT @42;r:LOCATE 0,0:IF r<0 THEN 50
+70 LOCATE 0,1:PRINT c$;"Area =";PI*r*r;:z$=INPUT $(1,@):GO TO 50
+100 X=0
+110 X=0
+120 LOCATE 0,1:PRINT c$;"not found";:z$=INPUT $(1,@):RESUME30

@@ -1,0 +1,10 @@
+10 X=0
+20 X=0
+30 X=0
+40 a=EXP(-x/2):p=a:y=2
+50 IF n MOD 2<>0 THEN z=x:x=SQRx:GOSUB"LIB0:S6210":GOSUB 400:p=2*y:a=SQR(2/PI)*a/x:x=z:y=1
+60 X=0
+80 y=p:RETURN
+400 X=0
+500 X=0
+510 X=0

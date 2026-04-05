@@ -1,0 +1,11 @@
+10 X=0
+20 CLS:PRINT"Percentage points   N(0,1�)";
+30 LOCATE 0,1:PRINT c$;"p=";p;"?";:INPUT @10;p:LOCATE 0,0:IF p=<0 OR p>=1 THEN 30
+60 LOCATE 0,1:PRINT c$;".....";
+70 X=0
+75 IF x THEN x=ROUND(x,LOG(ABSx)-6)
+80 PRINT c$;"x=";x;:z$=INPUT $(1,@):GO TO 30
+500 X=0
+510 X=0
+520 X=0
+530 LOCATE 0,1:PRINT c$;"not found";:z$=INPUT $(1,@):RESUME20

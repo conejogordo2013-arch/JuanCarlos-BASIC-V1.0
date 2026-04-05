@@ -1,0 +1,57 @@
+5 X=0
+10 X=0
+20 a=e:b=f
+30 x=a:GOSUB 530:a=x:x=b:GOSUB 530:b=x
+50 IF b<0 THEN a$=" -" ELSE a$=" +"
+60 LOCATE 0,0:c$=STR$ (a):IF a THEN d$=STR$ (ABSb) ELSE d$=STR$ (b)
+70 IF ABSb=1 THEN d$=MID$ (d$,1,1)
+80 X=0
+90 LOCATE 26,1:z=AS C(INPUT $(1)):IF z>96 THEN z=z-32
+100 X=0
+110 X=0
+220 CLS:PRINT"Complex number  A(a+bi)";
+230 X=0
+260 CLS:PRINT"Complex number  B(c+di)";
+270 e$="c":x=c:GOSUB 520:c=x:e$="d":x=d:GOSUB 520:d=x
+290 X=0
+310 X=0
+320 X=0
+330 X=0
+340 X=0
+360 X=0
+380 X=0
+400 X=0
+420 e=SQR(a*a+b*b):f=ACS(a/e):IF b THEN f=f*SGN(b)
+430 CLS:PRINT"r =";e;TAB (0);"� =";f;:a$=INPUT $(1,@):GOSUB 580:GO TO 50
+450 X=0
+480 X=0
+500 X=0
+510 X=0
+520 LOCATE 0,1:PRINT l$;e$;"=";x;"?";:INPUT @14;x:LOCATE 0,0
+530 IF x<>0 AND ABSx>=1e-90 THEN x=ROUND(x,LOG(ABSx)-8)
+540 IF x<>0 AND ABSx<1e-90 THEN x=x*1e10:x=ROUND(x,LOG(ABSx)-8):x=x/1e10
+550 RETURN
+580 CLS:LOCATE 0,1:PRINT">A,G,I,S,^,+,-,*,/,M,L,C ?";:RETURN
+600 CLS:GOSUB 710:i=2
+610 X=0
+620 z=AS C(INPUT $(1,@)):IF z=28 OR z=29 THEN 690
+630 IF z<>13 AND z<>30 AND z<>31 THEN 620
+640 IF (z=30 AND i=1) OR (z=31 AND i=12) THEN 620
+650 IF z=30 THEN i=i-2
+680 i=i+1:IF i<13 THEN 610
+690 X=0
+710 PRINT" A : input A";:RETURN
+715 PRINT" G : Gauss  r=�A�:�=argument(A)";:RETURN
+720 PRINT" I : inverse         1/A � A";:RETURN
+730 PRINT" S : square root     �A � A";:RETURN
+740 PRINT" ^ : square          A� � A";:RETURN
+750 PRINT" + : addition        A+B � A";:RETURN
+760 PRINT" - : subtraction     A-B � A";:RETURN
+770 PRINT" * : multiplication  A*B � A";:RETURN
+780 PRINT" / : division        A/B � A";:RETURN
+800 PRINT" M : memory          A � M";:RETURN
+810 PRINT" L : load            A � M";:RETURN
+820 PRINT" C : change          A �� B";:RETURN
+1000 X=0
+1010 X=0
+1030 LOCATE 0,0:PRINT l$;"not found";:a$=INPUT $(1,@):RESUME690

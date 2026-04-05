@@ -1,0 +1,125 @@
+5 X=0
+10 X=0
+40 GOSUB 460:GOSUB 470:GOSUB 420
+50 LOCATE 0,0:PRINT c$;"Matrix  A";m$;":B";n$;
+60 LOCATE 28,1:z=AS C(INPUT $(1)):IF z>96 THEN z=z-32
+100 X=0
+110 X=0
+120 X=0
+130 X=0
+300 X=0
+310 IF z<>0 AND ABSz<1e-90 THEN z=z*1e10:z=ROUND(z,LOG(ABSz)-7):z=z/1e10
+320 PRINT c$;"a(";MID$ (STR$ (i+1),2);",";MID$ (STR$ (j+1),2);") =";z;
+330 z=AS C(INPUT $(1,@)):IF z=28 OR z=29 THEN 50
+340 IF z>96 THEN z=z-32
+350 X=0
+360 IF z<>13 AND z<>31 AND z<>30 THEN 330
+370 IF (z=31 AND i+j=n+m) OR (z=30 AND i+j=0) THEN 330
+390 X=0
+400 X=0
+420 CLS:PRINT:PRINT">A,B,D,I,T,K,+,-,*,M,L,C,P ?";:RETURN
+440 X=0
+460 n$="("+MID$ (STR$ (o+1),2)+","+MID$ (STR$ (p+1),2)+")":RETURN
+470 m$="("+MID$ (STR$ (m+1),2)+","+MID$ (STR$ (n+1),2)+")":RETURN
+480 m$="("+MID$ (STR$ (i+1),2)+","+MID$ (STR$ (j+1),2)+")":RETURN
+500 i=x:j=n:GOSUB 480:p$="A(m,n) = A"+m$:s$="m":z=x+1:GOSUB 1900:IF w THEN 40 ELSE x=z-1
+510 i=x:j=n:GOSUB 480:p$="A(m,n) = A"+m$:s$="n":z=n+1:GOSUB 1900:IF w THEN 500
+520 m=x:n=z-1
+530 X=0
+540 X=0
+550 p$="a("+MID$ (STR$ (i+1),2)+","+MID$ (STR$ (j+1),2)+")"
+560 X=0
+570 X=0
+580 X=0
+600 i=x:j=p:GOSUB 480:p$="B(m,n) = B"+m$:s$="m":z=x+1:GOSUB 1900:IF w THEN 40 ELSE x=z-1
+610 i=x:j=p:GOSUB 480:p$="B(m,n) = B"+m$:s$="n":z=p+1:GOSUB 1900:IF w THEN 600
+620 o=x:p=z-1
+630 X=0
+640 X=0
+650 p$="b("+MID$ (STR$ (i+1),2)+","+MID$ (STR$ (j+1),2)+")"
+660 X=0
+670 X=0
+680 X=0
+700 LOCATE 0,0:PRINT c$;"Change  A";m$;" �� B";n$;:IF m=o AND n=p THEN 750
+710 X=0
+720 X=0
+730 X=0
+740 X=0
+750 X=0
+800 X=0
+810 X=0
+820 t=1E-10:d=1
+830 X=0
+840 X=0
+850 X=0
+860 NEXT:NEXT
+870 X=0
+880 X=0
+890 X=0
+900 NEXT:NEXT
+920 X=0
+940 X=0
+950 X=0
+960 X=0
+970 X=0
+980 NEXT:NEXT
+1000 IF z=68 THEN PRINTc$;"Determinant A =";STR$ (d);:z$=INPUT $(1,@):GO TO 50
+1040 X=0
+1050 X=0
+1070 X=0
+1100 m=q:n=r:GOSUB 470:LOCATE 0,0:PRINT c$;"Load  A � M";m$;
+1110 X=0
+1150 q=m:r=n:GOSUB 470:LOCATE 0,0:PRINT c$;"Memory  A � M";m$;
+1160 X=0
+1200 w=m:m=n:n=w:GOSUB 470:LOCATE 0,0:PRINT c$;"Transpose  A � A";m$;
+1210 X=0
+1220 X=0
+1250 X=0
+1260 i=m:j=p:GOSUB 480:PRINT c$;"A*B � A";m$;
+1270 X=0
+1280 X=0
+1300 X=0
+1310 PRINT c$;"A+B � A";m$;
+1320 X=0
+1350 X=0
+1360 PRINT c$;"A-B � A";m$;
+1370 X=0
+1400 p$="k*A"+m$+" � A":z=e:GOSUB 1950:GOSUB 420:IF w THEN 50 ELSE e=z
+1410 LOCATE 0,0:PRINT p$;
+1420 X=0
+1500 DEFCHR$ (254)="0080F08000":CLS:GOSUB 1600:i=2
+1510 X=0
+1520 z=AS C(INPUT $(1,@)):IF z=28 OR z=29 THEN 1580
+1530 IF z<>13 AND z<>31 AND z<>30 THEN 1520
+1540 IF (z=31 AND i=13) OR (z=30 AND i=1) THEN 1520
+1550 IF z=30 THEN i=i-2
+1570 i=i+1:IF i<14 THEN 1510
+1580 X=0
+1600 PRINT" A : input A(m,n)";:RETURN
+1610 PRINT" B : input B(m,n)";:RETURN
+1620 PRINT" D : determinant A";:RETURN
+1630 PRINT" I : inverse         A� � A";:RETURN
+1640 PRINT" T : transposition   A� � A";:RETURN
+1650 PRINT" K : scalar-cal      k*A � A";:RETURN
+1660 PRINT" + : addition        A+B � A";:RETURN
+1670 PRINT" - : subtraction     A-B � A";:RETURN
+1680 PRINT" * : multiplication  A*B � A";:RETURN
+1690 PRINT" M : memory          A � M";:RETURN
+1700 PRINT" L : load            A � M";:RETURN
+1710 PRINT" C : change          A �� B";:RETURN
+1720 PRINT" P : print A(m,n)";:RETURN
+1830 LOCATE 0,0:PRINT c$;"not found";:z$=INPUT $(1,@):RETURN
+1850 CLS:PRINT p$;" =";z;
+1860 LOCATE 0,1:PRINT c$;"?";:INPUT @16;z:LOCATE 0,0:w=PEEK (&H65B):RETURN
+1900 CLS:PRINT p$;
+1910 LOCATE 0,1:PRINT c$;s$;" ?";:INPUT @3;z:LOCATE 0,0:w=PEEK (&H65B)-13:IF w THEN RETURN
+1920 IF z<1 OR z>10 OR FRAC(z)<>0 THEN 1910 ELSE RETURN
+1950 CLS:PRINT p$;
+1960 LOCATE 0,1:PRINT c$;"k=";z;"?";:INPUT @12;z:LOCATE 0,0:w=PEEK (&H65B)-13:RETURN
+2000 X=0
+2010 X=0
+2020 X=0
+2030 X=0
+2040 X=0
+2050 X=0
+2080 X=0

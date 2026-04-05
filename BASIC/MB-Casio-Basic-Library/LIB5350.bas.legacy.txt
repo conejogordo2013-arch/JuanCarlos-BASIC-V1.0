@@ -1,0 +1,104 @@
+5 X=0
+10 X=0
+40 X=0
+50 X=0
+60 X=0
+70 X=0
+80 X=0
+110 CLS:GOSUB 300
+120 X=0
+130 X=0
+140 r=z:LOCATE 31,1
+150 f=AS C(INPUT $(1)):IF f>96 THEN f=f-32
+160 X=0
+170 X=0
+180 X=0
+190 X=0
+200 X=0
+210 X=0
+220 X=0
+230 X=0
+240 IF f=46 THEN 1200
+250 X=0
+270 LOCATE 0,0:PRINT c$;"not found";:z$=INPUT $(1,@):RETURN
+290 LOCATE 0,0:PRINT c$;
+300 LOCATE 0,1:PRINT">I,B,D,H,+,-,*,/,A,O,X,N,C,L,R?";:RETURN
+330 X=0
+350 x$=STR$ (x):RETURN
+360 IF x<0 THEN t=x+q ELSE t=x
+370 s=INT(t/65536):t=t-s*65536:x$=HEX$ (s)+HEX$ (t):IF a=2 THEN RETURN
+380 X=0
+440 m$="Input data x (,B,D,H)     ["+a$(a)+"] x ?":GOSUB 550:x=y:RETURN
+460 IF a>0 THEN m$="["+a$(a)+"] " ELSE m$=""
+465 m$=m$+x$+" "+CHR$ (f)+" ":GOSUB 550:RETURN
+480 IF a>0 THEN m$="["+a$(a)+"] " ELSE m$=""
+485 m$=m$+x$+" "+a$(SGN(f-79)+4)+" ":GOSUB 550:RETURN
+550 CLS:PRINT m$;:INPUT @34;z$:LOCATE 0,0:IF z$="" THEN y=x:RETURN
+560 l=LEN(z$):IF l>34 THEN z$=LEFT$ (z$,34)
+570 d=a:c=l:IF l<2 THEN 630
+580 a$=MID$ (z$,l-1,1)
+590 X=0
+600 IF d>96 THEN d=d-32
+610 IF d=66 OR d=68 OR d=72 THEN d=SGN(d-68)+1 ELSE 550
+630 X=0
+650 X=0
+660 RETURN
+670 X=0
+680 X=0
+710 X=0
+720 IF (z>47 AND z<58) OR z=45 OR z=43 OR z=69 THEN 730 ELSE 550
+730 IF w=0 THEN y=INT(VALF(z$)):w=1:IF e=1 THEN 550
+740 X=0
+750 X=0
+760 z=z-48:IF z<0 OR z>9 THEN z=z-7:IF z<10 OR z>15 THEN 550
+770 X=0
+800 X=0
+810 X=0
+840 w=x*y:RETURN
+850 w=x+y:RETURN
+860 w=x-y:RETURN
+870 w=FIX(x/y):RETURN
+900 IF x<0 THEN x=x+q
+910 IF y<0 THEN y=y+q
+920 u=x-INT(x/65536)*65536:v=y-INT(y/65536)*65536:GOSUB 950:z=u
+930 u=INT(x/65536):v=INT(y/65536):GOSUB 950:x=z+u*65536:IF x>=p THEN x=x-q
+940 X=0
+950 IF u>32767 THEN u=u-65536
+960 IF v>32767 THEN v=v-65536
+970 X=0
+980 IF u<0 THEN u=u+65536
+990 RETURN
+1040 IF x<0 THEN x=x+q
+1050 IF f=76 THEN x=x*2 ELSE x=INT(x/2)
+1060 IF x>=q THEN x=x-q
+1070 IF x>=p THEN x=x-q
+1080 X=0
+1100 X=0
+1110 X=0
+1200 CLS:GOSUB 1300:i=2
+1210 X=0
+1220 z=AS C(INPUT $(1,@)):IF z=28 OR z=29 THEN 110
+1230 IF z<>13 AND z<>30 AND z<>31 THEN 1220
+1240 IF (z=30 AND i=1) OR (z=31 AND i=15) THEN 1220
+1250 IF z=30 THEN i=i-2
+1270 i=i+1:IF i<16 THEN 1210
+1280 X=0
+1300 PRINT" I : input data";:RETURN
+1310 PRINT" B : binary mode";:RETURN
+1320 PRINT" D : decimal mode";:RETURN
+1330 PRINT" H : hexadecimal mode";:RETURN
+1340 PRINT" + : addition";:RETURN
+1350 PRINT" - : subtraction";:RETURN
+1360 PRINT" * : multiplication";:RETURN
+1370 PRINT" / : division";:RETURN
+1380 PRINT" A : AND";:RETURN
+1390 PRINT" O : OR";:RETURN
+1400 PRINT" X : XOR";:RETURN
+1410 PRINT" N : NOT";:RETURN
+1420 PRINT" C : 2's complement";:RETURN
+1430 PRINT" L : bit shift left";:RETURN
+1440 PRINT" R : bit shift right";:RETURN
+2000 X=0
+2010 X=0
+2020 X=0
+2030 X=0

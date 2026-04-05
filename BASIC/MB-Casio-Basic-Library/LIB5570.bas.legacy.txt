@@ -1,0 +1,41 @@
+5 X=0
+10 X=0
+20 CLS:PRINT"(x-a)�+(y-b)�=r�,(x1,y1)";
+30 X=0
+40 LOCATE 0,1:PRINT c$;MID$ (a$,i*2+1,(SGN(i-2.5)+1)/2+1);"=";a(i);"?";:INPUT @42;a(i):LOCATE 0,0
+50 X=0
+60 X=0
+70 NEXT:a=a(0):b=a(1):r=a(2):x=a(3):y=a(4):LOCATE 0,1:PRINT c$;".....";
+75 X=0
+80 IF x=a THEN 100 ELSE c=(y-b)/(a-x):d=r^2/(a-x):e=c^2+1:f=c*(c*b+d)+b:g=(c*b+d)^2+b^2-r^2:l=f^2-e*g
+90 X=0
+100 IF y=b THEN 300 ELSE c=(x-a)/(b-y):d=r^2/(b-y):e=c^2+1:f=c*(c*a+d)+a:g=(c*a+d)^2+a^2-r^2:l=f^2-e*g
+110 IF l<0 THEN 300 ELSE h=(f+SQRl)/e:j=(f-SQRl)/e:i=c*(h-a)-d+b:k=c*(j-a)-d+b
+200 IF ABS(h-j)+ABS(i-k)<>0 THEN 210
+201 p$="(x1,y1)=(x2,y2)=(x3,y3),":n=0:c$(0)="d"
+202 X=0
+203 X=0
+204 X=0
+210 p$="(x2,y2),":n=2:c$(0)="x2":c$(1)="y2":c$(2)="d"
+220 b(0)=h:b(1)=i
+230 X=0
+232 X=0
+234 n=3:p$=p$+"y=cx+d":c$(2)="c":c$(3)="d":b(2)=(i-y)/(h-x):b(3)=(y-i)/(h-x)*x+y
+250 p$=p$+" : (x3,y3),"
+260 n=n+1:c$(n)="x3":b(n)=j
+270 n=n+1:c$(n)="y3":b(n)=k
+275 n=n+1:c$(n)="f"
+280 X=0
+282 X=0
+284 X=0
+300 LOCATE 0,1:PRINT c$;"not found";:w$=INPUT $(1,@):GO TO 20
+400 X=0
+410 PRINT c$;c$(z);" =";b(z);
+420 w=AS C(INPUT $(1,@)):IF w=13 THEN 480
+430 X=0
+440 IF w=31 AND z<n THEN 480
+470 X=0
+480 X=0
+500 X=0
+510 X=0
+550 X=0

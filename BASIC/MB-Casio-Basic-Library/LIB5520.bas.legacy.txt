@@ -1,0 +1,11 @@
+5 X=0
+10 X=0
+20 CLS:PRINT"Angle(�) �- y=ax+b,y=cx+d";
+30 s$="a":z=a:GOSUB 100:a=z
+40 s$="c":z=c:GOSUB 100:c=z:LOCATE 0,1
+60 X=0
+70 w$=INPUT $(1,@):GO TO 30
+100 LOCATE 0,1:PRINT c$;s$;"=";z;"?";:INPUT @42;z:LOCATE 0,0:RETURN
+500 X=0
+510 X=0
+520 LOCATE 0,1:PRINT c$;"not found";:z$=INPUT $(1,@):RESUME20

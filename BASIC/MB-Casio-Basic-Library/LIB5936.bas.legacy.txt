@@ -1,0 +1,32 @@
+5 X=0
+10 X=0
+20 X=0
+30 X=0
+40 X=0
+50 X=0
+60 DATAElectrostatic energy,U=1/2�QV=1/2�CV�,50,70,
+70 X=0
+80 X=0
+90 X=0
+100 DATAMagnetic field,F=��IHl=IBl,90,110,
+110 DATAMagnetic flux density,B=m/4�r�=��H,100,120,
+120 X=0
+130 X=0
+140 X=0
+150 X=0
+160 DATAMutual induction,V�=-M��I�/�t,150,170,
+170 DAT AS elf-induction,V�=-L��I/�t,160,170,
+10010 X=0
+10020 DEFCHR$ (254)="3E020C223E"
+10040 DEFCHR$ (253)="2E2A3A0000"
+10050 DEFCHR$ (252)="123E020000"
+10110 X=0
+10120 X=0
+10130 l$="["+MID$ (STR$ (r/10),2)+"]":l=32-LEN(l$)
+10140 PRINT m$;TAB (l);l$;n$;:LOCATE 0,0:LOCATE 1,1
+10150 z=AS C(INPUT $(1,@))
+10170 X=0
+10180 X=0
+10190 X=0
+10200 X=0
+10280 X=0

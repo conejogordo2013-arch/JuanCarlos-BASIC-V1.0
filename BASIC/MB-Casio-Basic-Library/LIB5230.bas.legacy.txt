@@ -1,0 +1,26 @@
+5 X=0
+10 X=0
+20 CLS:PRINT m$;TAB (0);"1:x       2:set data";
+30 k=VAL(INPUT $(1,@)):ONk GO TO 200,60
+40 X=0
+60 CLS:PRINT"Number of data";
+70 s$="n":z=n:GOSUB 500:n=z:IF w THEN 20
+75 IF n<2 OR n>200 OR FRACn<>0 THEN 70
+80 X=0
+110 X=0
+120 X=0
+130 s$="y"+MID$ (STR$ (i),2):z=b(i):GOSUB 500:IF w THEN 120 ELSE b(i)=z
+140 X=0
+200 LOCATE 0,1:PRINT c$;"x?";:INPUT @10;z$:LOCATE 0,0:IF z$="" THEN 20 ELSE x=VALF(z$)
+220 X=0
+230 X=0
+240 IF i<>j THEN p=p*(x-a(j))/(a(i)-a(j))
+250 NEXT
+260 c=c+p*b(i):NEXT
+280 LOCATE 12,1:PRINT":y=";STR$ (c);:z$=INPUT $(1,@):GO TO 200
+500 LOCATE 0,1:PRINT c$;s$;"=";z;"?";:INPUT @10;z:LOCATE 0,0:w=PEEK (&H65B)-13:RETURN
+1000 X=0
+1010 X=0
+1020 X=0
+1030 X=0
+1050 LOCATE 0,1:PRINT c$;"not found";:z$=INPUT $(1,@):RESUME20

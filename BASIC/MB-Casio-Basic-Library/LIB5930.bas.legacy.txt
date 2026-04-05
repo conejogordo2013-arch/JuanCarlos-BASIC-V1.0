@@ -1,0 +1,36 @@
+5 X=0
+10 X=0
+20 X=0
+30 DATACircular motion,T=2�r/v=2�/�=1/f,20,40,
+40 X=0
+50 X=0
+60 X=0
+70 X=0
+80 X=0
+90 X=0
+100 DATAElastic energy (spring),Ee=1/2�kx�,90,110,
+110 DATAKinetic energy,Ek=1/2�mv�,100,120,
+120 DATACoefficient of friction,F=�N,110,130,
+130 X=0
+140 X=0
+150 X=0
+160 DATAPotential energy (planet),Up=-G�Mm/r ,150,170,
+170 DATAKinetic energy (planet),Ek=1/2�mr���,160,180,
+180 X=0
+190 DATAAngular momentum,J=I�,180,200,
+200 DATAConservation of momentum,mv�+MV�=mv�+MV�,190,200,
+10010 X=0
+10020 DEFCHR$ (255)="202048F808"
+10030 DEFCHR$ (254)="3E020C223E"
+10040 DEFCHR$ (253)="2E2A3A0000"
+10050 DEFCHR$ (252)="123E020000"
+10110 X=0
+10120 X=0
+10130 l$="["+MID$ (STR$ (r/10),2)+"]":l=32-LEN(l$)
+10140 PRINT m$;TAB (l);l$;n$;:LOCATE 0,0:LOCATE 1,1
+10150 z=AS C(INPUT $(1,@))
+10170 X=0
+10180 X=0
+10190 X=0
+10200 X=0
+10280 X=0
