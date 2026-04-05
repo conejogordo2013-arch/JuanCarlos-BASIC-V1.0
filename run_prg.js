@@ -111,10 +111,39 @@ function bootInterpreter(htmlPath) {
     getElementById: (id) => elements[id] || mk(id),
     addEventListener() {},
     activeElement: null,
+    documentElement: { style: { setProperty() {} } },
   };
   global.window = {
     AudioContext: function AudioContextMock() {},
     webkitAudioContext: function WebkitAudioContextMock() {},
+  };
+  global.__basicLoadHook = async (requestedPath) => {
+    const candidate = String(requestedPath || '').trim();
+    const abs = path.resolve(process.cwd(), candidate);
+    if (!fs.existsSync(abs)) throw new Error(`LOAD: no existe ${candidate}`);
+    return fs.readFileSync(abs, 'utf8');
+  };
+  global.__basicFileHook = {
+    async open(requestedPath, mode) {
+      const abs = path.resolve(process.cwd(), String(requestedPath || '').trim());
+      const m = String(mode || 'R').toUpperCase();
+      if (m === 'W') fs.writeFileSync(abs, '', 'utf8');
+      if (m !== 'R' && m !== 'W' && m !== 'A') throw new Error(`modo no soportado: ${m}`);
+      if (!fs.existsSync(abs)) fs.writeFileSync(abs, '', 'utf8');
+      return { abs, mode: m, cursor: 0 };
+    },
+    async write(handle, text) {
+      if (!handle || (handle.mode !== 'W' && handle.mode !== 'A')) return;
+      fs.appendFileSync(handle.abs, String(text) + '\n', 'utf8');
+    },
+    async readline(handle) {
+      if (!handle) return '';
+      const content = fs.readFileSync(handle.abs, 'utf8').split(/\r?\n/);
+      const line = content[handle.cursor] ?? '';
+      handle.cursor += 1;
+      return line;
+    },
+    async close() {},
   };
 
   const source = `${match[1]}\n;globalThis.__machine = machine; globalThis.__termOut = termOut;`;

@@ -322,10 +322,10 @@
         const KEYWORDS = [
             "NEW ALL", "NEW", "CLEAR", "RUN", "LIST ALL", "LIST", "EDIT", "VARLIST", "PASS", "FRE", "TROFF", "TRON",
             "GOTO", "GOSUB", "RETURN", "ON ERROR GOTO", "ON ERROR", "RESUME", "ERR", "ERL", "ON",
-            "IF", "THEN", "ELSE", "FOR", "TO", "STEP", "NEXT", "WHILE", "WEND", "DO", "UNTIL",
+            "IF", "THEN", "THENGOTO", "ELSE", "FOR", "TO", "STEP", "NEXT", "WHILE", "WEND", "DO", "UNTIL", "AS",
             "STOP", "END", "REM", "LET", "PRINT USING", "PRINT", "INPUT$", "INPUT", "LOCATE", "CLS", "BEEP",
             "DIM", "DATA", "READ", "RESTORE",
-            "PEEK", "POKE", "DEFSEG", "OPEN", "CLOSE", "SAVE", "LOAD"
+            "PEEK", "POKE", "DEFSEG", "OPEN", "CLOSE", "SAVE", "LOAD", "NEWFUNCTION", "NEWFUNCTION$", "FUNCTION", "FUNCTION$", "GPHYCS", "CLASS", "TYPE", "METHOD", "INSTANCE", "SETPROP", "DEF", "WRITE", "READFILE", "PRINT#", "INPUT#", "TRY", "CATCH"
         ];
 
         const FUNCTIONS = [
@@ -333,10 +333,11 @@
             "SIN", "COS", "TAN", "ASN", "ACS", "ATN",
             "LOG", "LN", "EXP", "SQR", "ABS", "SGN", "INT", "FIX", "FRAC", "ROUND",
             "RAN#", "PI", "FACT", "NPR", "NCR", "POL", "REC", "ANGLE",
-            "CHR$", "ASC", "STR$", "VAL", "LEFT$", "RIGHT$", "MID$", "LEN", "INKEY$"
+            "CHR$", "ASC", "STR$", "VAL", "LEFT$", "RIGHT$", "MID$", "LEN", "INKEY$",
+            "HEX$", "HEXVAL", "INT$", "LOCATE$", "LCOLOR", "NFUNC", "NFUNC$", "CALL", "PROP", "PEEK"
         ];
 
-        const OPERATORS = ["<>", "<=", ">=", "^", "*", "/", "+", "-", "=", "<", ">", "AND", "OR", "NOT"];
+        const OPERATORS = ["<>", "<=", ">=", "^", "*", "/", "MOD", "+", "-", "=", "<", ">", "AND", "OR", "NOT"];
 
         // --- MANEJO DE ERRORES ---
         class BasicError extends Error {
@@ -450,15 +451,21 @@
                 // Identificadores (Keywords, Funciones, Variables)
                 if (/[A-Za-z_]/.test(char)) {
                     let idStr = "";
-                    while (i < codeStr.length && /[A-Za-z0-9_$#]/.test(codeStr[i])) {
+                    while (i < codeStr.length && /[A-Za-z0-9_$#.]/.test(codeStr[i])) {
                         idStr += codeStr[i];
                         i++;
                     }
                     let upperId = idStr.toUpperCase();
+                    let rest = codeStr.substring(i);
+                    let nextNonWs = (rest.match(/^\s*(.)/) || [null, ''])[1];
 
                     // Check Keywords and Functions
                     let isKeyword = KEYWORDS.includes(upperId);
                     let isFunc = FUNCTIONS.includes(upperId);
+                    if (upperId === 'PEEK' && nextNonWs === '(') {
+                        isKeyword = false;
+                        isFunc = true;
+                    }
 
                     // Handle special case: REM
                     if (upperId === "REM") {
@@ -553,7 +560,7 @@
                 let node = this.parsePower();
                 while (true) {
                     let t = this.peek();
-                    if (t.type === 'OPERATOR' && ['*', '/'].includes(t.value)) {
+                    if (t.type === 'OPERATOR' && ['*', '/', 'MOD'].includes(t.value)) {
                         this.consume();
                         node = { type: 'BINARY', op: t.value, left: node, right: this.parsePower() };
                     } else break;
@@ -618,6 +625,16 @@
     let varName = t.value;
 
     if (this.match('PUNCT', '(')) {
+        if (varName.includes('.')) {
+            let args = [];
+            if (!(this.peek().type === 'PUNCT' && this.peek().value === ')')) {
+                args.push(this.parseExpression());
+                while (this.match('PUNCT', ',')) args.push(this.parseExpression());
+            }
+            if (!this.match('PUNCT', ')')) throw new BasicError(1, "Falta ')' en llamada de método");
+            let [instance, method] = varName.split('.', 2);
+            return { type: 'METHOD_CALL', instance, method, args };
+        }
         // Array access
         let indices = [];
         indices.push(this.parseExpression());
@@ -733,7 +750,12 @@
 
                     case 'IF':
                         let cond = this.parseExpression();
-                        if (!this.match('KEYWORD', 'THEN')) throw new BasicError(1, "Falta THEN en IF");
+                        let hasThen = this.match('KEYWORD', 'THEN');
+                        let hasThenGoto = this.match('KEYWORD', 'THENGOTO');
+                        if (!hasThen && !hasThenGoto) throw new BasicError(1, "Falta THEN en IF");
+                        if (hasThenGoto) {
+                            return { type: 'IF', cond, thenStmts: [{ type: 'GOTO', lineExpr: this.parseExpression() }], elseStmts: [] };
+                        }
                         
                         // En BASIC, THEN puede ir seguido de un número de línea o sentencias
                         let thenStmts = [];
@@ -817,7 +839,14 @@
                     case 'DIM':
                         let dims = [];
                         do {
-                            let arrName = this.consume().value;
+                            let arrTok = this.consume();
+                            let arrName = arrTok.value;
+                            if (this.match('KEYWORD', 'AS')) {
+                                let cls = this.consume();
+                                if (cls.type !== 'VAR' && cls.type !== 'STRING') throw new BasicError(1, "Se esperaba TYPE en DIM ... AS");
+                                dims.push({ kind: 'INSTANCE', name: arrName, className: cls.value });
+                                break;
+                            }
                             if (!this.match('PUNCT', '(')) throw new BasicError(1, "Falta '(' en DIM");
                             let sizes = [];
                             sizes.push(this.parseExpression());
@@ -825,7 +854,7 @@
                                 sizes.push(this.parseExpression());
                             }
                             if (!this.match('PUNCT', ')')) throw new BasicError(1, "Falta ')' en DIM");
-                            dims.push({ name: arrName, sizes });
+                            dims.push({ kind: 'ARRAY', name: arrName, sizes });
                         } while (this.match('PUNCT', ','));
                         return { type: 'DIM', arrays: dims };
 
@@ -902,6 +931,154 @@
                     case 'TROFF': return { type: 'TROFF' };
                     case 'VARLIST': return { type: 'VARLIST' };
                     case 'FRE': return { type: 'FRE' }; // Often a function, but can be a command to print it
+                    case 'NEWFUNCTION': {
+                        let fnName = this.consume();
+                        if (fnName.type !== 'VAR') throw new BasicError(1, "Se esperaba nombre en NEWFUNCTION");
+                        if (!this.match('PUNCT', ',')) throw new BasicError(1, "Falta ',' en NEWFUNCTION");
+                        let fnExpr = this.parseExpression();
+                        return { type: 'NEWFUNCTION', name: fnName.value, expr: fnExpr };
+                    }
+                    case 'FUNCTION': {
+                        let fnName = this.consume();
+                        if (fnName.type !== 'VAR') throw new BasicError(1, "Se esperaba nombre en FUNCTION");
+                        if (!this.match('PUNCT', ',')) throw new BasicError(1, "Falta ',' en FUNCTION");
+                        let fnExpr = this.parseExpression();
+                        return { type: 'NEWFUNCTION', name: fnName.value, expr: fnExpr };
+                    }
+                    case 'NEWFUNCTION$': {
+                        let fnName = this.consume();
+                        if (fnName.type !== 'VAR') throw new BasicError(1, "Se esperaba nombre en NEWFUNCTION$");
+                        if (!this.match('PUNCT', ',')) throw new BasicError(1, "Falta ',' en NEWFUNCTION$");
+                        let fnExpr = this.parseExpression();
+                        return { type: 'NEWFUNCTION$', name: fnName.value, expr: fnExpr };
+                    }
+                    case 'FUNCTION$': {
+                        let fnName = this.consume();
+                        if (fnName.type !== 'VAR') throw new BasicError(1, "Se esperaba nombre en FUNCTION$");
+                        if (!this.match('PUNCT', ',')) throw new BasicError(1, "Falta ',' en FUNCTION$");
+                        let fnExpr = this.parseExpression();
+                        return { type: 'NEWFUNCTION$', name: fnName.value, expr: fnExpr };
+                    }
+                    case 'LOAD': {
+                        let pathExpr;
+                        if (this.match('PUNCT', '(')) {
+                            pathExpr = this.parseExpression();
+                            let namespaceExpr = null;
+                            let includeExpr = null;
+                            if (this.match('PUNCT', ',')) {
+                                namespaceExpr = this.parseExpression();
+                                if (this.match('PUNCT', ',')) includeExpr = this.parseExpression();
+                            }
+                            this.match('PUNCT', ')');
+                            return { type: 'LOAD', pathExpr, namespaceExpr, includeExpr };
+                        } else {
+                            pathExpr = this.parseExpression();
+                            let namespaceExpr = null;
+                            let includeExpr = null;
+                            if (this.match('PUNCT', ',')) {
+                                namespaceExpr = this.parseExpression();
+                                if (this.match('PUNCT', ',')) includeExpr = this.parseExpression();
+                            }
+                            return { type: 'LOAD', pathExpr, namespaceExpr, includeExpr };
+                        }
+                    }
+                    case 'GPHYCS': {
+                        let x = this.parseExpression();
+                        this.match('PUNCT', ',');
+                        let y = this.parseExpression();
+                        let ch = { type: 'LITERAL', value: '*' };
+                        if (this.match('PUNCT', ',')) ch = this.parseExpression();
+                        return { type: 'GPHYCS', x, y, ch };
+                    }
+                    case 'CLASS': {
+                        let cls = this.consume();
+                        if (cls.type !== 'VAR' && cls.type !== 'STRING') throw new BasicError(1, "Se esperaba nombre en CLASS");
+                        return { type: 'CLASS', name: cls.value };
+                    }
+                    case 'TYPE': {
+                        let cls = this.consume();
+                        if (cls.type !== 'VAR' && cls.type !== 'STRING') throw new BasicError(1, "Se esperaba nombre en TYPE");
+                        return { type: 'CLASS', name: cls.value };
+                    }
+                    case 'DEF': {
+                        let kind = this.consume();
+                        let k = String(kind.value || '').toUpperCase();
+                        if (k === 'PROC') {
+                            let cls = this.consume();
+                            this.match('PUNCT', ',');
+                            let expr = this.parseExpression();
+                            let parts = String(cls.value).split('.', 2);
+                            if (parts.length < 2) throw new BasicError(1, "DEF PROC requiere formato TYPE.METODO");
+                            return { type: 'METHOD', className: parts[0], methodName: parts[1], expr };
+                        }
+                        if (k === 'FN') {
+                            let fnName = this.consume();
+                            if (fnName.type !== 'VAR') throw new BasicError(1, "Se esperaba nombre en DEF FN");
+                            if (!this.match('PUNCT', ',')) throw new BasicError(1, "Falta ',' en DEF FN");
+                            let fnExpr = this.parseExpression();
+                            return { type: 'NEWFUNCTION', name: fnName.value, expr: fnExpr };
+                        }
+                        throw new BasicError(1, "DEF soporta PROC o FN");
+                    }
+                    case 'METHOD': {
+                        let cls = this.consume();
+                        if (cls.type !== 'VAR' && cls.type !== 'STRING') throw new BasicError(1, "Se esperaba clase en METHOD");
+                        this.match('PUNCT', ',');
+                        let mName = this.consume();
+                        if (mName.type !== 'VAR' && mName.type !== 'STRING') throw new BasicError(1, "Se esperaba método en METHOD");
+                        this.match('PUNCT', ',');
+                        let expr = this.parseExpression();
+                        return { type: 'METHOD', className: cls.value, methodName: mName.value, expr };
+                    }
+                    case 'INSTANCE': {
+                        let cls = this.consume();
+                        if (cls.type !== 'VAR' && cls.type !== 'STRING') throw new BasicError(1, "Se esperaba clase en INSTANCE");
+                        this.match('PUNCT', ',');
+                        let inst = this.consume();
+                        if (inst.type !== 'VAR' && inst.type !== 'STRING') throw new BasicError(1, "Se esperaba instancia en INSTANCE");
+                        return { type: 'INSTANCE', className: cls.value, instanceName: inst.value };
+                    }
+                    case 'SETPROP': {
+                        let inst = this.consume();
+                        if (inst.type !== 'VAR' && inst.type !== 'STRING') throw new BasicError(1, "Se esperaba instancia en SETPROP");
+                        this.match('PUNCT', ',');
+                        let prop = this.consume();
+                        if (prop.type !== 'VAR' && prop.type !== 'STRING') throw new BasicError(1, "Se esperaba propiedad en SETPROP");
+                        this.match('PUNCT', ',');
+                        let expr = this.parseExpression();
+                        return { type: 'SETPROP', instanceName: inst.value, propName: prop.value, expr };
+                    }
+                    case 'OPEN': {
+                        let pathExpr = this.parseExpression();
+                        let modeExpr = { type: 'LITERAL', value: 'R' };
+                        if (this.match('PUNCT', ',')) modeExpr = this.parseExpression();
+                        return { type: 'OPEN', pathExpr, modeExpr };
+                    }
+                    case 'WRITE': {
+                        let valueExpr = this.parseExpression();
+                        return { type: 'WRITE', valueExpr };
+                    }
+                    case 'READFILE': {
+                        let varToken = this.consume();
+                        if (varToken.type !== 'VAR') throw new BasicError(1, "Se esperaba variable en READFILE");
+                        return { type: 'READFILE', varName: varToken.value };
+                    }
+                    case 'PRINT#': {
+                        let valueExpr = this.parseExpression();
+                        return { type: 'WRITE', valueExpr };
+                    }
+                    case 'INPUT#': {
+                        let varToken = this.consume();
+                        if (varToken.type !== 'VAR') throw new BasicError(1, "Se esperaba variable en INPUT#");
+                        return { type: 'READFILE', varName: varToken.value };
+                    }
+                    case 'CLOSE': return { type: 'CLOSE' };
+                    case 'TRY':
+                        if (this.peek().type === 'EOF') return { type: 'TRY' };
+                        return { type: 'ON ERROR GOTO', line: this.parseExpression() };
+                    case 'CATCH':
+                        if (this.peek().type === 'EOF') return { type: 'ON ERROR OFF' };
+                        return { type: 'ON ERROR GOTO', line: this.parseExpression() };
 
                     default:
                         throw new BasicError(1, "Comando no implementado: " + cmd);
@@ -935,6 +1112,13 @@
                 this.errLine = 0;
 
                 this.keyBuffer = [];
+                this.userFunctions = {};
+                this.userStringFunctions = {};
+                this.classDefs = {};
+                this.instances = {};
+                this.currentInstance = null;
+                this.loadedModules = new Set();
+                this.fileState = { handle: null, mode: 'R' };
                 document.addEventListener('keydown', (e) => {
                     if (this.isRunning && !this.awaitingInput) {
                         this.keyBuffer.push(e.key);
@@ -971,6 +1155,7 @@
                     WEND: async () => this.handleWend(),
                     INPUT: async (stmt) => this.handleInput(stmt),
                     DIM: async (stmt) => this.handleDim(stmt),
+                    DATA: async () => ({}),
                     READ: async (stmt) => this.handleRead(stmt),
                     RESTORE: async () => { this.dataPtr = 0; return {}; },
                     ON: async (stmt) => this.handleOn(stmt),
@@ -982,6 +1167,97 @@
                     'ON ERROR GOTO': async (stmt) => { this.onErrorLine = this.evalExpr(stmt.line); return {}; },
                     'ON ERROR OFF': async () => { this.onErrorLine = -1; return {}; },
                     RESUME: async (stmt) => this.handleResume(stmt),
+                    TRY: async () => { return {}; },
+                    NEWFUNCTION: async (stmt) => {
+                        this.userFunctions[stmt.name] = stmt.expr;
+                        return {};
+                    },
+                    'NEWFUNCTION$': async (stmt) => {
+                        this.userStringFunctions[stmt.name] = stmt.expr;
+                        return {};
+                    },
+                    LOAD: async (stmt) => this.handleLoad(stmt),
+                    GPHYCS: async (stmt) => {
+                        let x = Math.floor(this.evalExpr(stmt.x));
+                        let y = Math.floor(this.evalExpr(stmt.y));
+                        let ch = String(this.evalExpr(stmt.ch) ?? '*');
+                        lcd.locate(x, y);
+                        lcd.print(ch[0] || '*');
+                        printTerm(`[GPHYCS ${x},${y}] ${ch[0] || '*'}`);
+                        return {};
+                    },
+                    CLASS: async (stmt) => {
+                        let n = String(stmt.name).toUpperCase();
+                        this.classDefs[n] = this.classDefs[n] || { name: n, methods: {} };
+                        printTerm(`CLASS ${n} REGISTRADA`);
+                        return {};
+                    },
+                    METHOD: async (stmt) => {
+                        let c = String(stmt.className).toUpperCase();
+                        let m = String(stmt.methodName).toUpperCase();
+                        this.classDefs[c] = this.classDefs[c] || { name: c, methods: {} };
+                        this.classDefs[c].methods[m] = stmt.expr;
+                        printTerm(`METHOD ${c}.${m} REGISTRADO`);
+                        return {};
+                    },
+                    INSTANCE: async (stmt) => {
+                        let c = String(stmt.className).toUpperCase();
+                        let i = String(stmt.instanceName).toUpperCase();
+                        if (!this.classDefs[c]) this.classDefs[c] = { name: c, methods: {} };
+                        this.instances[i] = { className: c, props: {} };
+                        printTerm(`INSTANCE ${i} : ${c}`);
+                        return {};
+                    },
+                    SETPROP: async (stmt) => {
+                        let i = String(stmt.instanceName).toUpperCase();
+                        let p = String(stmt.propName).toUpperCase();
+                        if (!this.instances[i]) throw new BasicError(1, `Instancia no existe: ${i}`);
+                        this.instances[i].props[p] = this.evalExpr(stmt.expr);
+                        return {};
+                    },
+                    OPEN: async (stmt) => {
+                        if (!globalThis.__basicFileHook) throw new BasicError(1, 'OPEN no disponible en este entorno');
+                        let p = String(this.evalExpr(stmt.pathExpr) || '');
+                        let m = String(this.evalExpr(stmt.modeExpr) || 'R').toUpperCase();
+                        try {
+                            this.fileState.handle = await globalThis.__basicFileHook.open(p, m);
+                        } catch (e) {
+                            throw new BasicError(1, `OPEN fallo: ${e.message}`);
+                        }
+                        this.fileState.mode = m;
+                        return {};
+                    },
+                    WRITE: async (stmt) => {
+                        if (!this.fileState.handle || !globalThis.__basicFileHook) throw new BasicError(1, 'WRITE sin OPEN');
+                        try {
+                            await globalThis.__basicFileHook.write(this.fileState.handle, String(this.evalExpr(stmt.valueExpr)));
+                        } catch (e) {
+                            throw new BasicError(1, `WRITE fallo: ${e.message}`);
+                        }
+                        return {};
+                    },
+                    READFILE: async (stmt) => {
+                        if (!this.fileState.handle || !globalThis.__basicFileHook) throw new BasicError(1, 'READFILE sin OPEN');
+                        let line;
+                        try {
+                            line = await globalThis.__basicFileHook.readline(this.fileState.handle);
+                        } catch (e) {
+                            throw new BasicError(1, `READFILE fallo: ${e.message}`);
+                        }
+                        this.setVar(stmt.varName, line ?? '');
+                        return {};
+                    },
+                    CLOSE: async () => {
+                        if (this.fileState.handle && globalThis.__basicFileHook) {
+                            try {
+                                await globalThis.__basicFileHook.close(this.fileState.handle);
+                            } catch (e) {
+                                throw new BasicError(1, `CLOSE fallo: ${e.message}`);
+                            }
+                        }
+                        this.fileState.handle = null;
+                        return {};
+                    },
                     STOP: async () => {
                         printTerm('Break in ' + this.program[this.pc].line);
                         this.isRunning = false;
@@ -1028,8 +1304,52 @@
                 }
             }
 
+            loadProgramFromText(content, replaceProgram = true, lineTransform = null) {
+                if (replaceProgram) this.program = [];
+                let lines = String(content).split(/\r?\n/).map(l => l.trim()).filter(Boolean);
+                for (let line of lines) {
+                    let m = line.match(/^(\d+)\s*(.*)$/);
+                    if (!m) continue;
+                    let lineNum = parseInt(m[1], 10);
+                    if (lineTransform) lineNum = lineTransform(lineNum);
+                    let text = m[2] || '';
+                    if (text.length === 0) this.deleteLine(lineNum);
+                    else this.insertLine(lineNum, text);
+                }
+            }
+
             findLineIndex(lineNum) {
                 return this.program.findIndex(p => p.line === lineNum);
+            }
+
+            async handleLoad(stmt) {
+                let src = String(this.evalExpr(stmt.pathExpr) || '').trim();
+                if (!src) throw new BasicError(1, 'LOAD requiere ruta');
+                let namespace = stmt.namespaceExpr ? String(this.evalExpr(stmt.namespaceExpr) || '').trim().toUpperCase() : '';
+                let includeMode = stmt.includeExpr ? (this.evalExpr(stmt.includeExpr) !== 0) : false;
+                if (typeof globalThis.__basicLoadHook !== 'function') {
+                    throw new BasicError(1, 'LOAD no disponible en este entorno');
+                }
+                let content;
+                try {
+                    content = await globalThis.__basicLoadHook(src);
+                } catch (e) {
+                    throw new BasicError(1, `LOAD fallo: ${e.message}`);
+                }
+                let offset = 0;
+                if (namespace) {
+                    offset = 10000 + (namespace.split('').reduce((a, ch) => a + ch.charCodeAt(0), 0) % 8000);
+                }
+                let moduleKey = `${namespace || '_GLOBAL'}::${src}`;
+                if (this.loadedModules.has(moduleKey) && includeMode) {
+                    printTerm(`LOAD SKIP (cache): ${src}${namespace ? ` AS ${namespace}` : ''}`);
+                    return {};
+                }
+                let lineTransform = offset ? (n) => n + offset : null;
+                this.loadProgramFromText(content, !includeMode, lineTransform);
+                this.loadedModules.add(moduleKey);
+                printTerm(`LOAD OK: ${src}${namespace ? ` AS ${namespace}` : ''}${includeMode ? ' INCLUDE' : ''}`);
+                return {};
             }
 
             scanData() {
@@ -1045,6 +1365,11 @@
             evalExpr(node) {
                 if (node.type === 'LITERAL') return node.value;
                 if (node.type === 'VAR_ACCESS') {
+                    if (node.name.includes('.')) {
+                        let [instName, propName] = node.name.split('.', 2);
+                        let inst = this.instances[String(instName).toUpperCase()];
+                        if (inst) return inst.props[String(propName).toUpperCase()] ?? 0;
+                    }
                     if (!(node.name in this.vars)) this.vars[node.name] = node.name.endsWith('$') ? '' : 0;
                     return this.vars[node.name];
                 }
@@ -1078,6 +1403,7 @@
                         case '-': return l - r;
                         case '*': return l * r;
                         case '/': if (r === 0) throw new BasicError(3, 'División por cero'); return l / r;
+                        case 'MOD': if (r === 0) throw new BasicError(3, 'División por cero'); return Math.floor(l) % Math.floor(r);
                         case '^': return Math.pow(l, r);
                         case '=': return (l === r) ? -1 : 0;
                         case '<>': return (l !== r) ? -1 : 0;
@@ -1090,6 +1416,9 @@
                     }
                 }
                 if (node.type === 'CALL') return this.callFunc(node.name, node.args.map(a => this.evalExpr(a)));
+                if (node.type === 'METHOD_CALL') {
+                    return this.callFunc('CALL', [node.instance, node.method, ...node.args.map(a => this.evalExpr(a))]);
+                }
             }
 
             degToRad(val) {
@@ -1105,6 +1434,13 @@
 
             callFunc(name, args) {
                 let v = args[0];
+                const factInt = (n) => {
+                    let nn = Math.floor(n);
+                    if (nn < 0) throw new BasicError(12, 'Cantidad ilegal (FACT)');
+                    let f = 1;
+                    for (let i = 2; i <= nn; i++) f *= i;
+                    return f;
+                };
                 switch (name) {
                     case 'SIN': return this.radToDeg(Math.sin(this.degToRad(v)));
                     case 'COS': return this.radToDeg(Math.cos(this.degToRad(v)));
@@ -1115,6 +1451,9 @@
                     case 'HSIN': return Math.sinh(v);
                     case 'HCOS': return Math.cosh(v);
                     case 'HTAN': return Math.tanh(v);
+                    case 'HASN': return Math.asinh(v);
+                    case 'HACS': return Math.acosh(v);
+                    case 'HATN': return Math.atanh(v);
                     case 'LOG': return Math.log10(v);
                     case 'LN': return Math.log(v);
                     case 'EXP': return Math.exp(v);
@@ -1127,7 +1466,29 @@
                     case 'ROUND': return Math.round(v);
                     case 'RAN#': return Math.random();
                     case 'PI': return Math.PI;
-                    case 'FACT': { let f = 1; for (let i = 2; i <= Math.floor(v); i++) f *= i; return f; }
+                    case 'FACT': return factInt(v);
+                    case 'NPR': {
+                        let n = Math.floor(args[0]), r = Math.floor(args[1] || 0);
+                        if (n < 0 || r < 0 || r > n) throw new BasicError(12, 'Cantidad ilegal (NPR)');
+                        return factInt(n) / factInt(n - r);
+                    }
+                    case 'NCR': {
+                        let n = Math.floor(args[0]), r = Math.floor(args[1] || 0);
+                        if (n < 0 || r < 0 || r > n) throw new BasicError(12, 'Cantidad ilegal (NCR)');
+                        return factInt(n) / (factInt(r) * factInt(n - r));
+                    }
+                    case 'POL': {
+                        let x = args[0] || 0, y = args[1] || 0;
+                        return Math.hypot(x, y);
+                    }
+                    case 'ANGLE': {
+                        let x = args[0] || 0, y = args[1] || 0;
+                        return this.radToDeg(Math.atan2(y, x));
+                    }
+                    case 'REC': {
+                        let r = args[0] || 0, a = this.degToRad(args[1] || 0), mode = Math.floor(args[2] || 0);
+                        return mode === 0 ? r * Math.cos(a) : r * Math.sin(a);
+                    }
                     case 'CHR$': return String.fromCharCode(Math.floor(v));
                     case 'ASC': return String(v).charCodeAt(0) || 0;
                     case 'STR$': return ' ' + String(v);
@@ -1138,6 +1499,58 @@
                     case 'MID$': return String(v).substring(args[1] - 1, args[1] - 1 + args[2]);
                     case 'PEEK': return this.memory[this.segment * 16 + Math.floor(v)];
                     case 'INKEY$': return this.keyBuffer.length > 0 ? this.keyBuffer.shift().toUpperCase() : '';
+                    case 'HEX$': return Math.floor(v).toString(16).toUpperCase();
+                    case 'HEXVAL': return parseInt(String(v).replace(/^&H/i, ''), 16) || 0;
+                    case 'INT$': return String(Math.trunc(v));
+                    case 'LOCATE$': return String(args[0] || '').indexOf(String(args[1] || '')) + 1;
+                    case 'LCOLOR': {
+                        let c = String(args[0] || '00FF00').replace(/^#/, '').toUpperCase();
+                        if (!/^[0-9A-F]{6}$/.test(c)) c = '00FF00';
+                        document.documentElement.style.setProperty('--terminal-text', `#${c}`);
+                        return c;
+                    }
+                    case 'NFUNC': {
+                        let n = String(args[0] || '').toUpperCase();
+                        if (!this.userFunctions[n]) throw new BasicError(1, 'NFUNC no definida: ' + n);
+                        let prevX = this.vars.X;
+                        this.vars.X = args[1] || 0;
+                        let out = this.evalExpr(this.userFunctions[n]);
+                        if (prevX === undefined) delete this.vars.X; else this.vars.X = prevX;
+                        return out;
+                    }
+                    case 'NFUNC$': {
+                        let n = String(args[0] || '').toUpperCase();
+                        if (!this.userStringFunctions[n]) throw new BasicError(1, 'NFUNC$ no definida: ' + n);
+                        let prevX = this.vars['X$'];
+                        this.vars['X$'] = String(args[1] || '');
+                        let out = this.evalExpr(this.userStringFunctions[n]);
+                        if (prevX === undefined) delete this.vars['X$']; else this.vars['X$'] = prevX;
+                        return String(out);
+                    }
+                    case 'CALL': {
+                        let i = String(args[0] || '').toUpperCase();
+                        if (!this.instances[i]) throw new BasicError(1, `Instancia no existe: ${i}`);
+                        let m = String(args[1] || '').toUpperCase();
+                        let c = this.instances[i].className;
+                        let cls = this.classDefs[c];
+                        if (!cls || !cls.methods[m]) throw new BasicError(1, `Método no existe: ${c}.${m}`);
+                        let prevX = this.vars.X, prevY = this.vars.Y;
+                        let prevSelf = this.currentInstance;
+                        this.currentInstance = i;
+                        this.vars.X = args[2] || 0;
+                        this.vars.Y = args[3] || 0;
+                        let out = this.evalExpr(cls.methods[m]);
+                        this.currentInstance = prevSelf;
+                        if (prevX === undefined) delete this.vars.X; else this.vars.X = prevX;
+                        if (prevY === undefined) delete this.vars.Y; else this.vars.Y = prevY;
+                        return out;
+                    }
+                    case 'PROP': {
+                        let p = String(args[0] || '').toUpperCase();
+                        if (!this.currentInstance || !this.instances[this.currentInstance]) return 0;
+                        let inst = this.instances[this.currentInstance];
+                        return inst.props[p] ?? 0;
+                    }
                     default: throw new BasicError(1, 'Función no implementada: ' + name);
                 }
             }
@@ -1147,6 +1560,14 @@
                 if (!name.endsWith('$') && typeof val === 'string') val = parseFloat(val) || 0;
 
                 if (!isArray) {
+                    if (name.includes('.')) {
+                        let [instName, propName] = name.split('.', 2);
+                        let inst = this.instances[String(instName).toUpperCase()];
+                        if (inst) {
+                            inst.props[String(propName).toUpperCase()] = val;
+                            return;
+                        }
+                    }
                     this.vars[name] = val;
                     return;
                 }
@@ -1368,6 +1789,12 @@
 
             async handleDim(stmt) {
                 for (let a of stmt.arrays) {
+                    if (a.kind === 'INSTANCE') {
+                        let c = String(a.className).toUpperCase();
+                        if (!this.classDefs[c]) this.classDefs[c] = { name: c, methods: {} };
+                        this.instances[String(a.name).toUpperCase()] = { className: c, props: {} };
+                        continue;
+                    }
                     let ds = a.sizes.map(s => Math.floor(this.evalExpr(s)));
                     if (ds.length > 10) throw new BasicError(1, 'Máximo 10 dimensiones');
                     let totalSize = 1;
