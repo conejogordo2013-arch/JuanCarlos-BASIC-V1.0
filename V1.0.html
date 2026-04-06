@@ -198,6 +198,79 @@
             box-shadow: 0 0 5px #ff0000;
         }
 
+        .tools-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .panel {
+            background: #181818;
+            border: 1px solid #3b3b3b;
+            border-radius: 8px;
+            padding: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.35);
+        }
+
+        .panel h3 {
+            margin: 0 0 8px 0;
+            color: #d0d0d0;
+            font-size: 0.95rem;
+        }
+
+        .btn-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-bottom: 8px;
+        }
+
+        button {
+            background: #2a2a2a;
+            color: #ddd;
+            border: 1px solid #555;
+            border-radius: 4px;
+            padding: 5px 8px;
+            font-family: inherit;
+            font-size: 0.8rem;
+            cursor: pointer;
+        }
+        button:hover { background: #353535; }
+
+        .panel input, .panel textarea {
+            width: 100%;
+            box-sizing: border-box;
+            background: #101010;
+            color: #d8ffd8;
+            border: 1px solid #4a4a4a;
+            border-radius: 4px;
+            padding: 6px;
+            margin-bottom: 6px;
+            font-family: inherit;
+            font-size: 0.8rem;
+        }
+
+        #gfx-canvas {
+            width: 100%;
+            height: 200px;
+            image-rendering: pixelated;
+            border: 1px solid #4e4e4e;
+            background: #000;
+        }
+
+        #vfs-list {
+            min-height: 60px;
+            max-height: 140px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+            font-size: 0.75rem;
+            color: #8ef58e;
+            background: #0f0f0f;
+            border: 1px dashed #3b3b3b;
+            border-radius: 4px;
+            padding: 6px;
+        }
+
     </style>
 </head>
 <body>
@@ -234,6 +307,34 @@
                 <input type="text" id="cmd-input" autocomplete="off" spellcheck="false" autofocus>
             </div>
         </div>
+
+        <div class="tools-grid">
+            <div class="panel">
+                <h3>GPHYCS CANVAS 2D</h3>
+                <div class="btn-row">
+                    <button id="btn-gcls">GCLS</button>
+                    <button id="btn-grid">GRID DEMO</button>
+                    <button id="btn-text">TEXTO DEMO</button>
+                </div>
+                <canvas id="gfx-canvas" width="320" height="200"></canvas>
+            </div>
+            <div class="panel">
+                <h3>SISTEMA DE ARCHIVOS VIRTUAL</h3>
+                <input id="import-files" type="file" accept=".bas,.txt,.png,.svg,image/png,image/svg+xml,text/plain" multiple>
+                <input id="vfs-name" type="text" placeholder="ARCHIVO.TXT">
+                <textarea id="vfs-content" rows="4" placeholder="Contenido..."></textarea>
+                <div class="btn-row">
+                    <button id="btn-vfs-create">Crear/Guardar</button>
+                    <button id="btn-vfs-newbas">Nuevo .BAS</button>
+                    <button id="btn-vfs-save-session">Guardar sesión</button>
+                    <button id="btn-vfs-read">Leer</button>
+                    <button id="btn-vfs-delete">Borrar</button>
+                    <button id="btn-vfs-dir">Listar</button>
+                    <button id="btn-vfs-import">Importar archivos</button>
+                </div>
+                <div id="vfs-list">[SIN ARCHIVOS]</div>
+            </div>
+        </div>
     </div>
 
     <script>
@@ -242,10 +343,49 @@
         const termIn = document.getElementById('cmd-input');
         const lcdContent = document.getElementById('lcd-content');
         const promptChar = document.getElementById('prompt-char');
+        const gfxCanvas = document.getElementById('gfx-canvas');
+        const importFilesInput = document.getElementById('import-files');
+        const vfsNameInput = document.getElementById('vfs-name');
+        const vfsContentInput = document.getElementById('vfs-content');
+        const vfsList = document.getElementById('vfs-list');
 
         function printTerm(text, newline = true) {
             termOut.textContent += text + (newline ? '\n' : '');
             termOut.scrollTop = termOut.scrollHeight;
+        }
+
+        class Gfx2D {
+            constructor(canvas) {
+                this.canvas = canvas;
+                this.ctx = canvas && canvas.getContext ? canvas.getContext('2d') : null;
+                this.color = '#00ff00';
+                this.clear();
+            }
+
+            clear() {
+                if (!this.ctx) return;
+                this.ctx.fillStyle = '#000000';
+                this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+            }
+
+            draw(x, y, value = '*') {
+                if (!this.ctx) return;
+                const px = Math.max(0, Math.floor(x));
+                const py = Math.max(0, Math.floor(y));
+                const text = String(value ?? '*');
+                if (text.length > 1) {
+                    this.ctx.fillStyle = this.color;
+                    this.ctx.font = '12px Courier New';
+                    this.ctx.fillText(text, px, py);
+                    return;
+                }
+                this.ctx.fillStyle = this.color;
+                this.ctx.fillRect(px, py, 2, 2);
+            }
+
+            setColor(c) {
+                this.color = /^#[0-9a-f]{6}$/i.test(c) ? c : '#00ff00';
+            }
         }
 
         // --- PANTALLA LCD SIMULADA (32x2) ---
@@ -317,6 +457,7 @@
         }
 
         const lcd = new LCD();
+        const gfx = new Gfx2D(gfxCanvas);
 
         // --- DEFINICIONES DE LENGUAJE ---
         const KEYWORDS = [
@@ -325,17 +466,19 @@
             "IF", "THEN", "THENGOTO", "ELSE", "FOR", "TO", "STEP", "NEXT", "WHILE", "WEND", "DO", "UNTIL", "AS",
             "STOP", "END", "REM", "LET", "PRINT USING", "PRINT", "INPUT$", "INPUT", "LOCATE", "CLS", "BEEP",
             "DIM", "DATA", "READ", "RESTORE",
-            "PEEK", "POKE", "DEFSEG", "OPEN", "CLOSE", "SAVE", "LOAD", "NEWFUNCTION", "NEWFUNCTION$", "FUNCTION", "FUNCTION$", "GPHYCS", "CLASS", "TYPE", "METHOD", "INSTANCE", "SETPROP", "DEF", "WRITE", "READFILE", "PRINT#", "INPUT#", "TRY", "CATCH"
+            "PEEK", "POKE", "DEFSEG", "OPEN", "CLOSE", "SAVE", "LOAD", "NEWFUNCTION", "NEWFUNCTION$", "FUNCTION", "FUNCTION$", "GPHYCS", "GCLS", "CLASS", "TYPE", "METHOD", "INSTANCE", "SETPROP", "DEF", "WRITE", "READFILE", "PRINT#", "INPUT#", "TRY", "CATCH",
+            "FILES", "MKFILE", "DELFILE"
         ];
 
         const FUNCTIONS = [
             "HSIN", "HCOS", "HTAN", "HASN", "HACS", "HATN",
             "SIN", "COS", "TAN", "ASN", "ACS", "ATN",
             "LOG", "LN", "EXP", "SQR", "ABS", "SGN", "INT", "FIX", "FRAC", "ROUND",
-            "RAN#", "PI", "FACT", "NPR", "NCR", "POL", "REC", "ANGLE",
+            "RAN#", "RND", "PI", "FACT", "NPR", "NCR", "POL", "REC", "ANGLE",
             "CHR$", "ASC", "STR$", "VAL", "LEFT$", "RIGHT$", "MID$", "LEN", "INKEY$",
-            "HEX$", "HEXVAL", "INT$", "LOCATE$", "LCOLOR", "NFUNC", "NFUNC$", "CALL", "PROP", "PEEK"
+            "HEX$", "HEXVAL", "INT$", "LOCATE$", "INSTR", "UPPER$", "LOWER$", "SPACE$", "LCOLOR", "NFUNC", "NFUNC$", "CALL", "PROP", "PEEK"
         ];
+        const BARE_FUNCTIONS = new Set(["PI", "RAN#", "RND", "INKEY$"]);
 
         const OPERATORS = ["<>", "<=", ">=", "^", "*", "/", "MOD", "+", "-", "=", "<", ">", "AND", "OR", "NOT"];
 
@@ -465,6 +608,10 @@
                     if (upperId === 'PEEK' && nextNonWs === '(') {
                         isKeyword = false;
                         isFunc = true;
+                    }
+                    if (isFunc && nextNonWs !== '(' && !BARE_FUNCTIONS.has(upperId)) {
+                        // Permite variables llamadas igual que funciones (ej: HEX$=...)
+                        isFunc = false;
                     }
 
                     // Handle special case: REM
@@ -708,7 +855,11 @@
                     
                     case 'PRINT':
                         let pArgs = [];
-                        while (this.peek().type !== 'EOF' && this.peek().type !== 'SEP') {
+                        while (
+                            this.peek().type !== 'EOF' &&
+                            this.peek().type !== 'SEP' &&
+                            !(this.peek().type === 'KEYWORD' && this.peek().value === 'ELSE')
+                        ) {
                             if (this.peek().type === 'PUNCT' && (this.peek().value === ';' || this.peek().value === ',')) {
                                 pArgs.push({ type: 'SEP', value: this.consume().value });
                             } else {
@@ -721,7 +872,11 @@
                         let format = this.parseExpression();
                         this.match('PUNCT', ';');
                         let puArgs = [];
-                        while (this.peek().type !== 'EOF' && this.peek().type !== 'SEP') {
+                        while (
+                            this.peek().type !== 'EOF' &&
+                            this.peek().type !== 'SEP' &&
+                            !(this.peek().type === 'KEYWORD' && this.peek().value === 'ELSE')
+                        ) {
                             if (this.peek().type === 'PUNCT' && (this.peek().value === ';' || this.peek().value === ',')) {
                                 this.consume(); // Ignorar separadores en USING
                             } else {
@@ -982,6 +1137,11 @@
                             return { type: 'LOAD', pathExpr, namespaceExpr, includeExpr };
                         }
                     }
+                    case 'SAVE': {
+                        let pathExpr = { type: 'LITERAL', value: 'SESSION.BAS' };
+                        if (this.peek().type !== 'EOF') pathExpr = this.parseExpression();
+                        return { type: 'SAVE', pathExpr };
+                    }
                     case 'GPHYCS': {
                         let x = this.parseExpression();
                         this.match('PUNCT', ',');
@@ -990,6 +1150,8 @@
                         if (this.match('PUNCT', ',')) ch = this.parseExpression();
                         return { type: 'GPHYCS', x, y, ch };
                     }
+                    case 'GCLS':
+                        return { type: 'GCLS' };
                     case 'CLASS': {
                         let cls = this.consume();
                         if (cls.type !== 'VAR' && cls.type !== 'STRING') throw new BasicError(1, "Se esperaba nombre en CLASS");
@@ -1054,6 +1216,16 @@
                         if (this.match('PUNCT', ',')) modeExpr = this.parseExpression();
                         return { type: 'OPEN', pathExpr, modeExpr };
                     }
+                    case 'FILES':
+                        return { type: 'FILES' };
+                    case 'MKFILE': {
+                        let pathExpr = this.parseExpression();
+                        let valueExpr = { type: 'LITERAL', value: '' };
+                        if (this.match('PUNCT', ',')) valueExpr = this.parseExpression();
+                        return { type: 'MKFILE', pathExpr, valueExpr };
+                    }
+                    case 'DELFILE':
+                        return { type: 'DELFILE', pathExpr: this.parseExpression() };
                     case 'WRITE': {
                         let valueExpr = this.parseExpression();
                         return { type: 'WRITE', valueExpr };
@@ -1119,6 +1291,9 @@
                 this.currentInstance = null;
                 this.loadedModules = new Set();
                 this.fileState = { handle: null, mode: 'R' };
+                this.vfs = {};
+                this.vfsOpen = null;
+                this.seedDefaultLibraries();
                 document.addEventListener('keydown', (e) => {
                     if (this.isRunning && !this.awaitingInput) {
                         this.keyBuffer.push(e.key);
@@ -1128,6 +1303,24 @@
 
                 // Registro modular de comandos/instrucciones
                 this.commandHandlers = this.buildCommandHandlers();
+            }
+
+            seedDefaultLibraries() {
+                this.vfs['MATHLIB.BAS'] = {
+                    kind: 'text',
+                    content: '1000 NEWFUNCTION SQR2,SQR(X)\n1010 PRINT "MATHLIB CARGADA"\n',
+                    mime: 'text/plain'
+                };
+                this.vfs['RETROGFX.BAS'] = {
+                    kind: 'text',
+                    content: '1100 PRINT "RETROGFX CARGADA"\n1110 GPHYCS 30,20,"*"',
+                    mime: 'text/plain'
+                };
+                this.vfs['README.TXT'] = {
+                    kind: 'text',
+                    content: 'Usa LOAD "MATHLIB.BAS" o LOAD "RETROGFX.BAS"',
+                    mime: 'text/plain'
+                };
             }
 
             buildCommandHandlers() {
@@ -1177,13 +1370,32 @@
                         return {};
                     },
                     LOAD: async (stmt) => this.handleLoad(stmt),
+                    SAVE: async (stmt) => this.handleSave(stmt),
                     GPHYCS: async (stmt) => {
-                        let x = Math.floor(this.evalExpr(stmt.x));
-                        let y = Math.floor(this.evalExpr(stmt.y));
-                        let ch = String(this.evalExpr(stmt.ch) ?? '*');
+                        const rawX = this.evalExpr(stmt.x);
+                        const rawY = this.evalExpr(stmt.y);
+                        const rawCh = this.evalExpr(stmt.ch);
+
+                        if (typeof rawX === 'string' && (/\.(png|svg)$/i.test(rawX) || this.vfs[String(rawX).toUpperCase()])) {
+                            const path = String(rawX).toUpperCase();
+                            const x = Math.floor(rawY || 0);
+                            const y = Math.floor(rawCh || 0);
+                            await this.drawAssetOnCanvas(path, x, y);
+                            printTerm(`[GPHYCS ASSET ${path}] @${x},${y}`);
+                            return {};
+                        }
+
+                        let x = Math.floor(rawX);
+                        let y = Math.floor(rawY);
+                        let ch = String(rawCh ?? '*');
                         lcd.locate(x, y);
                         lcd.print(ch[0] || '*');
+                        gfx.draw(x * 2, y * 2, ch);
                         printTerm(`[GPHYCS ${x},${y}] ${ch[0] || '*'}`);
+                        return {};
+                    },
+                    GCLS: async () => {
+                        gfx.clear();
                         return {};
                     },
                     CLASS: async (stmt) => {
@@ -1216,33 +1428,50 @@
                         return {};
                     },
                     OPEN: async (stmt) => {
-                        if (!globalThis.__basicFileHook) throw new BasicError(1, 'OPEN no disponible en este entorno');
-                        let p = String(this.evalExpr(stmt.pathExpr) || '');
+                        let p = String(this.evalExpr(stmt.pathExpr) || '').trim().toUpperCase();
                         let m = String(this.evalExpr(stmt.modeExpr) || 'R').toUpperCase();
-                        try {
-                            this.fileState.handle = await globalThis.__basicFileHook.open(p, m);
-                        } catch (e) {
-                            throw new BasicError(1, `OPEN fallo: ${e.message}`);
+                        if (this.vfs[p] !== undefined) {
+                            this.vfsOpen = { path: p, mode: m, cursor: 0 };
+                            this.fileState.handle = null;
+                            return {};
                         }
-                        this.fileState.mode = m;
+                        if (globalThis.__basicFileHook) {
+                            try {
+                                this.fileState.handle = await globalThis.__basicFileHook.open(p, m);
+                                this.fileState.mode = m;
+                                this.vfsOpen = null;
+                                return {};
+                            } catch (e) {
+                                throw new BasicError(1, `OPEN fallo: ${e.message}`);
+                            }
+                        }
+                        this.vfsOpen = { path: p, mode: m, cursor: 0 };
                         return {};
                     },
                     WRITE: async (stmt) => {
-                        if (!this.fileState.handle || !globalThis.__basicFileHook) throw new BasicError(1, 'WRITE sin OPEN');
-                        try {
-                            await globalThis.__basicFileHook.write(this.fileState.handle, String(this.evalExpr(stmt.valueExpr)));
-                        } catch (e) {
-                            throw new BasicError(1, `WRITE fallo: ${e.message}`);
+                        if (this.fileState.handle && globalThis.__basicFileHook) {
+                            try {
+                                await globalThis.__basicFileHook.write(this.fileState.handle, String(this.evalExpr(stmt.valueExpr)));
+                                return {};
+                            } catch (e) {
+                                throw new BasicError(1, `WRITE fallo: ${e.message}`);
+                            }
                         }
+                        if (!this.vfsOpen) throw new BasicError(1, 'WRITE sin OPEN');
+                        this.vfsWrite(this.vfsOpen.path, String(this.evalExpr(stmt.valueExpr)), this.vfsOpen.mode);
                         return {};
                     },
                     READFILE: async (stmt) => {
-                        if (!this.fileState.handle || !globalThis.__basicFileHook) throw new BasicError(1, 'READFILE sin OPEN');
-                        let line;
-                        try {
-                            line = await globalThis.__basicFileHook.readline(this.fileState.handle);
-                        } catch (e) {
-                            throw new BasicError(1, `READFILE fallo: ${e.message}`);
+                        let line = '';
+                        if (this.fileState.handle && globalThis.__basicFileHook) {
+                            try {
+                                line = await globalThis.__basicFileHook.readline(this.fileState.handle);
+                            } catch (e) {
+                                throw new BasicError(1, `READFILE fallo: ${e.message}`);
+                            }
+                        } else {
+                            if (!this.vfsOpen) throw new BasicError(1, 'READFILE sin OPEN');
+                            line = this.vfsReadLine(this.vfsOpen);
                         }
                         this.setVar(stmt.varName, line ?? '');
                         return {};
@@ -1256,6 +1485,28 @@
                             }
                         }
                         this.fileState.handle = null;
+                        this.vfsOpen = null;
+                        return {};
+                    },
+                    FILES: async () => {
+                        const list = this.vfsList();
+                        printTerm(list.length ? list.join('\n') : '[SIN ARCHIVOS]');
+                        return {};
+                    },
+                    MKFILE: async (stmt) => {
+                        const p = String(this.evalExpr(stmt.pathExpr) || '').trim().toUpperCase();
+                        const data = String(this.evalExpr(stmt.valueExpr) || '');
+                        if (!p) throw new BasicError(1, 'MKFILE requiere nombre');
+                        this.vfsWrite(p, data, 'W');
+                        printTerm(`MKFILE OK: ${p}`);
+                        return {};
+                    },
+                    DELFILE: async (stmt) => {
+                        const p = String(this.evalExpr(stmt.pathExpr) || '').trim().toUpperCase();
+                        if (!p) throw new BasicError(1, 'DELFILE requiere nombre');
+                        delete this.vfs[p];
+                        this.refreshVfsPanel();
+                        printTerm(`DELFILE OK: ${p}`);
                         return {};
                     },
                     STOP: async () => {
@@ -1325,22 +1576,36 @@
             async handleLoad(stmt) {
                 let src = String(this.evalExpr(stmt.pathExpr) || '').trim();
                 if (!src) throw new BasicError(1, 'LOAD requiere ruta');
+                const normalizedSrc = src.toUpperCase();
                 let namespace = stmt.namespaceExpr ? String(this.evalExpr(stmt.namespaceExpr) || '').trim().toUpperCase() : '';
                 let includeMode = stmt.includeExpr ? (this.evalExpr(stmt.includeExpr) !== 0) : false;
-                if (typeof globalThis.__basicLoadHook !== 'function') {
-                    throw new BasicError(1, 'LOAD no disponible en este entorno');
+                let content = null;
+
+                const vfsEntry = this.vfs[normalizedSrc];
+                if (vfsEntry && vfsEntry.kind === 'text') {
+                    content = String(vfsEntry.content || '');
+                    if (/\.(TXT|LOG)$/i.test(normalizedSrc)) {
+                        printTerm(`LOAD TXT: ${normalizedSrc}`);
+                        printTerm(content);
+                        return {};
+                    }
+                    if (!stmt.includeExpr) includeMode = true; // estilo Commodore: múltiples LOAD encadenados
                 }
-                let content;
-                try {
-                    content = await globalThis.__basicLoadHook(src);
-                } catch (e) {
-                    throw new BasicError(1, `LOAD fallo: ${e.message}`);
+                if (content == null) {
+                    if (typeof globalThis.__basicLoadHook !== 'function') {
+                        throw new BasicError(1, `LOAD no disponible para ${src}`);
+                    }
+                    try {
+                        content = await globalThis.__basicLoadHook(src);
+                    } catch (e) {
+                        throw new BasicError(1, `LOAD fallo: ${e.message}`);
+                    }
                 }
                 let offset = 0;
                 if (namespace) {
                     offset = 10000 + (namespace.split('').reduce((a, ch) => a + ch.charCodeAt(0), 0) % 8000);
                 }
-                let moduleKey = `${namespace || '_GLOBAL'}::${src}`;
+                let moduleKey = `${namespace || '_GLOBAL'}::${normalizedSrc}`;
                 if (this.loadedModules.has(moduleKey) && includeMode) {
                     printTerm(`LOAD SKIP (cache): ${src}${namespace ? ` AS ${namespace}` : ''}`);
                     return {};
@@ -1350,6 +1615,88 @@
                 this.loadedModules.add(moduleKey);
                 printTerm(`LOAD OK: ${src}${namespace ? ` AS ${namespace}` : ''}${includeMode ? ' INCLUDE' : ''}`);
                 return {};
+            }
+
+            async handleSave(stmt) {
+                const raw = String(this.evalExpr(stmt.pathExpr) || 'SESSION.BAS').trim().toUpperCase();
+                const path = raw.endsWith('.BAS') ? raw : `${raw}.BAS`;
+                const dump = this.program.map((p) => `${p.line} ${p.text}`).join('\n') + '\n';
+                this.vfsWrite(path, dump, 'W');
+                printTerm(`SAVE OK: ${path}`);
+                return {};
+            }
+
+            vfsWrite(path, text, mode = 'W') {
+                const p = String(path || '').trim().toUpperCase();
+                if (!p) return;
+                const current = this.vfs[p]?.kind === 'text' ? this.vfs[p].content : '';
+                const next = mode === 'A' ? current + String(text) + '\n' : String(text);
+                this.vfs[p] = { kind: 'text', content: next, mime: 'text/plain' };
+                this.refreshVfsPanel();
+            }
+
+            vfsReadLine(openState) {
+                const p = String(openState.path || '').trim().toUpperCase();
+                const entry = this.vfs[p];
+                const text = entry && entry.kind === 'text' ? entry.content : '';
+                const lines = String(text).split(/\r?\n/);
+                const line = lines[openState.cursor] ?? '';
+                openState.cursor += 1;
+                return line;
+            }
+
+            vfsList() {
+                return Object.keys(this.vfs).sort();
+            }
+
+            refreshVfsPanel() {
+                if (!vfsList) return;
+                const files = this.vfsList();
+                if (!files.length) {
+                    vfsList.textContent = '[SIN ARCHIVOS]';
+                    return;
+                }
+                vfsList.textContent = files.map((f) => {
+                    const entry = this.vfs[f];
+                    const kind = entry?.kind || 'text';
+                    const size = entry?.kind === 'text' ? entry.content.length : (entry?.content?.length || 0);
+                    return `${f}  <${kind}>  ${size}B`;
+                }).join('\n');
+            }
+
+            vfsReadText(path) {
+                const p = String(path || '').trim().toUpperCase();
+                const entry = this.vfs[p];
+                if (!entry) return '';
+                if (entry.kind === 'text') return String(entry.content || '');
+                return '';
+            }
+
+            vfsWriteBinary(path, dataUrl, mime = 'application/octet-stream') {
+                const p = String(path || '').trim().toUpperCase();
+                if (!p) return;
+                this.vfs[p] = { kind: 'binary', content: String(dataUrl || ''), mime };
+                this.refreshVfsPanel();
+            }
+
+            async drawAssetOnCanvas(path, x = 0, y = 0) {
+                const p = String(path || '').trim().toUpperCase();
+                const entry = this.vfs[p];
+                if (!entry) throw new BasicError(1, `Asset no existe: ${p}`);
+                if (entry.kind === 'text') {
+                    gfx.draw(x, y, entry.content.substring(0, 80));
+                    return;
+                }
+                if (!entry.content.startsWith('data:')) throw new BasicError(1, `Asset inválido: ${p}`);
+                await new Promise((resolve, reject) => {
+                    const img = new Image();
+                    img.onload = () => {
+                        if (gfx.ctx) gfx.ctx.drawImage(img, x, y);
+                        resolve();
+                    };
+                    img.onerror = () => reject(new BasicError(1, `No se pudo cargar imagen: ${p}`));
+                    img.src = entry.content;
+                });
             }
 
             scanData() {
@@ -1465,6 +1812,7 @@
                     case 'FRAC': return v - Math.trunc(v);
                     case 'ROUND': return Math.round(v);
                     case 'RAN#': return Math.random();
+                    case 'RND': return Math.random();
                     case 'PI': return Math.PI;
                     case 'FACT': return factInt(v);
                     case 'NPR': {
@@ -1496,13 +1844,36 @@
                     case 'LEN': return String(v).length;
                     case 'LEFT$': return String(v).substring(0, args[1]);
                     case 'RIGHT$': { let s = String(v); return s.substring(s.length - args[1]); }
-                    case 'MID$': return String(v).substring(args[1] - 1, args[1] - 1 + args[2]);
+                    case 'MID$': {
+                        let s = String(v);
+                        let start = Math.max(0, (Math.floor(args[1] || 1) - 1));
+                        let len = args.length >= 3 ? Math.max(0, Math.floor(args[2])) : (s.length - start);
+                        return s.substring(start, start + len);
+                    }
                     case 'PEEK': return this.memory[this.segment * 16 + Math.floor(v)];
                     case 'INKEY$': return this.keyBuffer.length > 0 ? this.keyBuffer.shift().toUpperCase() : '';
                     case 'HEX$': return Math.floor(v).toString(16).toUpperCase();
                     case 'HEXVAL': return parseInt(String(v).replace(/^&H/i, ''), 16) || 0;
                     case 'INT$': return String(Math.trunc(v));
                     case 'LOCATE$': return String(args[0] || '').indexOf(String(args[1] || '')) + 1;
+                    case 'INSTR': {
+                        let start = 1;
+                        let source = '';
+                        let needle = '';
+                        if (args.length >= 3) {
+                            start = Math.max(1, Math.floor(args[0] || 1));
+                            source = String(args[1] || '');
+                            needle = String(args[2] || '');
+                        } else {
+                            source = String(args[0] || '');
+                            needle = String(args[1] || '');
+                        }
+                        let idx = source.indexOf(needle, start - 1);
+                        return idx >= 0 ? idx + 1 : 0;
+                    }
+                    case 'UPPER$': return String(v).toUpperCase();
+                    case 'LOWER$': return String(v).toLowerCase();
+                    case 'SPACE$': return ' '.repeat(Math.max(0, Math.floor(v)));
                     case 'LCOLOR': {
                         let c = String(args[0] || '00FF00').replace(/^#/, '').toUpperCase();
                         if (!/^[0-9A-F]{6}$/.test(c)) c = '00FF00';
@@ -1988,6 +2359,105 @@
 
         const machine = new BasicMachine();
 
+        function bindButton(id, fn) {
+            const el = document.getElementById(id);
+            if (el && el.addEventListener) el.addEventListener('click', fn);
+        }
+
+        bindButton('btn-gcls', async () => machine.execImmediate('GCLS'));
+        bindButton('btn-grid', async () => {
+            await machine.execImmediate('GCLS');
+            for (let x = 0; x <= 150; x += 10) await machine.execImmediate(`GPHYCS ${x},20,"+"`);
+            for (let y = 20; y <= 110; y += 10) await machine.execImmediate(`GPHYCS 20,${y},"+"`);
+        });
+        bindButton('btn-text', async () => {
+            await machine.execImmediate('GCLS');
+            await machine.execImmediate('GPHYCS 30,40,"JUANCARLOS BASIC"');
+        });
+        bindButton('btn-vfs-create', () => {
+            const name = (vfsNameInput.value || '').trim().toUpperCase();
+            if (!name) return;
+            machine.vfsWrite(name, vfsContentInput.value || '', 'W');
+            printTerm(`VFS SAVE: ${name}`);
+        });
+        bindButton('btn-vfs-newbas', () => {
+            const baseName = (vfsNameInput.value || 'NUEVO.BAS').trim().toUpperCase();
+            const name = baseName.endsWith('.BAS') ? baseName : `${baseName}.BAS`;
+            const starter = '10 REM NUEVO PROGRAMA\n20 PRINT "HOLA RETRO"\n30 END\n';
+            machine.vfsWrite(name, starter, 'W');
+            vfsNameInput.value = name;
+            vfsContentInput.value = starter;
+            printTerm(`VFS NEW BAS: ${name}`);
+        });
+        bindButton('btn-vfs-save-session', async () => {
+            const name = (vfsNameInput.value || 'SESSION.BAS').trim().toUpperCase();
+            await machine.execImmediate(`SAVE "${name}"`);
+        });
+        bindButton('btn-vfs-read', () => {
+            const name = (vfsNameInput.value || '').trim().toUpperCase();
+            if (!name) return;
+            const entry = machine.vfs[name];
+            if (!entry) {
+                printTerm(`VFS READ: no existe ${name}`);
+                return;
+            }
+            if (entry.kind === 'text') {
+                vfsContentInput.value = entry.content || '';
+                printTerm(`VFS READ TXT: ${name}`);
+            } else {
+                vfsContentInput.value = `[BINARIO ${entry.mime || 'data'}]`;
+                printTerm(`VFS READ BIN: ${name}`);
+            }
+        });
+        bindButton('btn-vfs-delete', () => {
+            const name = (vfsNameInput.value || '').trim().toUpperCase();
+            if (!name) return;
+            delete machine.vfs[name];
+            machine.refreshVfsPanel();
+            printTerm(`VFS DEL: ${name}`);
+        });
+        bindButton('btn-vfs-dir', () => machine.refreshVfsPanel());
+        bindButton('btn-vfs-import', async () => {
+            if (!importFilesInput || !importFilesInput.files || importFilesInput.files.length === 0) {
+                printTerm('VFS IMPORT: selecciona archivos primero');
+                return;
+            }
+            const files = Array.from(importFilesInput.files);
+            for (const file of files) {
+                const name = String(file.name || '').trim().toUpperCase();
+                if (!name) continue;
+                if (/\.(PNG|SVG)$/i.test(name)) {
+                    const dataUrl = await fileToDataUrl(file);
+                    machine.vfsWriteBinary(name, dataUrl, file.type || 'image/*');
+                } else {
+                    const text = await fileToText(file);
+                    machine.vfsWrite(name, text, 'W');
+                }
+                printTerm(`IMPORT OK: ${name}`);
+            }
+            machine.refreshVfsPanel();
+        });
+
+        function fileToText(file) {
+            return new Promise((resolve, reject) => {
+                if (typeof FileReader === 'undefined') return reject(new Error('FileReader no disponible'));
+                const fr = new FileReader();
+                fr.onload = () => resolve(String(fr.result || ''));
+                fr.onerror = () => reject(fr.error || new Error('Error leyendo archivo'));
+                fr.readAsText(file);
+            });
+        }
+
+        function fileToDataUrl(file) {
+            return new Promise((resolve, reject) => {
+                if (typeof FileReader === 'undefined') return reject(new Error('FileReader no disponible'));
+                const fr = new FileReader();
+                fr.onload = () => resolve(String(fr.result || ''));
+                fr.onerror = () => reject(fr.error || new Error('Error leyendo binario'));
+                fr.readAsDataURL(file);
+            });
+        }
+
         // --- MANEJO DE UI ---
         termIn.addEventListener('keydown', async (e) => {
             if (e.key === 'Enter' && !machine.isRunning) {
@@ -2012,6 +2482,7 @@
         machine.insertLine(60, 'INPUT "SU NOMBRE";N$');
         machine.insertLine(70, 'PRINT "BIENVENIDO, ";N$');
         machine.insertLine(80, 'END');
+        machine.refreshVfsPanel();
 
     </script>
 </body>
