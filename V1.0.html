@@ -260,6 +260,15 @@
             background: #000;
         }
 
+        #gfx3d-host {
+            width: 100%;
+            height: 220px;
+            border: 1px solid #4e4e4e;
+            background: #050505;
+            position: relative;
+            overflow: hidden;
+        }
+
         #vfs-list {
             min-height: 60px;
             max-height: 140px;
@@ -321,6 +330,10 @@
                 <canvas id="gfx-canvas" width="320" height="200"></canvas>
             </div>
             <div class="panel">
+                <h3>BASIC3D (THREE.JS)</h3>
+                <div id="gfx3d-host"></div>
+            </div>
+            <div class="panel">
                 <h3>SISTEMA DE ARCHIVOS VIRTUAL</h3>
                 <input id="import-files" type="file" accept=".bas,.txt,.png,.svg,image/png,image/svg+xml,text/plain" multiple>
                 <input id="vfs-name" type="text" placeholder="ARCHIVO.TXT">
@@ -346,6 +359,7 @@
         const lcdContent = document.getElementById('lcd-content');
         const promptChar = document.getElementById('prompt-char');
         const gfxCanvas = document.getElementById('gfx-canvas');
+        const gfx3dHost = document.getElementById('gfx3d-host');
         const importFilesInput = document.getElementById('import-files');
         const vfsNameInput = document.getElementById('vfs-name');
         const vfsContentInput = document.getElementById('vfs-content');
@@ -387,6 +401,129 @@
 
             setColor(c) {
                 this.color = /^#[0-9a-f]{6}$/i.test(c) ? c : '#00ff00';
+            }
+        }
+
+        class Basic3DEngine {
+            constructor(host, logger) {
+                this.host = host;
+                this.log = logger;
+                this.THREE = null;
+                this.scene = null;
+                this.camera = null;
+                this.renderer = null;
+                this.objects = new Map();
+                this.ready = false;
+                this.envUnsupported = false;
+                this.lastLoadWarnAt = 0;
+            }
+
+            async ensureReady(width = 480, height = 220) {
+                if (this.ready) return true;
+                if (this.envUnsupported) return false;
+                if (!this.host || typeof this.host.appendChild !== 'function' || typeof document.createElement !== 'function') {
+                    this.envUnsupported = true;
+                    this.log('BASIC3D no disponible en este entorno.');
+                    return false;
+                }
+
+                const threeOk = await this.loadThree();
+                if (!threeOk) {
+                    const now = Date.now();
+                    if (now - this.lastLoadWarnAt > 3000) {
+                        this.lastLoadWarnAt = now;
+                        this.log('BASIC3D: no se pudo cargar THREE.JS.');
+                    }
+                    return false;
+                }
+
+                const w = Math.max(64, Math.floor(width));
+                const h = Math.max(64, Math.floor(height));
+                this.scene = new this.THREE.Scene();
+                this.scene.background = new this.THREE.Color(0x101010);
+                this.camera = new this.THREE.PerspectiveCamera(75, w / h, 0.1, 1000);
+                this.camera.position.set(0, 1, 6);
+                this.renderer = new this.THREE.WebGLRenderer({ antialias: true });
+                this.renderer.setSize(w, h);
+                this.renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+                this.host.innerHTML = '';
+                this.host.appendChild(this.renderer.domElement);
+                const ambient = new this.THREE.AmbientLight(0xffffff, 0.7);
+                const dir = new this.THREE.DirectionalLight(0xffffff, 0.8);
+                dir.position.set(3, 5, 2);
+                this.scene.add(ambient);
+                this.scene.add(dir);
+                this.ready = true;
+                this.render();
+                return true;
+            }
+
+            async loadThree() {
+                if (window.THREE) {
+                    this.THREE = window.THREE;
+                    return true;
+                }
+                if (typeof document.createElement !== 'function' || !document.head || typeof document.head.appendChild !== 'function') {
+                    return false;
+                }
+                return await new Promise((resolve) => {
+                    const script = document.createElement('script');
+                    script.src = 'https://unpkg.com/three@0.163.0/build/three.min.js';
+                    script.onload = () => {
+                        this.THREE = window.THREE || null;
+                        resolve(!!this.THREE);
+                    };
+                    script.onerror = () => resolve(false);
+                    document.head.appendChild(script);
+                });
+            }
+
+            setBackground(hex) {
+                if (!this.ready) return;
+                this.scene.background = new this.THREE.Color(hex || '#101010');
+            }
+
+            setCamera(x, y, z) {
+                if (!this.ready) return;
+                this.camera.position.set(Number(x) || 0, Number(y) || 0, Number(z) || 6);
+            }
+
+            addCube(id, w, h, d) {
+                if (!this.ready) return;
+                const key = String(id || 'OBJ').toUpperCase();
+                const geo = new this.THREE.BoxGeometry(Math.max(0.01, w), Math.max(0.01, h), Math.max(0.01, d));
+                const mat = new this.THREE.MeshStandardMaterial({ color: 0x00ffcc });
+                const mesh = new this.THREE.Mesh(geo, mat);
+                this.scene.add(mesh);
+                this.objects.set(key, mesh);
+            }
+
+            setColor(id, color) {
+                if (!this.ready) return;
+                const mesh = this.objects.get(String(id || '').toUpperCase());
+                if (!mesh) return;
+                mesh.material.color = new this.THREE.Color(color || '#00ffcc');
+            }
+
+            move(id, x, y, z) {
+                if (!this.ready) return;
+                const mesh = this.objects.get(String(id || '').toUpperCase());
+                if (!mesh) return;
+                mesh.position.set(Number(x) || 0, Number(y) || 0, Number(z) || 0);
+            }
+
+            rotate(id, x, y, z) {
+                if (!this.ready) return;
+                const mesh = this.objects.get(String(id || '').toUpperCase());
+                if (!mesh) return;
+                mesh.rotation.x += Number(x) || 0;
+                mesh.rotation.y += Number(y) || 0;
+                mesh.rotation.z += Number(z) || 0;
+            }
+
+            render() {
+                if (!this.ready) return;
+                this.renderer.render(this.scene, this.camera);
             }
         }
 
@@ -460,6 +597,7 @@
 
         const lcd = new LCD();
         const gfx = new Gfx2D(gfxCanvas);
+        const basic3d = new Basic3DEngine(gfx3dHost, printTerm);
 
         // --- DEFINICIONES DE LENGUAJE ---
         const CORE_KEYWORDS = [
@@ -469,7 +607,8 @@
             "STOP", "END", "REM", "LET", "PRINT USING", "PRINT", "INPUT$", "INPUT", "LOCATE", "CLS", "BEEP", "BEEP1", "SOUND",
             "DIM", "DATA", "READ", "RESTORE",
             "PEEK", "POKE", "DEFSEG", "OPEN", "CLOSE", "SAVE", "LOAD", "NEWFUNCTION", "NEWFUNCTION$", "FUNCTION", "FUNCTION$", "GPHYCS", "GCLS", "CLASS", "TYPE", "METHOD", "INSTANCE", "SETPROP", "DEF", "WRITE", "READFILE", "PRINT#", "INPUT#", "TRY", "CATCH",
-            "FILES", "MKFILE", "DELFILE"
+            "FILES", "MKFILE", "DELFILE",
+            "B3DINIT", "B3DSCENE", "B3DCAMERA", "B3DCUBE", "B3DCOLOR", "B3DMOVE", "B3DROTATE", "B3DRENDER"
         ];
         // Extensiones aisladas para reducir conflictos al mergear V1.0.html
         const EXT_KEYWORDS = ["GCLS", "FILES", "MKFILE", "DELFILE"];
@@ -1168,6 +1307,60 @@
                     }
                     case 'GCLS':
                         return { type: 'GCLS' };
+                    case 'B3DINIT': {
+                        let width = this.parseExpression();
+                        this.match('PUNCT', ',');
+                        let height = this.parseExpression();
+                        return { type: 'B3DINIT', width, height };
+                    }
+                    case 'B3DSCENE':
+                        return { type: 'B3DSCENE', color: this.parseExpression() };
+                    case 'B3DCAMERA': {
+                        let x = this.parseExpression();
+                        this.match('PUNCT', ',');
+                        let y = this.parseExpression();
+                        this.match('PUNCT', ',');
+                        let z = this.parseExpression();
+                        return { type: 'B3DCAMERA', x, y, z };
+                    }
+                    case 'B3DCUBE': {
+                        let idExpr = this.parseExpression();
+                        this.match('PUNCT', ',');
+                        let w = this.parseExpression();
+                        this.match('PUNCT', ',');
+                        let h = this.parseExpression();
+                        this.match('PUNCT', ',');
+                        let d = this.parseExpression();
+                        return { type: 'B3DCUBE', idExpr, w, h, d };
+                    }
+                    case 'B3DCOLOR': {
+                        let idExpr = this.parseExpression();
+                        this.match('PUNCT', ',');
+                        let colorExpr = this.parseExpression();
+                        return { type: 'B3DCOLOR', idExpr, colorExpr };
+                    }
+                    case 'B3DMOVE': {
+                        let idExpr = this.parseExpression();
+                        this.match('PUNCT', ',');
+                        let x = this.parseExpression();
+                        this.match('PUNCT', ',');
+                        let y = this.parseExpression();
+                        this.match('PUNCT', ',');
+                        let z = this.parseExpression();
+                        return { type: 'B3DMOVE', idExpr, x, y, z };
+                    }
+                    case 'B3DROTATE': {
+                        let idExpr = this.parseExpression();
+                        this.match('PUNCT', ',');
+                        let x = this.parseExpression();
+                        this.match('PUNCT', ',');
+                        let y = this.parseExpression();
+                        this.match('PUNCT', ',');
+                        let z = this.parseExpression();
+                        return { type: 'B3DROTATE', idExpr, x, y, z };
+                    }
+                    case 'B3DRENDER':
+                        return { type: 'B3DRENDER' };
                     case 'CLASS': {
                         let cls = this.consume();
                         if (cls.type !== 'VAR' && cls.type !== 'STRING') throw new BasicError(1, "Se esperaba nombre en CLASS");
@@ -1310,6 +1503,7 @@
                 this.vfs = {};
                 this.vfsOpen = null;
                 this.sid = { regs: new Uint8Array(32), osc: null, gain: null, ctx: null };
+                this.basic3d = basic3d;
                 this.prngState = 0x1234abcd;
                 this.seedDefaultLibraries();
                 document.addEventListener('keydown', (e) => {
@@ -1423,6 +1617,65 @@
                     },
                     GCLS: async () => {
                         gfx.clear();
+                        return {};
+                    },
+                    B3DINIT: async (stmt) => {
+                        await this.basic3d.ensureReady(this.evalExpr(stmt.width), this.evalExpr(stmt.height));
+                        return {};
+                    },
+                    B3DSCENE: async (stmt) => {
+                        const ok = await this.basic3d.ensureReady();
+                        if (ok) this.basic3d.setBackground(String(this.evalExpr(stmt.color)));
+                        return {};
+                    },
+                    B3DCAMERA: async (stmt) => {
+                        const ok = await this.basic3d.ensureReady();
+                        if (ok) this.basic3d.setCamera(this.evalExpr(stmt.x), this.evalExpr(stmt.y), this.evalExpr(stmt.z));
+                        return {};
+                    },
+                    B3DCUBE: async (stmt) => {
+                        const ok = await this.basic3d.ensureReady();
+                        if (ok) this.basic3d.addCube(
+                            this.evalExpr(stmt.idExpr),
+                            Number(this.evalExpr(stmt.w)),
+                            Number(this.evalExpr(stmt.h)),
+                            Number(this.evalExpr(stmt.d))
+                        );
+                        return {};
+                    },
+                    B3DCOLOR: async (stmt) => {
+                        const ok = await this.basic3d.ensureReady();
+                        if (ok) this.basic3d.setColor(this.evalExpr(stmt.idExpr), String(this.evalExpr(stmt.colorExpr)));
+                        return {};
+                    },
+                    B3DMOVE: async (stmt) => {
+                        const ok = await this.basic3d.ensureReady();
+                        if (ok) this.basic3d.move(
+                            this.evalExpr(stmt.idExpr),
+                            this.evalExpr(stmt.x),
+                            this.evalExpr(stmt.y),
+                            this.evalExpr(stmt.z)
+                        );
+                        return {};
+                    },
+                    B3DROTATE: async (stmt) => {
+                        const ok = await this.basic3d.ensureReady();
+                        if (ok) this.basic3d.rotate(
+                            this.evalExpr(stmt.idExpr),
+                            this.evalExpr(stmt.x),
+                            this.evalExpr(stmt.y),
+                            this.evalExpr(stmt.z)
+                        );
+                        return {};
+                    },
+                    B3DRENDER: async () => {
+                        const ok = await this.basic3d.ensureReady();
+                        if (ok) this.basic3d.render();
+                        if (typeof requestAnimationFrame === 'function') {
+                            await new Promise((resolve) => requestAnimationFrame(() => resolve()));
+                        } else {
+                            await new Promise((resolve) => setTimeout(resolve, 16));
+                        }
                         return {};
                     },
                     CLASS: async (stmt) => {
