@@ -414,22 +414,26 @@
                 this.renderer = null;
                 this.objects = new Map();
                 this.ready = false;
-                this.failed = false;
+                this.envUnsupported = false;
+                this.lastLoadWarnAt = 0;
             }
 
             async ensureReady(width = 480, height = 220) {
                 if (this.ready) return true;
-                if (this.failed) return false;
+                if (this.envUnsupported) return false;
                 if (!this.host || typeof this.host.appendChild !== 'function' || typeof document.createElement !== 'function') {
-                    this.failed = true;
+                    this.envUnsupported = true;
                     this.log('BASIC3D no disponible en este entorno.');
                     return false;
                 }
 
                 const threeOk = await this.loadThree();
                 if (!threeOk) {
-                    this.failed = true;
-                    this.log('BASIC3D: no se pudo cargar THREE.JS.');
+                    const now = Date.now();
+                    if (now - this.lastLoadWarnAt > 3000) {
+                        this.lastLoadWarnAt = now;
+                        this.log('BASIC3D: no se pudo cargar THREE.JS.');
+                    }
                     return false;
                 }
 
@@ -1667,6 +1671,11 @@
                     B3DRENDER: async () => {
                         const ok = await this.basic3d.ensureReady();
                         if (ok) this.basic3d.render();
+                        if (typeof requestAnimationFrame === 'function') {
+                            await new Promise((resolve) => requestAnimationFrame(() => resolve()));
+                        } else {
+                            await new Promise((resolve) => setTimeout(resolve, 16));
+                        }
                         return {};
                     },
                     CLASS: async (stmt) => {
