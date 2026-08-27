@@ -330,7 +330,8 @@ El catálogo incluido procede de la lista de programas de biblioteca para
 **Casio FX-850P/880P**, acreditada en `LIB_INFO.bas` a M. Becker. Los ficheros
 `.bas` se preservan sin modificaciones. El número “116” es una agrupación
 habitual; el índice entregado en este repositorio enumera **120 módulos
-públicos** (incluido el menú `LIBK0630`) y 21 módulos auxiliares.
+públicos** (incluido el menú `LIBK0630`), 21 módulos auxiliares y el índice de texto
+`LIB_INFO.bas`: **142 archivos `.bas` en total**.
 
 ### Cómo usar una biblioteca
 
@@ -347,128 +348,128 @@ públicos** (incluido el menú `LIBK0630`) y 21 módulos auxiliares.
 
 ### Catálogo completo de módulos públicos
 
-| Módulo | Qué hace (descripción funcional original) |
-| --- | --- |
-| `LIB0400` | Speicher- und Schnittstellen-Testprogramm |
-| `LIB0800` | Download-Programm |
-| `LIB0900` | Konvertier-Programm |
-| `LIB1000` | Speicher-Berechnungen |
-| `LIB5010` | Primfaktoren-Analyse |
-| `LIB5020` | Grsster gemeinsamer Teiler, Kleinstes gemeinsames Vielfaches |
-| `LIB5040` | Gleichungssystem (Gauss-Elimination) |
-| `LIB5050` | Quadratische Gleichnung |
-| `LIB5060` | Kubische Gleichung |
-| `LIB5080` | Numerische Lsung einer Gleichung (Newton) |
-| `LIB5090` | Numerische Lsung einer Gleichung (Halbierungs-Methode) |
-| `LIB5100` | Matrixoperationen |
-| `LIB5200` | Numerische Integration (Romberg-Methode) |
-| `LIB5220` | Gewhnliche Differenzialgleichnung(Ru.Ku.) |
-| `LIB5230` | Lagrangsche Interpolation |
-| `LIB5250` | Gamma-Funktion |
-| `LIB5260` | Besselsche Funktion Jn(x) |
-| `LIB5270` | Besselsche Funktion Yn(x) |
-| `LIB5280` | Modifizierte Besselsche Funktion In(x) |
-| `LIB5290` | Modifizierte Besselsche Funktion Kn(x) |
-| `LIB5300` | Komplexe Zahlen |
-| `LIB5350` | Binr-Dezimal-Hexadezimal |
-| `LIB5510` | Gerade durch zwei Punkte |
-| `LIB5520` | Schnittwinkel von zwei Geraden |
-| `LIB5530` | Abstand zwischen Punkt und Gerade |
-| `LIB5540` | Drehbewegung |
-| `LIB5550` | Kreis durch drei Punkte |
-| `LIB5560` | Lnge von Tangenten von einem Punkt zu einem Kreis |
-| `LIB5570` | Tangentialgleichnung |
-| `LIB5600` | Dreiecksflche |
-| `LIB5605` | Flche eines Trapezoides |
-| `LIB5610` | Flche eines Parallelogramms |
-| `LIB5615` | Flche eines Kreises |
-| `LIB5620` | Flche eines Sektors |
-| `LIB5625` | Flche eines Segments |
-| `LIB5630` | Flche einer Ellipse |
-| `LIB5635` | Flche eines Polygons |
-| `LIB5650` | Flcheninhalt einer Kugel |
-| `LIB5655` | Flcheninhalt einer Kugelzone |
-| `LIB5660` | Flcheninhalt eines Kugelsektors |
-| `LIB5665` | Oberflche eines Kreiszylinders |
-| `LIB5670` | Oberflche eines Kreiskegels |
-| `LIB5675` | Flcheninhalt eines Kreiskegelstumpfes |
-| `LIB5700` | Rauminhalt einer Kugel |
-| `LIB5705` | Rauminhalt einer Kugelzone |
-| `LIB5710` | Rauminhalt eines Kugelsektors |
-| `LIB5715` | Rauminhalt eines kreiszylinders |
-| `LIB5720` | Rauminhalt eines Kreiskegels |
-| `LIB5725` | Rauminhalt eines Kreiskegelstumpfes |
-| `LIB5730` | Rauminhalt eines Keils |
-| `LIB5735` | Rauminhalt einer Pyramide |
-| `LIB5740` | Rauminhalt eines Pyramidenstumpfes |
-| `LIB5745` | Rauminhalt eines Ellipsoiden |
-| `LIB5750` | Einbeschriebener Kreis und Umbeschriebener Kreis eines Polygons |
-| `LIB5760` | Regelmiger Polyeder |
-| `LIB5800` | Zerlegung in Faktoren |
-| `LIB5810` | Trigonometrische Funktionen |
-| `LIB5820` | Differenziale |
-| `LIB5830` | Integrationen |
-| `LIB5840` | Laplace-Transformation |
-| `LIB5900` | Tabelle des Periodischn Systems |
-| `LIB5910` | Wissenschaftliche Konstanten |
-| `LIB5920` | Konstante der elektrolytischen Dissoziation |
-| `LIB5930` | Bewegung und Energie |
-| `LIB5932` | Wellenbewegung |
-| `LIB5934` | Wechselstrom und Gleichstromkreise |
-| `LIB5936` | Elektrische und magnetische Felder |
-| `LIB5938` | Thermodynamik und Anderes |
-| `LIB5950` | Metrische Umwandlungen fr Lngen |
-| `LIB5960` | Metrische Umwandlungen fr Flchen |
-| `LIB5970` | Metrische Umwandlungen fr Rauminhalte |
-| `LIB5980` | Metrische Umwandlungen fr Gewicht |
-| `LIB6210` | Obere Wahrscheinlichkeitsintegrale (Normalverteilung) |
-| `LIB6220` | Obere Wahrscheinlichkeitsintegrale (x^2 Verteilung) |
-| `LIB6230` | Obere Wahrscheinlichkeitsintegrale (t Verteilung) |
-| `LIB6240` | Obere Wahrscheinlichkeitsintegrale (F Verteilung) |
-| `LIB6310` | Obere Summenhufigkeit (Binominal-Verteilung) |
-| `LIB6320` | Obere Summenhufigkeit (Poisson-Verteilung) |
-| `LIB6330` | Obere Summenhufigkeit (Hypergeometrische Verteilung) |
-| `LIB6410` | Prozentpunkt (Normalverteilung) |
-| `LIB6420` | Prozentpunkt (x^2 Verteilung) |
-| `LIB6430` | Prozentpunkt (t Verteilung) |
-| `LIB6440` | Prozentpunkt (F Verteilung) |
-| `LIB6450` | Normale Zufallszahlen |
-| `LIB6460` | Exponentielle Zufallszahlen |
-| `LIB6500` | Statistische Berechnungen mit einer Variablen |
-| `LIB6510` | Lineare Regression (y=a+bx) |
-| `LIB6520` | Logarithmische Regression (y=a+b lnx) |
-| `LIB6530` | Exponentielle Regression (y=ab^x) |
-| `LIB6540` | Potenz-Regression (y=ax^b) |
-| `LIB6610` | Mittelwert-Intervallschtzung (fr bekannte Varianz) |
-| `LIB6620` | Mittelwert-Intervallschtzung (fr unbekannte Varianz) |
-| `LIB6630` | Varianz-Intervallschtzung |
-| `LIB6640` | Standardabweichnung-Intervallschtzung |
-| `LIB6650` | Varianzquotient-Intervallschtzung |
-| `LIB6660` | Mittelwertdifferenz-Intervallschtzung |
-| `LIB6670` | Verhltnis-Intervallschtzung |
-| `LIB6680` | Verhltnisdifferenz-Intervallschtzung |
-| `LIB6710` | Grundgesamtheits-Mittelwert-Test (zweiseitig): fr bek. Varianz) |
-| `LIB6711` | Grundgesamtheits-Mittelwert-Test (rechtsseitig): fr bek. Varianz) |
-| `LIB6712` | Grundgesamtheits-Mittelwert-Test (linksseitig): fr bek. Varianz) |
-| `LIB6720` | Grundgesamtheits-Mittelwert-Test (zweiseitig): fr unbek. Varianz) |
-| `LIB6721` | Grundgesamtheits-Mittelwert-Test (rechtsseitig): fr unbek. Varianz) |
-| `LIB6722` | Grundgesamtheits-Mittelwert-Test (linksseitig): fr unbek. Varianz) |
-| `LIB6730` | Grundgesamtheits-Varianz-Test (zweiseitig) |
-| `LIB6731` | Grundgesamtheits-Varianz-Test (rechtsseitig) |
-| `LIB6732` | Grundgesamtheits-Varianz-Test (linksseitig) |
-| `LIB6740` | Varianzquotient-Test (zweiseitig) |
-| `LIB6741` | Varianzquotient-Test (rechtsseitig) |
-| `LIB6742` | Varianzquotient-Test (linksseitig) |
-| `LIB6750` | Mittelwertdifferenz-Test (zweiseitig) |
-| `LIB6751` | Mittelwertdifferenz-Test (rechtsseitig) |
-| `LIB6752` | Mittelwertdifferenz-Test (linksseitig) |
-| `LIB6760` | Quotiententest (zweiseitig) |
-| `LIB6761` | Quotiententest (rechtsseitig) |
-| `LIB6762` | Quotiententest (linksseitig) |
-| `LIB6770` | Quotientendifferenztest (zweiseitig) |
-| `LIB6771` | Quotientendifferenztest (rechtsseitig) |
-| `LIB6772` | Quotientendifferenztest (linksseitig) |
-| `LIBK0630` | Men- und Startprogramm fr die LIB-Programme |
+| Módulo | Qué hace (descripción funcional original) | Estado de función original |
+| --- | --- | --- |
+| `LIB0400` | Speicher- und Schnittstellen-Testprogramm | 🔴 No funciona: requiere hardware/periféricos Casio. |
+| `LIB0800` | Download-Programm | 🔴 No funciona: requiere hardware/periféricos Casio. |
+| `LIB0900` | Konvertier-Programm | 🔴 No funciona: requiere hardware/periféricos Casio. |
+| `LIB1000` | Speicher-Berechnungen | 🟡 Parcialmente: requiere teclado y memoria Casio. |
+| `LIB5010` | Primfaktoren-Analyse | 🟡 Parcialmente: carga verificada; falta caso numérico de referencia. |
+| `LIB5020` | Grsster gemeinsamer Teiler, Kleinstes gemeinsames Vielfaches | 🟡 Parcialmente: carga verificada; falta caso numérico de referencia. |
+| `LIB5040` | Gleichungssystem (Gauss-Elimination) | 🟡 Parcialmente: carga verificada; falta caso numérico de referencia. |
+| `LIB5050` | Quadratische Gleichnung | 🟡 Parcialmente: carga verificada; falta caso numérico de referencia. |
+| `LIB5060` | Kubische Gleichung | 🟡 Parcialmente: carga verificada; falta caso numérico de referencia. |
+| `LIB5080` | Numerische Lsung einer Gleichung (Newton) | 🟡 Parcialmente: carga verificada; falta caso numérico de referencia. |
+| `LIB5090` | Numerische Lsung einer Gleichung (Halbierungs-Methode) | 🟡 Parcialmente: carga verificada; falta caso numérico de referencia. |
+| `LIB5100` | Matrixoperationen | 🟡 Parcialmente: carga verificada; falta caso numérico de referencia. |
+| `LIB5200` | Numerische Integration (Romberg-Methode) | 🟡 Parcialmente: carga verificada; falta caso numérico de referencia. |
+| `LIB5220` | Gewhnliche Differenzialgleichnung(Ru.Ku.) | 🟡 Parcialmente: carga verificada; falta caso numérico de referencia. |
+| `LIB5230` | Lagrangsche Interpolation | 🟡 Parcialmente: carga verificada; falta caso numérico de referencia. |
+| `LIB5250` | Gamma-Funktion | 🟡 Parcialmente: carga verificada; falta caso numérico de referencia. |
+| `LIB5260` | Besselsche Funktion Jn(x) | 🟡 Parcialmente: carga verificada; falta caso numérico de referencia. |
+| `LIB5270` | Besselsche Funktion Yn(x) | 🟡 Parcialmente: carga verificada; falta caso numérico de referencia. |
+| `LIB5280` | Modifizierte Besselsche Funktion In(x) | 🟡 Parcialmente: carga verificada; falta caso numérico de referencia. |
+| `LIB5290` | Modifizierte Besselsche Funktion Kn(x) | 🟡 Parcialmente: carga verificada; falta caso numérico de referencia. |
+| `LIB5300` | Komplexe Zahlen | 🟡 Parcialmente: carga verificada; falta caso numérico de referencia. |
+| `LIB5350` | Binr-Dezimal-Hexadezimal | 🟡 Parcialmente: carga verificada; falta caso numérico de referencia. |
+| `LIB5510` | Gerade durch zwei Punkte | 🟡 Parcialmente: carga verificada; falta caso numérico de referencia. |
+| `LIB5520` | Schnittwinkel von zwei Geraden | 🟡 Parcialmente: carga verificada; falta caso numérico de referencia. |
+| `LIB5530` | Abstand zwischen Punkt und Gerade | 🟡 Parcialmente: carga verificada; falta caso numérico de referencia. |
+| `LIB5540` | Drehbewegung | 🟡 Parcialmente: carga verificada; falta caso numérico de referencia. |
+| `LIB5550` | Kreis durch drei Punkte | 🟡 Parcialmente: carga verificada; falta caso numérico de referencia. |
+| `LIB5560` | Lnge von Tangenten von einem Punkt zu einem Kreis | 🟡 Parcialmente: carga verificada; falta caso numérico de referencia. |
+| `LIB5570` | Tangentialgleichnung | 🟡 Parcialmente: carga verificada; falta caso numérico de referencia. |
+| `LIB5600` | Dreiecksflche | 🟡 Parcialmente: carga verificada; falta caso numérico de referencia. |
+| `LIB5605` | Flche eines Trapezoides | 🟡 Parcialmente: carga verificada; falta caso numérico de referencia. |
+| `LIB5610` | Flche eines Parallelogramms | 🟡 Parcialmente: carga verificada; falta caso numérico de referencia. |
+| `LIB5615` | Flche eines Kreises | 🟡 Parcialmente: carga verificada; falta caso numérico de referencia. |
+| `LIB5620` | Flche eines Sektors | 🟡 Parcialmente: carga verificada; falta caso numérico de referencia. |
+| `LIB5625` | Flche eines Segments | 🟡 Parcialmente: carga verificada; falta caso numérico de referencia. |
+| `LIB5630` | Flche einer Ellipse | 🟡 Parcialmente: carga verificada; falta caso numérico de referencia. |
+| `LIB5635` | Flche eines Polygons | 🟡 Parcialmente: carga verificada; falta caso numérico de referencia. |
+| `LIB5650` | Flcheninhalt einer Kugel | 🟡 Parcialmente: carga verificada; falta caso numérico de referencia. |
+| `LIB5655` | Flcheninhalt einer Kugelzone | 🟡 Parcialmente: carga verificada; falta caso numérico de referencia. |
+| `LIB5660` | Flcheninhalt eines Kugelsektors | 🟡 Parcialmente: carga verificada; falta caso numérico de referencia. |
+| `LIB5665` | Oberflche eines Kreiszylinders | 🟡 Parcialmente: carga verificada; falta caso numérico de referencia. |
+| `LIB5670` | Oberflche eines Kreiskegels | 🟡 Parcialmente: carga verificada; falta caso numérico de referencia. |
+| `LIB5675` | Flcheninhalt eines Kreiskegelstumpfes | 🟡 Parcialmente: carga verificada; falta caso numérico de referencia. |
+| `LIB5700` | Rauminhalt einer Kugel | 🟡 Parcialmente: carga verificada; falta caso numérico de referencia. |
+| `LIB5705` | Rauminhalt einer Kugelzone | 🟡 Parcialmente: carga verificada; falta caso numérico de referencia. |
+| `LIB5710` | Rauminhalt eines Kugelsektors | 🟡 Parcialmente: carga verificada; falta caso numérico de referencia. |
+| `LIB5715` | Rauminhalt eines kreiszylinders | 🟡 Parcialmente: carga verificada; falta caso numérico de referencia. |
+| `LIB5720` | Rauminhalt eines Kreiskegels | 🟡 Parcialmente: carga verificada; falta caso numérico de referencia. |
+| `LIB5725` | Rauminhalt eines Kreiskegelstumpfes | 🟡 Parcialmente: carga verificada; falta caso numérico de referencia. |
+| `LIB5730` | Rauminhalt eines Keils | 🟡 Parcialmente: carga verificada; falta caso numérico de referencia. |
+| `LIB5735` | Rauminhalt einer Pyramide | 🟡 Parcialmente: carga verificada; falta caso numérico de referencia. |
+| `LIB5740` | Rauminhalt eines Pyramidenstumpfes | 🟡 Parcialmente: carga verificada; falta caso numérico de referencia. |
+| `LIB5745` | Rauminhalt eines Ellipsoiden | 🟡 Parcialmente: carga verificada; falta caso numérico de referencia. |
+| `LIB5750` | Einbeschriebener Kreis und Umbeschriebener Kreis eines Polygons | 🟡 Parcialmente: carga verificada; falta caso numérico de referencia. |
+| `LIB5760` | Regelmiger Polyeder | 🟡 Parcialmente: carga verificada; falta caso numérico de referencia. |
+| `LIB5800` | Zerlegung in Faktoren | 🟡 Parcialmente: carga verificada; falta caso numérico de referencia. |
+| `LIB5810` | Trigonometrische Funktionen | 🟡 Parcialmente: carga verificada; falta caso numérico de referencia. |
+| `LIB5820` | Differenziale | 🟡 Parcialmente: carga verificada; falta caso numérico de referencia. |
+| `LIB5830` | Integrationen | 🟡 Parcialmente: carga verificada; falta caso numérico de referencia. |
+| `LIB5840` | Laplace-Transformation | 🟡 Parcialmente: carga verificada; falta caso numérico de referencia. |
+| `LIB5900` | Tabelle des Periodischn Systems | 🟡 Parcialmente: carga verificada; falta caso numérico de referencia. |
+| `LIB5910` | Wissenschaftliche Konstanten | 🟡 Parcialmente: carga verificada; falta caso numérico de referencia. |
+| `LIB5920` | Konstante der elektrolytischen Dissoziation | 🟡 Parcialmente: carga verificada; falta caso numérico de referencia. |
+| `LIB5930` | Bewegung und Energie | 🟡 Parcialmente: carga verificada; falta caso numérico de referencia. |
+| `LIB5932` | Wellenbewegung | 🟡 Parcialmente: carga verificada; falta caso numérico de referencia. |
+| `LIB5934` | Wechselstrom und Gleichstromkreise | 🟡 Parcialmente: carga verificada; falta caso numérico de referencia. |
+| `LIB5936` | Elektrische und magnetische Felder | 🟡 Parcialmente: carga verificada; falta caso numérico de referencia. |
+| `LIB5938` | Thermodynamik und Anderes | 🟡 Parcialmente: carga verificada; falta caso numérico de referencia. |
+| `LIB5950` | Metrische Umwandlungen fr Lngen | 🟡 Parcialmente: carga verificada; falta caso numérico de referencia. |
+| `LIB5960` | Metrische Umwandlungen fr Flchen | 🟡 Parcialmente: carga verificada; falta caso numérico de referencia. |
+| `LIB5970` | Metrische Umwandlungen fr Rauminhalte | 🟡 Parcialmente: carga verificada; falta caso numérico de referencia. |
+| `LIB5980` | Metrische Umwandlungen fr Gewicht | 🟡 Parcialmente: carga verificada; falta caso numérico de referencia. |
+| `LIB6210` | Obere Wahrscheinlichkeitsintegrale (Normalverteilung) | 🟡 Parcialmente: carga verificada; falta caso numérico de referencia. |
+| `LIB6220` | Obere Wahrscheinlichkeitsintegrale (x^2 Verteilung) | 🟡 Parcialmente: carga verificada; falta caso numérico de referencia. |
+| `LIB6230` | Obere Wahrscheinlichkeitsintegrale (t Verteilung) | 🟡 Parcialmente: carga verificada; falta caso numérico de referencia. |
+| `LIB6240` | Obere Wahrscheinlichkeitsintegrale (F Verteilung) | 🟡 Parcialmente: carga verificada; falta caso numérico de referencia. |
+| `LIB6310` | Obere Summenhufigkeit (Binominal-Verteilung) | 🟡 Parcialmente: carga verificada; falta caso numérico de referencia. |
+| `LIB6320` | Obere Summenhufigkeit (Poisson-Verteilung) | 🟡 Parcialmente: carga verificada; falta caso numérico de referencia. |
+| `LIB6330` | Obere Summenhufigkeit (Hypergeometrische Verteilung) | 🟡 Parcialmente: carga verificada; falta caso numérico de referencia. |
+| `LIB6410` | Prozentpunkt (Normalverteilung) | 🟡 Parcialmente: carga verificada; falta caso numérico de referencia. |
+| `LIB6420` | Prozentpunkt (x^2 Verteilung) | 🟡 Parcialmente: carga verificada; falta caso numérico de referencia. |
+| `LIB6430` | Prozentpunkt (t Verteilung) | 🟡 Parcialmente: carga verificada; falta caso numérico de referencia. |
+| `LIB6440` | Prozentpunkt (F Verteilung) | 🟡 Parcialmente: carga verificada; falta caso numérico de referencia. |
+| `LIB6450` | Normale Zufallszahlen | 🟡 Parcialmente: carga verificada; falta caso numérico de referencia. |
+| `LIB6460` | Exponentielle Zufallszahlen | 🟡 Parcialmente: carga verificada; falta caso numérico de referencia. |
+| `LIB6500` | Statistische Berechnungen mit einer Variablen | 🟡 Parcialmente: carga verificada; falta caso numérico de referencia. |
+| `LIB6510` | Lineare Regression (y=a+bx) | 🟡 Parcialmente: carga verificada; falta caso numérico de referencia. |
+| `LIB6520` | Logarithmische Regression (y=a+b lnx) | 🟡 Parcialmente: carga verificada; falta caso numérico de referencia. |
+| `LIB6530` | Exponentielle Regression (y=ab^x) | 🟡 Parcialmente: carga verificada; falta caso numérico de referencia. |
+| `LIB6540` | Potenz-Regression (y=ax^b) | 🟡 Parcialmente: carga verificada; falta caso numérico de referencia. |
+| `LIB6610` | Mittelwert-Intervallschtzung (fr bekannte Varianz) | 🟡 Parcialmente: carga verificada; falta caso numérico de referencia. |
+| `LIB6620` | Mittelwert-Intervallschtzung (fr unbekannte Varianz) | 🟡 Parcialmente: carga verificada; falta caso numérico de referencia. |
+| `LIB6630` | Varianz-Intervallschtzung | 🟡 Parcialmente: carga verificada; falta caso numérico de referencia. |
+| `LIB6640` | Standardabweichnung-Intervallschtzung | 🟡 Parcialmente: carga verificada; falta caso numérico de referencia. |
+| `LIB6650` | Varianzquotient-Intervallschtzung | 🟡 Parcialmente: carga verificada; falta caso numérico de referencia. |
+| `LIB6660` | Mittelwertdifferenz-Intervallschtzung | 🟡 Parcialmente: carga verificada; falta caso numérico de referencia. |
+| `LIB6670` | Verhltnis-Intervallschtzung | 🟡 Parcialmente: carga verificada; falta caso numérico de referencia. |
+| `LIB6680` | Verhltnisdifferenz-Intervallschtzung | 🟡 Parcialmente: carga verificada; falta caso numérico de referencia. |
+| `LIB6710` | Grundgesamtheits-Mittelwert-Test (zweiseitig): fr bek. Varianz) | 🟡 Parcialmente: carga verificada; falta caso numérico de referencia. |
+| `LIB6711` | Grundgesamtheits-Mittelwert-Test (rechtsseitig): fr bek. Varianz) | 🟡 Parcialmente: carga verificada; falta caso numérico de referencia. |
+| `LIB6712` | Grundgesamtheits-Mittelwert-Test (linksseitig): fr bek. Varianz) | 🟡 Parcialmente: carga verificada; falta caso numérico de referencia. |
+| `LIB6720` | Grundgesamtheits-Mittelwert-Test (zweiseitig): fr unbek. Varianz) | 🟡 Parcialmente: carga verificada; falta caso numérico de referencia. |
+| `LIB6721` | Grundgesamtheits-Mittelwert-Test (rechtsseitig): fr unbek. Varianz) | 🟡 Parcialmente: carga verificada; falta caso numérico de referencia. |
+| `LIB6722` | Grundgesamtheits-Mittelwert-Test (linksseitig): fr unbek. Varianz) | 🟡 Parcialmente: carga verificada; falta caso numérico de referencia. |
+| `LIB6730` | Grundgesamtheits-Varianz-Test (zweiseitig) | 🟡 Parcialmente: carga verificada; falta caso numérico de referencia. |
+| `LIB6731` | Grundgesamtheits-Varianz-Test (rechtsseitig) | 🟡 Parcialmente: carga verificada; falta caso numérico de referencia. |
+| `LIB6732` | Grundgesamtheits-Varianz-Test (linksseitig) | 🟡 Parcialmente: carga verificada; falta caso numérico de referencia. |
+| `LIB6740` | Varianzquotient-Test (zweiseitig) | 🟡 Parcialmente: carga verificada; falta caso numérico de referencia. |
+| `LIB6741` | Varianzquotient-Test (rechtsseitig) | 🟡 Parcialmente: carga verificada; falta caso numérico de referencia. |
+| `LIB6742` | Varianzquotient-Test (linksseitig) | 🟡 Parcialmente: carga verificada; falta caso numérico de referencia. |
+| `LIB6750` | Mittelwertdifferenz-Test (zweiseitig) | 🟡 Parcialmente: carga verificada; falta caso numérico de referencia. |
+| `LIB6751` | Mittelwertdifferenz-Test (rechtsseitig) | 🟡 Parcialmente: carga verificada; falta caso numérico de referencia. |
+| `LIB6752` | Mittelwertdifferenz-Test (linksseitig) | 🟡 Parcialmente: carga verificada; falta caso numérico de referencia. |
+| `LIB6760` | Quotiententest (zweiseitig) | 🟡 Parcialmente: carga verificada; falta caso numérico de referencia. |
+| `LIB6761` | Quotiententest (rechtsseitig) | 🟡 Parcialmente: carga verificada; falta caso numérico de referencia. |
+| `LIB6762` | Quotiententest (linksseitig) | 🟡 Parcialmente: carga verificada; falta caso numérico de referencia. |
+| `LIB6770` | Quotientendifferenztest (zweiseitig) | 🟡 Parcialmente: carga verificada; falta caso numérico de referencia. |
+| `LIB6771` | Quotientendifferenztest (rechtsseitig) | 🟡 Parcialmente: carga verificada; falta caso numérico de referencia. |
+| `LIB6772` | Quotientendifferenztest (linksseitig) | 🟡 Parcialmente: carga verificada; falta caso numérico de referencia. |
+| `LIBK0630` | Men- und Startprogramm fr die LIB-Programme | 🟡 Parcialmente: carga verificada; falta caso numérico de referencia. |
 
 
 ### Módulos auxiliares internos
@@ -479,6 +480,84 @@ distribuciones y contrastes para las bibliotecas públicas: `LIBM6510`,
 `LIBM6770`, `LIBS6020`, `LIBS6030`, `LIBS6210`, `LIBS6220`, `LIBS6230`,
 `LIBS6240`, `LIBS6310`, `LIBS6320`, `LIBS6330`, `LIBS6410`, `LIBS6420`,
 `LIBS6430` y `LIBS6440`.
+
+
+---
+
+## 12. Compatibilidad Casio: contrato, estados y límites
+
+La JCC-700 no debe marcar una biblioteca como correcta solo porque termina en
+`READY`. Cada estado del catálogo tiene un significado estricto:
+
+| Estado | Significado | Evidencia mínima |
+| --- | --- | --- |
+| 🟢 **Completamente y Correctamente** | La función original y sus resultados de referencia se reproducen en JCC-700. | Caso de entrada, salida esperada y prueba automatizada. |
+| 🟡 **Parcialmente** | El archivo carga o alcanza su interfaz, pero no existe todavía una prueba de resultado que demuestre toda su función original. | `check_basic_compat.sh` y/o inicio controlado. |
+| 🟠 **Parcialmente: módulo interno** | Rutina auxiliar; no tiene una interfaz independiente. Se valida únicamente desde su biblioteca llamadora. | Prueba integrada del llamador. |
+| 🔴 **No funciona** | Depende de un periférico, una dirección de memoria o un servicio Casio que el navegador no puede recrear fielmente. | Limitación documentada y reproducible. |
+
+Los iconos del catálogo son deliberadamente conservadores: hoy no se declara
+ningún algoritmo como 🟢 sin una entrada y salida de referencia. Esto evita
+confundir una carga sintáctica con una respuesta matemática correcta. Un
+programa solo se asciende a 🟢 al añadir una prueba que compare un resultado
+conocido y que pase en el intérprete.
+
+### 12.1 Comandos Casio implementados o adaptados
+
+| Construcción Casio | Comportamiento en JCC-700 |
+| --- | --- |
+| `MODE 4`, `MODE 5`, `MODE 6` | Selecciona DEG, RAD o GRA para las funciones trigonométricas. |
+| `DEFCHR$` | Define el glifo de 5×7 píxeles utilizado por la LCD. |
+| `DEFSEG`, `PEEK`, `POKE` | Usa memoria emulada segmentada; no representa ROM ni E/S física real. |
+| `INPUT@col;variable` | Conserva la lectura de `variable`; la columna es solo una instrucción de colocación visual. |
+| `LPRINT` | Emite el texto en la salida de la JCC-700; no envía datos a una impresora física. |
+| `OPEN`, `CLOSE`, `PRINT#`, `INPUT#` | Trabaja con el VFS de la sesión, no con COM, cinta ni tarjeta Casio. |
+| `GOTO/GOSUB "LIB0:..."` | Resuelve módulos de biblioteca disponibles en el árbol mediante el cargador de la JCC-700. |
+| `INPUT$` e `INKEY$` | Lee el búfer de teclado. En el modo de prueba se detiene como `INPUT REQUIRED`, sin fabricar pulsaciones. |
+
+Los puertos serie, cinta, impresora, ROM real, mapa de memoria del FX-850P y
+sus teclas físicas especiales no se pueden certificar como equivalentes en un
+navegador. Esas dependencias mantienen la biblioteca en 🔴 o 🟡 aunque el
+archivo cargue.
+
+### 12.2 Verificación reproducible de las 142 bibliotecas
+
+Ejecute desde la raíz del repositorio:
+
+```bash
+./scripts/check_basic_compat.sh
+./scripts/run_casio_library_smoke.sh
+```
+
+El primer comando comprueba que están los 142 ficheros y que todos cargan sin
+los errores de parseo detectados. El segundo inicia cada uno sin inyectar
+teclas ni valores: `[INPUT REQUIRED]` es una parada controlada, no un éxito
+funcional. Si muestra `ERROR BASIC`, anote el módulo y línea antes de ampliar
+el intérprete; nunca modifique el `LIB*.bas` original para ocultar el error.
+
+### 12.3 Cómo convertir una biblioteca en 🟢
+
+1. Seleccione una biblioteca y copie su propósito desde el catálogo original.
+2. Defina una entrada pequeña con resultado conocido (incluidas unidad angular
+   y datos previos si el programa los necesita).
+3. Ejecute el programa en un Casio compatible, emulador fiable o documentación
+   primaria y registre exactamente la salida esperada.
+4. Añada una prueba fuera de `MB-Casio-Basic-Library` que inyecte esas entradas
+   al intérprete y compare salida/variables.
+5. Si falla, implemente la semántica ausente en `V1.0.html`, repita todas las
+   comprobaciones y actualice solo entonces su estado a 🟢.
+
+---
+
+## 13. Diagnóstico de bibliotecas y errores
+
+| Mensaje | Qué significa | Acción correcta |
+| --- | --- | --- |
+| `?Syntax error in n` | La línea no se interpreta con la gramática actual. | Añada compatibilidad al intérprete, no edite el módulo Casio. |
+| `?Undefined line in n` | Falta una línea local o un módulo llamado mediante `LIB0:`. | Compruebe que el módulo auxiliar existe y el cargador puede encontrarlo. |
+| `?Subscript out of range in n` | El programa recibió una entrada o estado no válido. | No use entradas vacías en una prueba funcional; documente una secuencia válida. |
+| `?Execution limit exceeded in n` | Hay bucle o espera no resuelta. | Use `--smoke`; después modele la entrada/tecla o el periférico necesario. |
+| `[INPUT REQUIRED]` | El modo de prueba alcanzó entrada interactiva. | Estado de arranque válido, pero todavía no valida el cálculo. |
 
 ### Guía rápida por área
 
