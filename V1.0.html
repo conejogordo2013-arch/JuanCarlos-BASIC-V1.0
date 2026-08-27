@@ -95,14 +95,16 @@
             text-transform: uppercase;
         }
 
-        #lcd-content {
-            position: absolute;
-            top: 5px;
-            left: 10px;
-            margin: 0;
-            pointer-events: none;
-            text-shadow: 1px 1px 0px rgba(255,255,255,0.2);
+        #lcd-pixels {
+            display: block;
+            width: 100%;
+            height: auto;
+            image-rendering: pixelated;
+            image-rendering: crisp-edges;
         }
+
+        /* Texto de respaldo para lectores de pantalla; la imagen visible es el LCD 5x7. */
+        #lcd-content { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: pre; }
 
         .cursor {
             background-color: var(--lcd-text);
@@ -371,7 +373,7 @@
         .brand b { font-size:1.02rem; color:#111; }
         .brand em { font-size:.72rem; color:#6b1515; font-style:normal; }
         .lcd-bezel { background: linear-gradient(#5b6258,#20251f); border: 2px solid #111; border-radius: 4px; padding: 10px 14px; }
-        .lcd-screen { background:#aeb789; color:#253224; border: 4px solid #69705e; border-radius:2px; box-shadow: inset 0 0 12px rgba(21,35,20,.7); font-family:'Courier New',monospace; font-weight:700; letter-spacing:2px; image-rendering:pixelated; }
+        .lcd-screen { background:#aeb789; color:#253224; border: 4px solid #69705e; border-radius:2px; box-shadow: inset 0 0 12px rgba(21,35,20,.7); image-rendering:pixelated; aspect-ratio: 80 / 7; display:flex; align-items:center; padding:8px; }
         .status-panel { background:#bfc3b0; border:1px solid #777b70; padding:4px; grid-template-columns: repeat(8, minmax(40px,1fr)); }
         .status-lamp { background:#aeb789; border-color:#747b67; color:#3e4938; }
         .status-lamp.active { background:#2c3829; color:#d6e2b7; box-shadow:none; }
@@ -392,6 +394,13 @@
         .calc-key.wide { grid-column: span 2; }
         .calc-key .shift-label { color:#8f1515; top:-8px; font-size:.52rem; }
         .jcc-key-help,.jcc-lcd-help { margin-top:8px; background:#b8bd8b; border:1px solid #6d715b; color:#27352b; border-radius:3px; padding:6px 8px; font-size:.68rem; line-height:1.35; }
+        /* Consola, herramientas y teclado forman una única estación JCC-700. */
+        .calculator .terminal-area { width:100%; box-sizing:border-box; margin-top:12px; height:280px; border-color:#5f665c; background:#20251f; }
+        .calculator .terminal-header { background:#485046; color:#ecf0dc; }
+        .calculator .tools-grid { width:100%; margin-top:12px; }
+        .calculator .panel { background:#c2c5b8; border-color:#6d716a; color:#202820; }
+        .calculator .panel h3 { color:#202820; }
+        .calculator .panel input, .calculator .panel textarea, .calculator .lib-browser, .calculator #vfs-list { background:#20251f; border-color:#5f665c; }
         @media (max-width: 760px) { .jcc-body-grid { grid-template-columns:1fr; } .brand { grid-template-columns:1fr; } .tools-grid { grid-template-columns:1fr; } }
 
     </style>
@@ -406,6 +415,7 @@
             <div class="brand"><span>CASIO FX-880P INSPIRED</span><b>JuanCarlos-COMPUTER-700</b><em>JCC-700 BASIC</em></div>
             <div class="lcd-bezel">
                 <div class="lcd-screen" id="lcd-container">
+                    <canvas id="lcd-pixels" width="160" height="14" role="img" aria-label="Pantalla LCD de 32 columnas por 2 filas"></canvas>
                     <pre id="lcd-content"></pre>
                 </div>
             </div>
@@ -432,9 +442,7 @@
                 </div>
                 <div class="jcc-key-help">MODE+0 CAL · MODE+1 BASIC · MODE+4 DEG · MODE+5 RAD · MODE+6 GRA · CAPS may/min · MEMO banco de datos · SHIFT+INS DEL · EXT símbolos · BRK detiene · EXE ejecuta · LIB+código+EXE biblioteca · ANS último resultado · DEFM memoria activa · DEFCHR$/DEFSEG caracteres personalizados 5x7.</div>
             </div>
-        </div>
-
-        <!-- Terminal Interface -->
+        <!-- Terminal Interface integrada en el cuerpo de la máquina -->
         <div class="terminal-area">
             <div class="terminal-header">
                 <span>TERMINAL I/O & EDITOR</span>
@@ -483,6 +491,7 @@
                 <div id="vfs-list">[SIN ARCHIVOS]</div>
             </div>
         </div>
+        </div>
     </div>
 
     <script>
@@ -490,6 +499,7 @@
         const termOut = document.getElementById('terminal-output');
         const termIn = document.getElementById('cmd-input');
         const lcdContent = document.getElementById('lcd-content');
+        const lcdPixels = document.getElementById('lcd-pixels');
         const promptChar = document.getElementById('prompt-char');
         const gfxCanvas = null; // JCC-700: sin Canvas 2D, gráficos mapeados al LCD 32x2
         const libCodeInput = document.getElementById('lib-code');
@@ -526,7 +536,37 @@
             }
         }
 
-        // --- PANTALLA LCD SIMULADA (32x2) ---
+        // --- PANTALLA LCD 32x2: matriz física de 5x7 píxeles por carácter ---
+        // Cada cadena contiene las cinco filas, de izquierda a derecha; 1 = píxel encendido.
+        const LCD_FONT_5X7 = {
+            ' ': ['00000','00000','00000','00000','00000','00000','00000'],
+            '0': ['01110','10001','10011','10101','11001','10001','01110'], '1': ['00100','01100','00100','00100','00100','00100','01110'],
+            '2': ['01110','10001','00001','00010','00100','01000','11111'], '3': ['11110','00001','00001','01110','00001','00001','11110'],
+            '4': ['00010','00110','01010','10010','11111','00010','00010'], '5': ['11111','10000','11110','00001','00001','10001','01110'],
+            '6': ['00110','01000','10000','11110','10001','10001','01110'], '7': ['11111','00001','00010','00100','01000','01000','01000'],
+            '8': ['01110','10001','10001','01110','10001','10001','01110'], '9': ['01110','10001','10001','01111','00001','00010','11100'],
+            'A': ['01110','10001','10001','11111','10001','10001','10001'], 'B': ['11110','10001','10001','11110','10001','10001','11110'],
+            'C': ['01110','10001','10000','10000','10000','10001','01110'], 'D': ['11110','10001','10001','10001','10001','10001','11110'],
+            'E': ['11111','10000','10000','11110','10000','10000','11111'], 'F': ['11111','10000','10000','11110','10000','10000','10000'],
+            'G': ['01110','10001','10000','10111','10001','10001','01110'], 'H': ['10001','10001','10001','11111','10001','10001','10001'],
+            'I': ['01110','00100','00100','00100','00100','00100','01110'], 'J': ['00001','00001','00001','00001','10001','10001','01110'],
+            'K': ['10001','10010','10100','11000','10100','10010','10001'], 'L': ['10000','10000','10000','10000','10000','10000','11111'],
+            'M': ['10001','11011','10101','10101','10001','10001','10001'], 'N': ['10001','11001','10101','10011','10001','10001','10001'],
+            'O': ['01110','10001','10001','10001','10001','10001','01110'], 'P': ['11110','10001','10001','11110','10000','10000','10000'],
+            'Q': ['01110','10001','10001','10001','10101','10010','01101'], 'R': ['11110','10001','10001','11110','10100','10010','10001'],
+            'S': ['01111','10000','10000','01110','00001','00001','11110'], 'T': ['11111','00100','00100','00100','00100','00100','00100'],
+            'U': ['10001','10001','10001','10001','10001','10001','01110'], 'V': ['10001','10001','10001','10001','10001','01010','00100'],
+            'W': ['10001','10001','10001','10101','10101','10101','01010'], 'X': ['10001','10001','01010','00100','01010','10001','10001'],
+            'Y': ['10001','10001','01010','00100','00100','00100','00100'], 'Z': ['11111','00001','00010','00100','01000','10000','11111'],
+            '.': ['00000','00000','00000','00000','00000','00110','00110'], ',': ['00000','00000','00000','00000','00110','00110','00100'],
+            ':': ['00000','00110','00110','00000','00110','00110','00000'], ';': ['00000','00110','00110','00000','00110','00110','00100'],
+            '!': ['00100','00100','00100','00100','00100','00000','00100'], '?': ['01110','10001','00001','00010','00100','00000','00100'],
+            '+': ['00000','00100','00100','11111','00100','00100','00000'], '-': ['00000','00000','00000','11111','00000','00000','00000'],
+            '=': ['00000','11111','00000','11111','00000','00000','00000'], '/': ['00001','00010','00100','01000','10000','00000','00000'],
+            '>': ['10000','01000','00100','00010','00100','01000','10000'], '<': ['00001','00010','00100','01000','00100','00010','00001'],
+            '"': ['01010','01010','00000','00000','00000','00000','00000'], "'": ['00100','00100','00000','00000','00000','00000','00000']
+        };
+
         class LCD {
             constructor() {
                 this.cols = 32;
@@ -534,7 +574,24 @@
                 this.buffer = Array(this.rows).fill('').map(() => ' '.repeat(this.cols));
                 this.cx = 0; // 0 a 31
                 this.cy = 0; // 0 a 1
+                this.customChars = new Map();
+                this.ctx = lcdPixels && typeof lcdPixels.getContext === 'function'
+                    ? lcdPixels.getContext('2d', { alpha: false }) : null;
                 this.updateDisplay();
+            }
+
+            defineCharacter(code, hexPattern) {
+                const bytes = String(hexPattern || '').replace(/[^0-9a-f]/gi, '').match(/.{1,2}/g) || [];
+                if (bytes.length < 5) throw new BasicError(1, 'DEFCHR$ requiere 5 bytes hexadecimales');
+                // El formato Casio usa cinco columnas de ocho bits; se muestran los 7 bits visibles.
+                const columns = bytes.slice(0, 5).map((hex) => parseInt(hex, 16));
+                const rows = Array.from({ length: 7 }, (_, y) => columns.map((column) => (column & (1 << (6 - y))) ? '1' : '0').join(''));
+                this.customChars.set(String.fromCharCode(Math.max(0, Math.min(255, Math.floor(code)))), rows);
+                this.updateDisplay();
+            }
+
+            glyphFor(char) {
+                return this.customChars.get(char) || LCD_FONT_5X7[char] || LCD_FONT_5X7['?'];
             }
 
             clear() {
@@ -585,10 +642,17 @@
             }
 
             updateDisplay() {
-                let out = this.buffer[0] + '\n' + this.buffer[1];
-                // Insertar cursor lógico si está dentro de la pantalla
-                if (this.cy < this.rows && this.cx < this.cols && document.activeElement !== termIn) {
-                    // Solo simulamos cursor en LCD si no estamos escribiendo en terminal
+                const out = this.buffer[0] + '\n' + this.buffer[1];
+                if (this.ctx) {
+                    this.ctx.fillStyle = '#aeb789';
+                    this.ctx.fillRect(0, 0, this.cols * 5, this.rows * 7);
+                    this.ctx.fillStyle = '#253224';
+                    this.buffer.forEach((line, row) => [...line].forEach((char, col) => {
+                        const glyph = this.glyphFor(char);
+                        glyph.forEach((pixels, y) => [...pixels].forEach((pixel, x) => {
+                            if (pixel === '1') this.ctx.fillRect(col * 5 + x, row * 7 + y, 1, 1);
+                        }));
+                    }));
                 }
                 lcdContent.textContent = out;
             }
@@ -1310,13 +1374,14 @@
                     case 'NEW ALL': return { type: 'NEW ALL' };
                     case 'CLEAR': return { type: 'CLEAR' };
                     case 'DEFCHR$':
+                        let charCode = { type: 'LITERAL', value: 0 };
                         if (this.match('PUNCT', '(')) {
-                            if (this.peek().type !== 'PUNCT' || this.peek().value !== ')') this.parseExpression();
+                            if (this.peek().type !== 'PUNCT' || this.peek().value !== ')') charCode = this.parseExpression();
                             this.match('PUNCT', ')');
                         }
                         this.match('OPERATOR', '=');
-                        if (this.peek().type !== 'EOF' && this.peek().type !== 'SEP') this.parseExpression();
-                        return { type: 'DEFCHR$' };
+                        const pattern = (this.peek().type !== 'EOF' && this.peek().type !== 'SEP') ? this.parseExpression() : { type: 'LITERAL', value: '' };
+                        return { type: 'DEFCHR$', charCode, pattern };
                     case 'TRON': return { type: 'TRON' };
                     case 'TROFF': return { type: 'TROFF' };
                     case 'VARLIST': return { type: 'VARLIST' };
@@ -1668,9 +1733,8 @@
                         let x = Math.floor(rawX);
                         let y = Math.floor(rawY);
                         let ch = String(rawCh ?? '*');
-                        lcd.locate(x, y);
-                        lcd.print(ch[0] || '*');
-                        gfx.draw(x * 2, y * 2, ch);
+                        // GPHYCS usa coordenadas de píxel (160x14), reducidas al LCD de 32x2.
+                        gfx.draw(x, y, ch);
                         printTerm(`[GPHYCS ${x},${y}] ${ch[0] || '*'}`);
                         return {};
                     },
@@ -1801,7 +1865,10 @@
                         this.pc = this.program.length;
                         return { halted: true };
                     },
-                    'DEFCHR$': async () => ({}),
+                    'DEFCHR$': async (stmt) => {
+                        lcd.defineCharacter(this.evalExpr(stmt.charCode), this.evalExpr(stmt.pattern));
+                        return {};
+                    },
                     TRON: async () => { this.trace = true; document.getElementById('ind-tron').classList.add('active'); return {}; },
                     TROFF: async () => { this.trace = false; document.getElementById('ind-tron').classList.remove('active'); return {}; }
                 };
