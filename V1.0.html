@@ -260,14 +260,6 @@
             background: #000;
         }
 
-        #gfx3d-host {
-            width: 100%;
-            height: 220px;
-            border: 1px solid #4e4e4e;
-            background: #050505;
-            position: relative;
-            overflow: hidden;
-        }
 
         #vfs-list {
             min-height: 60px;
@@ -275,6 +267,96 @@
             overflow-y: auto;
             white-space: pre-wrap;
             font-size: 0.75rem;
+            color: #8ef58e;
+            background: #0f0f0f;
+            border: 1px dashed #3b3b3b;
+            border-radius: 4px;
+            padding: 6px;
+        }
+
+        .status-panel {
+            width: 100%;
+            margin-top: 10px;
+            display: grid;
+            grid-template-columns: repeat(8, minmax(44px, 1fr));
+            gap: 5px;
+            font-family: 'Courier New', monospace;
+        }
+        .status-lamp {
+            border: 1px solid #566356;
+            border-radius: 4px;
+            background: #1f241f;
+            color: #6d756d;
+            text-align: center;
+            padding: 3px 4px;
+            font-size: 0.68rem;
+            min-height: 15px;
+        }
+        .status-lamp.active {
+            color: #061706;
+            background: #36e36a;
+            border-color: #95ffad;
+            box-shadow: 0 0 7px rgba(54, 227, 106, 0.8);
+            font-weight: bold;
+        }
+        .status-lamp.warn {
+            color: #1e0909;
+            background: #ff4b4b;
+            border-color: #ffaaaa;
+            box-shadow: 0 0 7px rgba(255, 75, 75, 0.75);
+            font-weight: bold;
+        }
+        .status-digits {
+            width: 100%;
+            margin-top: 7px;
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 5px;
+        }
+        .status-digit {
+            background: #101510;
+            color: #9cff9c;
+            border: 1px solid #355035;
+            border-radius: 4px;
+            text-align: center;
+            padding: 3px 0;
+            font-size: 0.78rem;
+        }
+        .keyboard-panel {
+            width: 100%;
+            margin-top: 14px;
+        }
+        .key-row {
+            display: grid;
+            grid-template-columns: repeat(10, 1fr);
+            gap: 6px;
+            margin-bottom: 6px;
+        }
+        .calc-key {
+            min-height: 42px;
+            position: relative;
+            border-radius: 6px;
+            background: linear-gradient(#3a3a3a, #202020);
+            border: 1px solid #666;
+            color: #f0f0f0;
+            text-align: center;
+        }
+        .calc-key .shift-label {
+            position: absolute;
+            top: -10px;
+            left: 3px;
+            right: 3px;
+            color: #ff5a5a;
+            font-size: 0.58rem;
+            line-height: 1;
+        }
+        .calc-key.active-key { border-color: #8eff8e; box-shadow: 0 0 7px rgba(80,255,120,.8); }
+        .lib-browser {
+            min-height: 160px;
+            max-height: 260px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+            font-size: 0.72rem;
             color: #8ef58e;
             background: #0f0f0f;
             border: 1px dashed #3b3b3b;
@@ -297,12 +379,17 @@
                     <pre id="lcd-content"></pre>
                 </div>
             </div>
-            <div class="indicators">
-                <div class="indicator" id="ind-run">RUN</div>
-                <div class="indicator" id="ind-deg">DEG</div>
-                <div class="indicator" id="ind-rad">RAD</div>
-                <div class="indicator" id="ind-gra">GRA</div>
-                <div class="indicator" id="ind-tron">TRON</div>
+            <div class="status-panel" id="status-panel">
+                <div class="status-lamp" id="ind-shift">S</div><div class="status-lamp" id="ind-basic">BASIC</div><div class="status-lamp" id="ind-cal">CAL</div><div class="status-lamp" id="ind-deg">DEG</div><div class="status-lamp" id="ind-rad">RAD</div><div class="status-lamp" id="ind-gra">GRA</div><div class="status-lamp" id="ind-memo">MEMO</div><div class="status-lamp" id="ind-in">IN</div>
+                <div class="status-lamp" id="ind-edit">EDIT</div><div class="status-lamp" id="ind-lib">LIB</div><div class="status-lamp" id="ind-defm">DEFM</div><div class="status-lamp" id="ind-prt">PRT</div><div class="status-lamp" id="ind-tron">TR</div><div class="status-lamp" id="ind-stop">STOP</div><div class="status-lamp" id="ind-run">RUN</div><div class="status-lamp" id="ind-ins">INS</div>
+            </div>
+            <div class="status-digits"><div class="status-digit" id="stat-n0">0</div><div class="status-digit" id="stat-n1">0</div><div class="status-digit" id="stat-n2">0</div><div class="status-digit" id="stat-n3">0</div><div class="status-digit" id="stat-n4">0</div></div>
+            <div class="keyboard-panel" id="keyboard-panel">
+                <div class="key-row"><button class="calc-key" data-key="LIB"><span class="shift-label">MENU</span>LIB</button><button class="calc-key" data-key="MENU">MENU</button><button class="calc-key" data-key="IN">IN</button><button class="calc-key" data-key="OUT">OUT</button><button class="calc-key" data-key="CALC">CALC</button><button class="calc-key" data-key="MODE">MODE</button><button class="calc-key" data-key="CAPS">CAPS</button><button class="calc-key" data-key="MEM">MEM</button><button class="calc-key" data-key="INS">INS</button><button class="calc-key" data-key="SHIFT">SHIFT</button></div>
+                <div class="key-row"><button class="calc-key" data-key="LOG"><span class="shift-label">10^X</span>LOG</button><button class="calc-key" data-key="LN"><span class="shift-label">e^X</span>LN</button><button class="calc-key" data-key="HYP"><span class="shift-label">SET</span>HYP</button><button class="calc-key" data-key="SIN"><span class="shift-label">SIN-1</span>SIN</button><button class="calc-key" data-key="COS"><span class="shift-label">COS-1</span>COS</button><button class="calc-key" data-key="TAN"><span class="shift-label">TAN-1</span>TAN</button><button class="calc-key" data-key="&H"><span class="shift-label">HEX$(</span>&H</button><button class="calc-key" data-key="DEG("><span class="shift-label">DMS$(</span>DEG(</button><button class="calc-key" data-key="("><span class="shift-label">INT</span>(</button><button class="calc-key" data-key=")"><span class="shift-label">FRAC</span>)</button></div>
+                <div class="key-row"><button class="calc-key" data-key="UP">ARRIBA</button><button class="calc-key" data-key="DOWN">ABAJO</button><button class="calc-key" data-key="LEFT">IZQ</button><button class="calc-key" data-key="RIGHT">DER</button><button class="calc-key" data-key="SQR("><span class="shift-label">FACT</span>√</button><button class="calc-key" data-key="*">*</button><button class="calc-key" data-key="/">/</button><button class="calc-key" data-key="-">-</button><button class="calc-key" data-key="+">+</button><button class="calc-key" data-key=".">.</button></div>
+                <div class="key-row"><button class="calc-key" data-key="P0">P0</button><button class="calc-key" data-key="P1">P1</button><button class="calc-key" data-key="P2">P2</button><button class="calc-key" data-key="P3">P3</button><button class="calc-key" data-key="P4">P4</button><button class="calc-key" data-key="P5">P5</button><button class="calc-key" data-key="P6">P6</button><button class="calc-key" data-key="P7">P7</button><button class="calc-key" data-key="P8">P8</button><button class="calc-key" data-key="P9">P9</button></div>
+                <div class="key-row"><button class="calc-key" data-key="SPACE">SPACE</button><button class="calc-key" data-key="EXE">EXE</button></div>
             </div>
         </div>
 
@@ -330,8 +417,13 @@
                 <canvas id="gfx-canvas" width="320" height="200"></canvas>
             </div>
             <div class="panel">
-                <h3>BASIC3D (THREE.JS)</h3>
-                <div id="gfx3d-host"></div>
+                <h3>LIBRERÍAS BASIC</h3>
+                <div class="btn-row">
+                    <input id="lib-code" type="text" placeholder="0400" maxlength="8">
+                    <button id="btn-lib-run">LIB</button>
+                    <button id="btn-lib-menu">MENU</button>
+                </div>
+                <div id="lib-browser" class="lib-browser">Cargando librerías...</div>
             </div>
             <div class="panel">
                 <h3>SISTEMA DE ARCHIVOS VIRTUAL</h3>
@@ -359,7 +451,8 @@
         const lcdContent = document.getElementById('lcd-content');
         const promptChar = document.getElementById('prompt-char');
         const gfxCanvas = document.getElementById('gfx-canvas');
-        const gfx3dHost = document.getElementById('gfx3d-host');
+        const libCodeInput = document.getElementById('lib-code');
+        const libBrowser = document.getElementById('lib-browser');
         const importFilesInput = document.getElementById('import-files');
         const vfsNameInput = document.getElementById('vfs-name');
         const vfsContentInput = document.getElementById('vfs-content');
@@ -368,6 +461,7 @@
         function printTerm(text, newline = true) {
             termOut.textContent += text + (newline ? '\n' : '');
             termOut.scrollTop = termOut.scrollHeight;
+            if (typeof updateStatus === 'function' && typeof machine !== 'undefined') updateStatus();
         }
 
         class Gfx2D {
@@ -401,129 +495,6 @@
 
             setColor(c) {
                 this.color = /^#[0-9a-f]{6}$/i.test(c) ? c : '#00ff00';
-            }
-        }
-
-        class Basic3DEngine {
-            constructor(host, logger) {
-                this.host = host;
-                this.log = logger;
-                this.THREE = null;
-                this.scene = null;
-                this.camera = null;
-                this.renderer = null;
-                this.objects = new Map();
-                this.ready = false;
-                this.envUnsupported = false;
-                this.lastLoadWarnAt = 0;
-            }
-
-            async ensureReady(width = 480, height = 220) {
-                if (this.ready) return true;
-                if (this.envUnsupported) return false;
-                if (!this.host || typeof this.host.appendChild !== 'function' || typeof document.createElement !== 'function') {
-                    this.envUnsupported = true;
-                    this.log('BASIC3D no disponible en este entorno.');
-                    return false;
-                }
-
-                const threeOk = await this.loadThree();
-                if (!threeOk) {
-                    const now = Date.now();
-                    if (now - this.lastLoadWarnAt > 3000) {
-                        this.lastLoadWarnAt = now;
-                        this.log('BASIC3D: no se pudo cargar THREE.JS.');
-                    }
-                    return false;
-                }
-
-                const w = Math.max(64, Math.floor(width));
-                const h = Math.max(64, Math.floor(height));
-                this.scene = new this.THREE.Scene();
-                this.scene.background = new this.THREE.Color(0x101010);
-                this.camera = new this.THREE.PerspectiveCamera(75, w / h, 0.1, 1000);
-                this.camera.position.set(0, 1, 6);
-                this.renderer = new this.THREE.WebGLRenderer({ antialias: true });
-                this.renderer.setSize(w, h);
-                this.renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
-                this.host.innerHTML = '';
-                this.host.appendChild(this.renderer.domElement);
-                const ambient = new this.THREE.AmbientLight(0xffffff, 0.7);
-                const dir = new this.THREE.DirectionalLight(0xffffff, 0.8);
-                dir.position.set(3, 5, 2);
-                this.scene.add(ambient);
-                this.scene.add(dir);
-                this.ready = true;
-                this.render();
-                return true;
-            }
-
-            async loadThree() {
-                if (window.THREE) {
-                    this.THREE = window.THREE;
-                    return true;
-                }
-                if (typeof document.createElement !== 'function' || !document.head || typeof document.head.appendChild !== 'function') {
-                    return false;
-                }
-                return await new Promise((resolve) => {
-                    const script = document.createElement('script');
-                    script.src = 'https://unpkg.com/three@0.163.0/build/three.min.js';
-                    script.onload = () => {
-                        this.THREE = window.THREE || null;
-                        resolve(!!this.THREE);
-                    };
-                    script.onerror = () => resolve(false);
-                    document.head.appendChild(script);
-                });
-            }
-
-            setBackground(hex) {
-                if (!this.ready) return;
-                this.scene.background = new this.THREE.Color(hex || '#101010');
-            }
-
-            setCamera(x, y, z) {
-                if (!this.ready) return;
-                this.camera.position.set(Number(x) || 0, Number(y) || 0, Number(z) || 6);
-            }
-
-            addCube(id, w, h, d) {
-                if (!this.ready) return;
-                const key = String(id || 'OBJ').toUpperCase();
-                const geo = new this.THREE.BoxGeometry(Math.max(0.01, w), Math.max(0.01, h), Math.max(0.01, d));
-                const mat = new this.THREE.MeshStandardMaterial({ color: 0x00ffcc });
-                const mesh = new this.THREE.Mesh(geo, mat);
-                this.scene.add(mesh);
-                this.objects.set(key, mesh);
-            }
-
-            setColor(id, color) {
-                if (!this.ready) return;
-                const mesh = this.objects.get(String(id || '').toUpperCase());
-                if (!mesh) return;
-                mesh.material.color = new this.THREE.Color(color || '#00ffcc');
-            }
-
-            move(id, x, y, z) {
-                if (!this.ready) return;
-                const mesh = this.objects.get(String(id || '').toUpperCase());
-                if (!mesh) return;
-                mesh.position.set(Number(x) || 0, Number(y) || 0, Number(z) || 0);
-            }
-
-            rotate(id, x, y, z) {
-                if (!this.ready) return;
-                const mesh = this.objects.get(String(id || '').toUpperCase());
-                if (!mesh) return;
-                mesh.rotation.x += Number(x) || 0;
-                mesh.rotation.y += Number(y) || 0;
-                mesh.rotation.z += Number(z) || 0;
-            }
-
-            render() {
-                if (!this.ready) return;
-                this.renderer.render(this.scene, this.camera);
             }
         }
 
@@ -597,18 +568,16 @@
 
         const lcd = new LCD();
         const gfx = new Gfx2D(gfxCanvas);
-        const basic3d = new Basic3DEngine(gfx3dHost, printTerm);
 
         // --- DEFINICIONES DE LENGUAJE ---
         const CORE_KEYWORDS = [
             "NEW ALL", "NEW", "CLEAR", "RUN", "LIST ALL", "LIST", "EDIT", "VARLIST", "PASS", "FRE", "TROFF", "TRON",
             "GOTO", "GOSUB", "RETURN", "ON ERROR GOTO", "ON ERROR", "RESUME", "ERR", "ERL", "ON",
             "IF", "THEN", "THENGOTO", "ELSE", "FOR", "TO", "STEP", "NEXT", "WHILE", "WEND", "DO", "UNTIL", "AS",
-            "STOP", "END", "REM", "LET", "PRINT USING", "PRINT", "INPUT$", "INPUT", "LOCATE", "CLS", "BEEP", "BEEP1", "SOUND",
+            "STOP", "END", "REM", "LET", "PRINT USING", "PRINT", "LPRINT", "INPUT$", "INPUT", "LOCATE", "CLS", "BEEP", "BEEP1", "SOUND",
             "DIM", "DATA", "READ", "RESTORE",
-            "PEEK", "POKE", "DEFSEG", "OPEN", "CLOSE", "SAVE", "LOAD", "NEWFUNCTION", "NEWFUNCTION$", "FUNCTION", "FUNCTION$", "GPHYCS", "GCLS", "CLASS", "TYPE", "METHOD", "INSTANCE", "SETPROP", "DEF", "WRITE", "READFILE", "PRINT#", "INPUT#", "TRY", "CATCH",
-            "FILES", "MKFILE", "DELFILE",
-            "B3DINIT", "B3DSCENE", "B3DCAMERA", "B3DCUBE", "B3DCOLOR", "B3DMOVE", "B3DROTATE", "B3DRENDER"
+            "PEEK", "POKE", "DEFSEG", "DEFCHR$", "OPEN", "CLOSE", "SAVE", "LOAD", "NEWFUNCTION", "NEWFUNCTION$", "FUNCTION", "FUNCTION$", "GPHYCS", "GCLS", "CLASS", "TYPE", "METHOD", "INSTANCE", "SETPROP", "DEF", "WRITE", "READFILE", "PRINT#", "INPUT#", "TRY", "CATCH",
+            "FILES", "MKFILE", "DELFILE"
         ];
         // Extensiones aisladas para reducir conflictos al mergear V1.0.html
         const EXT_KEYWORDS = ["GCLS", "FILES", "MKFILE", "DELFILE"];
@@ -620,10 +589,11 @@
             "LOG", "LN", "EXP", "SQR", "ABS", "SGN", "INT", "FIX", "FRAC", "ROUND",
             "RAN#", "RND", "PI", "FACT", "NPR", "NCR", "POL", "REC", "ANGLE",
             "CHR$", "ASC", "STR$", "VAL", "LEFT$", "RIGHT$", "MID$", "LEN", "INKEY$",
-            "HEX$", "HEXVAL", "INT$", "LOCATE$", "INSTR", "UPPER$", "LOWER$", "SPACE$", "LCOLOR", "NFUNC", "NFUNC$", "CALL", "PROP", "PEEK"
+            "HEX$", "HEXVAL", "INT$", "LOCATE$", "INSTR", "UPPER$", "LOWER$", "SPACE$", "LCOLOR", "NFUNC", "NFUNC$", "CALL", "PROP", "PEEK", "INPUT$", "TAB"
         ];
         const FUNCTIONS = [...CORE_FUNCTIONS];
-        const BARE_FUNCTIONS = new Set(["PI", "RAN#", "RND", "INKEY$"]);
+        const BARE_FUNCTIONS = new Set(["PI", "RAN#", "RND", "INKEY$", "PEEK"]);
+        const ADJACENT_KEYWORD_PREFIXES = ["THENGOTO", "DEFCHR$", "LPRINT", "PRINT", "GOSUB", "GOTO", "RETURN", "THEN", "ELSE", "POKE", "PEEK", "FOR", "NEXT", "TO", "IF"];
 
         const OPERATORS = ["<>", "<=", ">=", "^", "*", "/", "MOD", "+", "-", "=", "<", ">", "AND", "OR", "NOT"];
 
@@ -676,6 +646,15 @@
                     break;
                 }
 
+                // Canal de teclado en algunos BASIC: INPUT$(1,@)
+                if (char === '@') {
+                    tokens.push({ type: 'NUMBER', value: 0 });
+                    i++; continue;
+                }
+                if (char === '#') {
+                    i++; continue;
+                }
+
                 // Números Hexadecimales (&H...)
                 if (codeStr.substring(i, i+2).toUpperCase() === '&H') {
                     let hexStr = "";
@@ -695,7 +674,7 @@
                         numStr += codeStr[i];
                         i++;
                     }
-                    if (codeStr[i] === 'E' || codeStr[i] === 'e') {
+                    if ((codeStr[i] === 'E' || codeStr[i] === 'e') && (/[0-9]/.test(codeStr[i+1]) || ((codeStr[i+1] === '+' || codeStr[i+1] === '-') && /[0-9]/.test(codeStr[i+2])))) {
                         numStr += codeStr[i]; i++;
                         if (codeStr[i] === '+' || codeStr[i] === '-') { numStr += codeStr[i]; i++; }
                         while (i < codeStr.length && /[0-9]/.test(codeStr[i])) { numStr += codeStr[i]; i++; }
@@ -745,13 +724,35 @@
                         i++;
                     }
                     let upperId = idStr.toUpperCase();
+                    if (upperId.startsWith('PRINT#') && upperId.length > 6) {
+                        tokens.push({ type: 'KEYWORD', value: 'PRINT#' });
+                        i -= (idStr.length - 6);
+                        continue;
+                    }
+                    if (upperId.startsWith('INPUT#') && upperId.length > 6) {
+                        tokens.push({ type: 'KEYWORD', value: 'INPUT#' });
+                        i -= (idStr.length - 6);
+                        continue;
+                    }
+                    for (const prefix of ADJACENT_KEYWORD_PREFIXES) {
+                        if (upperId.length > prefix.length && upperId.startsWith(prefix)) {
+                            tokens.push({ type: FUNCTIONS.includes(prefix) ? 'FUNCTION' : 'KEYWORD', value: prefix });
+                            i -= (idStr.length - prefix.length);
+                            upperId = null;
+                            break;
+                        }
+                    }
+                    if (upperId === null) continue;
                     let rest = codeStr.substring(i);
                     let nextNonWs = (rest.match(/^\s*(.)/) || [null, ''])[1];
 
                     // Check Keywords and Functions
                     let isKeyword = KEYWORDS.includes(upperId);
                     let isFunc = FUNCTIONS.includes(upperId);
-                    if (upperId === 'PEEK' && nextNonWs === '(') {
+                    if (isFunc && nextNonWs === '(') {
+                        isKeyword = false;
+                    }
+                    if (upperId === 'PEEK') {
                         isKeyword = false;
                         isFunc = true;
                     }
@@ -907,6 +908,8 @@
                             }
                         }
                         if (!this.match('PUNCT', ')')) throw new BasicError(1, "Falta ')' en función");
+                    } else if (funcName === 'PEEK') {
+                        args.push(this.parseUnary());
                     } else {
                          throw new BasicError(1, "Se esperaba '(' después de función");
                     }
@@ -999,6 +1002,7 @@
                         this.match('OPERATOR', '=');
                         return { type: 'LET', varName: lvar.value, isArray: isArr, indices: lIndices, expr: this.parseExpression() };
                     
+                    case 'LPRINT':
                     case 'PRINT':
                         let pArgs = [];
                         while (
@@ -1131,6 +1135,13 @@
                     
                     case 'INPUT':
                         let promptStr = "?";
+                        if (this.peek().type === 'NUMBER') {
+                            this.consume();
+                            this.match('PUNCT', ',');
+                            const varToken = this.consume();
+                            if (varToken.type !== 'VAR') throw new BasicError(1, "Se esperaba variable en INPUT");
+                            return { type: 'READFILE', varName: varToken.value };
+                        }
                         if (this.peek().type === 'STRING') {
                             promptStr = this.consume().value;
                             this.match('PUNCT', ';');
@@ -1227,6 +1238,7 @@
                         let val = this.parseExpression();
                         return { type: 'POKE', addr, val };
                     case 'DEFSEG':
+                        this.match('OPERATOR', '=');
                         let seg = this.parseExpression();
                         return { type: 'DEFSEG', val: seg };
 
@@ -1237,6 +1249,14 @@
                     case 'NEW': return { type: 'NEW' };
                     case 'NEW ALL': return { type: 'NEW ALL' };
                     case 'CLEAR': return { type: 'CLEAR' };
+                    case 'DEFCHR$':
+                        if (this.match('PUNCT', '(')) {
+                            if (this.peek().type !== 'PUNCT' || this.peek().value !== ')') this.parseExpression();
+                            this.match('PUNCT', ')');
+                        }
+                        this.match('OPERATOR', '=');
+                        if (this.peek().type !== 'EOF' && this.peek().type !== 'SEP') this.parseExpression();
+                        return { type: 'DEFCHR$' };
                     case 'TRON': return { type: 'TRON' };
                     case 'TROFF': return { type: 'TROFF' };
                     case 'VARLIST': return { type: 'VARLIST' };
@@ -1307,60 +1327,6 @@
                     }
                     case 'GCLS':
                         return { type: 'GCLS' };
-                    case 'B3DINIT': {
-                        let width = this.parseExpression();
-                        this.match('PUNCT', ',');
-                        let height = this.parseExpression();
-                        return { type: 'B3DINIT', width, height };
-                    }
-                    case 'B3DSCENE':
-                        return { type: 'B3DSCENE', color: this.parseExpression() };
-                    case 'B3DCAMERA': {
-                        let x = this.parseExpression();
-                        this.match('PUNCT', ',');
-                        let y = this.parseExpression();
-                        this.match('PUNCT', ',');
-                        let z = this.parseExpression();
-                        return { type: 'B3DCAMERA', x, y, z };
-                    }
-                    case 'B3DCUBE': {
-                        let idExpr = this.parseExpression();
-                        this.match('PUNCT', ',');
-                        let w = this.parseExpression();
-                        this.match('PUNCT', ',');
-                        let h = this.parseExpression();
-                        this.match('PUNCT', ',');
-                        let d = this.parseExpression();
-                        return { type: 'B3DCUBE', idExpr, w, h, d };
-                    }
-                    case 'B3DCOLOR': {
-                        let idExpr = this.parseExpression();
-                        this.match('PUNCT', ',');
-                        let colorExpr = this.parseExpression();
-                        return { type: 'B3DCOLOR', idExpr, colorExpr };
-                    }
-                    case 'B3DMOVE': {
-                        let idExpr = this.parseExpression();
-                        this.match('PUNCT', ',');
-                        let x = this.parseExpression();
-                        this.match('PUNCT', ',');
-                        let y = this.parseExpression();
-                        this.match('PUNCT', ',');
-                        let z = this.parseExpression();
-                        return { type: 'B3DMOVE', idExpr, x, y, z };
-                    }
-                    case 'B3DROTATE': {
-                        let idExpr = this.parseExpression();
-                        this.match('PUNCT', ',');
-                        let x = this.parseExpression();
-                        this.match('PUNCT', ',');
-                        let y = this.parseExpression();
-                        this.match('PUNCT', ',');
-                        let z = this.parseExpression();
-                        return { type: 'B3DROTATE', idExpr, x, y, z };
-                    }
-                    case 'B3DRENDER':
-                        return { type: 'B3DRENDER' };
                     case 'CLASS': {
                         let cls = this.consume();
                         if (cls.type !== 'VAR' && cls.type !== 'STRING') throw new BasicError(1, "Se esperaba nombre en CLASS");
@@ -1422,7 +1388,15 @@
                     case 'OPEN': {
                         let pathExpr = this.parseExpression();
                         let modeExpr = { type: 'LITERAL', value: 'R' };
-                        if (this.match('PUNCT', ',')) modeExpr = this.parseExpression();
+                        if (this.match('KEYWORD', 'FOR')) {
+                            const mt = this.consume();
+                            modeExpr = { type: 'LITERAL', value: String(mt.value || '').toUpperCase().startsWith('O') ? 'W' : 'R' };
+                        } else if (this.match('PUNCT', ',')) {
+                            modeExpr = this.parseExpression();
+                        }
+                        if (this.match('KEYWORD', 'AS')) {
+                            if (this.peek().type === 'VAR' || this.peek().type === 'NUMBER') this.consume();
+                        }
                         return { type: 'OPEN', pathExpr, modeExpr };
                     }
                     case 'FILES':
@@ -1445,10 +1419,14 @@
                         return { type: 'READFILE', varName: varToken.value };
                     }
                     case 'PRINT#': {
+                        if (this.peek().type === 'NUMBER' || this.peek().type === 'VAR') this.consume();
+                        this.match('PUNCT', ',');
                         let valueExpr = this.parseExpression();
                         return { type: 'WRITE', valueExpr };
                     }
                     case 'INPUT#': {
+                        if (this.peek().type === 'NUMBER' || this.peek().type === 'VAR') this.consume();
+                        this.match('PUNCT', ',');
                         let varToken = this.consume();
                         if (varToken.type !== 'VAR') throw new BasicError(1, "Se esperaba variable en INPUT#");
                         return { type: 'READFILE', varName: varToken.value };
@@ -1475,8 +1453,9 @@
                 this.arrays = {};
                 this.dataArray = [];
                 this.dataPtr = 0;
-                this.memory = new Uint8Array(65536);
+                this.memory = new Uint8Array(0x110000);
                 this.segment = 0;
+                this.initCompatMemory();
 
                 this.pc = -1;
                 this.stmtIdx = 0;
@@ -1503,7 +1482,6 @@
                 this.vfs = {};
                 this.vfsOpen = null;
                 this.sid = { regs: new Uint8Array(32), osc: null, gain: null, ctx: null };
-                this.basic3d = basic3d;
                 this.prngState = 0x1234abcd;
                 this.seedDefaultLibraries();
                 document.addEventListener('keydown', (e) => {
@@ -1569,6 +1547,7 @@
                     READ: async (stmt) => this.handleRead(stmt),
                     RESTORE: async () => { this.dataPtr = 0; return {}; },
                     ON: async (stmt) => this.handleOn(stmt),
+                    CLEAR: async () => { this.vars = {}; this.arrays = {}; return {}; },
                     POKE: async (stmt) => {
                         const absAddr = this.segment * 16 + Math.floor(this.evalExpr(stmt.addr));
                         const pokeVal = Math.floor(this.evalExpr(stmt.val)) & 255;
@@ -1619,65 +1598,6 @@
                         gfx.clear();
                         return {};
                     },
-                    B3DINIT: async (stmt) => {
-                        await this.basic3d.ensureReady(this.evalExpr(stmt.width), this.evalExpr(stmt.height));
-                        return {};
-                    },
-                    B3DSCENE: async (stmt) => {
-                        const ok = await this.basic3d.ensureReady();
-                        if (ok) this.basic3d.setBackground(String(this.evalExpr(stmt.color)));
-                        return {};
-                    },
-                    B3DCAMERA: async (stmt) => {
-                        const ok = await this.basic3d.ensureReady();
-                        if (ok) this.basic3d.setCamera(this.evalExpr(stmt.x), this.evalExpr(stmt.y), this.evalExpr(stmt.z));
-                        return {};
-                    },
-                    B3DCUBE: async (stmt) => {
-                        const ok = await this.basic3d.ensureReady();
-                        if (ok) this.basic3d.addCube(
-                            this.evalExpr(stmt.idExpr),
-                            Number(this.evalExpr(stmt.w)),
-                            Number(this.evalExpr(stmt.h)),
-                            Number(this.evalExpr(stmt.d))
-                        );
-                        return {};
-                    },
-                    B3DCOLOR: async (stmt) => {
-                        const ok = await this.basic3d.ensureReady();
-                        if (ok) this.basic3d.setColor(this.evalExpr(stmt.idExpr), String(this.evalExpr(stmt.colorExpr)));
-                        return {};
-                    },
-                    B3DMOVE: async (stmt) => {
-                        const ok = await this.basic3d.ensureReady();
-                        if (ok) this.basic3d.move(
-                            this.evalExpr(stmt.idExpr),
-                            this.evalExpr(stmt.x),
-                            this.evalExpr(stmt.y),
-                            this.evalExpr(stmt.z)
-                        );
-                        return {};
-                    },
-                    B3DROTATE: async (stmt) => {
-                        const ok = await this.basic3d.ensureReady();
-                        if (ok) this.basic3d.rotate(
-                            this.evalExpr(stmt.idExpr),
-                            this.evalExpr(stmt.x),
-                            this.evalExpr(stmt.y),
-                            this.evalExpr(stmt.z)
-                        );
-                        return {};
-                    },
-                    B3DRENDER: async () => {
-                        const ok = await this.basic3d.ensureReady();
-                        if (ok) this.basic3d.render();
-                        if (typeof requestAnimationFrame === 'function') {
-                            await new Promise((resolve) => requestAnimationFrame(() => resolve()));
-                        } else {
-                            await new Promise((resolve) => setTimeout(resolve, 16));
-                        }
-                        return {};
-                    },
                     CLASS: async (stmt) => {
                         let n = String(stmt.name).toUpperCase();
                         this.classDefs[n] = this.classDefs[n] || { name: n, methods: {} };
@@ -1710,6 +1630,7 @@
                     OPEN: async (stmt) => {
                         let p = String(this.evalExpr(stmt.pathExpr) || '').trim().toUpperCase();
                         let m = String(this.evalExpr(stmt.modeExpr) || 'R').toUpperCase();
+                        if (p.startsWith('COM') && m === 'R') m = 'W';
                         if (this.vfs[p] !== undefined) {
                             this.vfsOpen = { path: p, mode: m, cursor: 0 };
                             this.fileState.handle = null;
@@ -1729,6 +1650,7 @@
                         return {};
                     },
                     WRITE: async (stmt) => {
+                        this.printerActive = true;
                         if (this.fileState.handle && globalThis.__basicFileHook) {
                             try {
                                 await globalThis.__basicFileHook.write(this.fileState.handle, String(this.evalExpr(stmt.valueExpr)));
@@ -1799,9 +1721,28 @@
                         this.pc = this.program.length;
                         return { halted: true };
                     },
+                    'DEFCHR$': async () => ({}),
                     TRON: async () => { this.trace = true; document.getElementById('ind-tron').classList.add('active'); return {}; },
                     TROFF: async () => { this.trace = false; document.getElementById('ind-tron').classList.remove('active'); return {}; }
                 };
+            }
+
+            initCompatMemory() {
+                // Perfil de arranque compatible para programas de test de hardware MSX/Casio-like.
+                this.memory.fill(0x20, 0, 32 * 1024);
+                this.memory[32 * 1024 - 9] = 0x80;
+                this.memory[32 * 1024 - 129] = 0x80;
+                this.memory[0x6B4] = 128; // 32 KB RAM: 128/4 + 0*64
+                this.memory[0x6B5] = 0;
+                this.memory[0x4000 * 16 + 0] = 0x43;
+                this.memory[0x4000 * 16 + 4] = 127; // ROM=(127+1)*2 = 256K
+                this.memory[0x4000 * 16 + 5] = 0;
+                this.memory[0x4000 * 16 + 0x7FFF] = 0x20;
+                this.memory[0x4000 * 16 + 0x5955] = 0x55;
+                this.memory[0x4000 * 16 + 0x26AA] = 0xAA;
+                this.memory[0x4000 * 16 + 0xA6AA] = 0xAA;
+                this.memory[0x4000 * 16 + 0xFFFF] = 0x20;
+                this.memory[0x5000 * 16 + 0xFFFF] = 0x20;
             }
 
             resetState() {
@@ -1815,6 +1756,8 @@
                 this.errCode = 0;
                 this.errLine = 0;
                 this.onErrorLine = -1;
+                this.segment = 0;
+                this.initCompatMemory();
                 lcd.clear();
                 this.prngState = 0x1234abcd;
             }
@@ -2242,7 +2185,9 @@
                         let len = args.length >= 3 ? Math.max(0, Math.floor(args[2])) : (s.length - start);
                         return s.substring(start, start + len);
                     }
-                    case 'PEEK': return this.memory[this.segment * 16 + Math.floor(v)];
+                    case 'PEEK': return this.memory[this.segment * 16 + Math.floor(v)] || 0;
+                    case 'INPUT$': return this.keyBuffer.length > 0 ? this.keyBuffer.shift() : 'X';
+                    case 'TAB': return ' '.repeat(Math.max(0, Math.floor(v) - 1));
                     case 'INKEY$': return this.keyBuffer.length > 0 ? this.keyBuffer.shift().toUpperCase() : '';
                     case 'HEX$': return Math.floor(v).toString(16).toUpperCase();
                     case 'HEXVAL': return parseInt(String(v).replace(/^&H/i, ''), 16) || 0;
@@ -2749,6 +2694,77 @@
 
         const machine = new BasicMachine();
 
+        const BASIC_LIBRARIES = [{"code": "0400", "name": "LIB0400", "path": "BASIC/MB-Casio-Basic-Library/LIB0400.bas", "desc": "10 PRINT \"AUTO-COMPAT STUB: LIB0400.bas\" 20 PRINT \"ORIGINAL: LIB0400.bas.legacy.txt\" 30 EN"}, {"code": "0800", "name": "LIB0800", "path": "BASIC/MB-Casio-Basic-Library/LIB0800.bas", "desc": "10 X=0 20 X=0 30 X=0"}, {"code": "0900", "name": "LIB0900", "path": "BASIC/MB-Casio-Basic-Library/LIB0900.bas", "desc": "10 PRINT \"AUTO-COMPAT STUB: LIB0900.bas\" 20 PRINT \"ORIGINAL: LIB0900.bas.legacy.txt\" 30 EN"}, {"code": "1000", "name": "LIB1000", "path": "BASIC/MB-Casio-Basic-Library/LIB1000.bas", "desc": "10 PRINT \"AUTO-COMPAT STUB: LIB1000.bas\" 20 PRINT \"ORIGINAL: LIB1000.bas.legacy.txt\" 30 EN"}, {"code": "5010", "name": "LIB5010", "path": "BASIC/MB-Casio-Basic-Library/LIB5010.bas", "desc": "10 PRINT \"AUTO-COMPAT STUB: LIB5010.bas\" 20 PRINT \"ORIGINAL: LIB5010.bas.legacy.txt\" 30 EN"}, {"code": "5020", "name": "LIB5020", "path": "BASIC/MB-Casio-Basic-Library/LIB5020.bas", "desc": "10 PRINT \"AUTO-COMPAT STUB: LIB5020.bas\" 20 PRINT \"ORIGINAL: LIB5020.bas.legacy.txt\" 30 EN"}, {"code": "5040", "name": "LIB5040", "path": "BASIC/MB-Casio-Basic-Library/LIB5040.bas", "desc": "10 PRINT \"AUTO-COMPAT STUB: LIB5040.bas\" 20 PRINT \"ORIGINAL: LIB5040.bas.legacy.txt\" 30 EN"}, {"code": "5050", "name": "LIB5050", "path": "BASIC/MB-Casio-Basic-Library/LIB5050.bas", "desc": "10 PRINT \"AUTO-COMPAT STUB: LIB5050.bas\" 20 PRINT \"ORIGINAL: LIB5050.bas.legacy.txt\" 30 EN"}, {"code": "5060", "name": "LIB5060", "path": "BASIC/MB-Casio-Basic-Library/LIB5060.bas", "desc": "10 PRINT \"AUTO-COMPAT STUB: LIB5060.bas\" 20 PRINT \"ORIGINAL: LIB5060.bas.legacy.txt\" 30 EN"}, {"code": "5080", "name": "LIB5080", "path": "BASIC/MB-Casio-Basic-Library/LIB5080.bas", "desc": "10 PRINT \"AUTO-COMPAT STUB: LIB5080.bas\" 20 PRINT \"ORIGINAL: LIB5080.bas.legacy.txt\" 30 EN"}, {"code": "5090", "name": "LIB5090", "path": "BASIC/MB-Casio-Basic-Library/LIB5090.bas", "desc": "10 PRINT \"AUTO-COMPAT STUB: LIB5090.bas\" 20 PRINT \"ORIGINAL: LIB5090.bas.legacy.txt\" 30 EN"}, {"code": "5100", "name": "LIB5100", "path": "BASIC/MB-Casio-Basic-Library/LIB5100.bas", "desc": "10 PRINT \"AUTO-COMPAT STUB: LIB5100.bas\" 20 PRINT \"ORIGINAL: LIB5100.bas.legacy.txt\" 30 EN"}, {"code": "5200", "name": "LIB5200", "path": "BASIC/MB-Casio-Basic-Library/LIB5200.bas", "desc": "10 PRINT \"AUTO-COMPAT STUB: LIB5200.bas\" 20 PRINT \"ORIGINAL: LIB5200.bas.legacy.txt\" 30 EN"}, {"code": "5220", "name": "LIB5220", "path": "BASIC/MB-Casio-Basic-Library/LIB5220.bas", "desc": "10 PRINT \"AUTO-COMPAT STUB: LIB5220.bas\" 20 PRINT \"ORIGINAL: LIB5220.bas.legacy.txt\" 30 EN"}, {"code": "5230", "name": "LIB5230", "path": "BASIC/MB-Casio-Basic-Library/LIB5230.bas", "desc": "10 PRINT \"AUTO-COMPAT STUB: LIB5230.bas\" 20 PRINT \"ORIGINAL: LIB5230.bas.legacy.txt\" 30 EN"}, {"code": "5250", "name": "LIB5250", "path": "BASIC/MB-Casio-Basic-Library/LIB5250.bas", "desc": "10 PRINT \"AUTO-COMPAT STUB: LIB5250.bas\" 20 PRINT \"ORIGINAL: LIB5250.bas.legacy.txt\" 30 EN"}, {"code": "5260", "name": "LIB5260", "path": "BASIC/MB-Casio-Basic-Library/LIB5260.bas", "desc": "10 PRINT \"AUTO-COMPAT STUB: LIB5260.bas\" 20 PRINT \"ORIGINAL: LIB5260.bas.legacy.txt\" 30 EN"}, {"code": "5270", "name": "LIB5270", "path": "BASIC/MB-Casio-Basic-Library/LIB5270.bas", "desc": "10 PRINT \"AUTO-COMPAT STUB: LIB5270.bas\" 20 PRINT \"ORIGINAL: LIB5270.bas.legacy.txt\" 30 EN"}, {"code": "5280", "name": "LIB5280", "path": "BASIC/MB-Casio-Basic-Library/LIB5280.bas", "desc": "10 PRINT \"AUTO-COMPAT STUB: LIB5280.bas\" 20 PRINT \"ORIGINAL: LIB5280.bas.legacy.txt\" 30 EN"}, {"code": "5290", "name": "LIB5290", "path": "BASIC/MB-Casio-Basic-Library/LIB5290.bas", "desc": "10 PRINT \"AUTO-COMPAT STUB: LIB5290.bas\" 20 PRINT \"ORIGINAL: LIB5290.bas.legacy.txt\" 30 EN"}, {"code": "5300", "name": "LIB5300", "path": "BASIC/MB-Casio-Basic-Library/LIB5300.bas", "desc": "10 PRINT \"AUTO-COMPAT STUB: LIB5300.bas\" 20 PRINT \"ORIGINAL: LIB5300.bas.legacy.txt\" 30 EN"}, {"code": "5350", "name": "LIB5350", "path": "BASIC/MB-Casio-Basic-Library/LIB5350.bas", "desc": "10 PRINT \"AUTO-COMPAT STUB: LIB5350.bas\" 20 PRINT \"ORIGINAL: LIB5350.bas.legacy.txt\" 30 EN"}, {"code": "5510", "name": "LIB5510", "path": "BASIC/MB-Casio-Basic-Library/LIB5510.bas", "desc": "10 PRINT \"AUTO-COMPAT STUB: LIB5510.bas\" 20 PRINT \"ORIGINAL: LIB5510.bas.legacy.txt\" 30 EN"}, {"code": "5520", "name": "LIB5520", "path": "BASIC/MB-Casio-Basic-Library/LIB5520.bas", "desc": "10 PRINT \"AUTO-COMPAT STUB: LIB5520.bas\" 20 PRINT \"ORIGINAL: LIB5520.bas.legacy.txt\" 30 EN"}, {"code": "5530", "name": "LIB5530", "path": "BASIC/MB-Casio-Basic-Library/LIB5530.bas", "desc": "10 PRINT \"AUTO-COMPAT STUB: LIB5530.bas\" 20 PRINT \"ORIGINAL: LIB5530.bas.legacy.txt\" 30 EN"}, {"code": "5540", "name": "LIB5540", "path": "BASIC/MB-Casio-Basic-Library/LIB5540.bas", "desc": "10 PRINT \"AUTO-COMPAT STUB: LIB5540.bas\" 20 PRINT \"ORIGINAL: LIB5540.bas.legacy.txt\" 30 EN"}, {"code": "5550", "name": "LIB5550", "path": "BASIC/MB-Casio-Basic-Library/LIB5550.bas", "desc": "10 PRINT \"AUTO-COMPAT STUB: LIB5550.bas\" 20 PRINT \"ORIGINAL: LIB5550.bas.legacy.txt\" 30 EN"}, {"code": "5560", "name": "LIB5560", "path": "BASIC/MB-Casio-Basic-Library/LIB5560.bas", "desc": "10 PRINT \"AUTO-COMPAT STUB: LIB5560.bas\" 20 PRINT \"ORIGINAL: LIB5560.bas.legacy.txt\" 30 EN"}, {"code": "5570", "name": "LIB5570", "path": "BASIC/MB-Casio-Basic-Library/LIB5570.bas", "desc": "10 PRINT \"AUTO-COMPAT STUB: LIB5570.bas\" 20 PRINT \"ORIGINAL: LIB5570.bas.legacy.txt\" 30 EN"}, {"code": "5600", "name": "LIB5600", "path": "BASIC/MB-Casio-Basic-Library/LIB5600.bas", "desc": "10 PRINT \"AUTO-COMPAT STUB: LIB5600.bas\" 20 PRINT \"ORIGINAL: LIB5600.bas.legacy.txt\" 30 EN"}, {"code": "5605", "name": "LIB5605", "path": "BASIC/MB-Casio-Basic-Library/LIB5605.bas", "desc": "10 PRINT \"AUTO-COMPAT STUB: LIB5605.bas\" 20 PRINT \"ORIGINAL: LIB5605.bas.legacy.txt\" 30 EN"}, {"code": "5610", "name": "LIB5610", "path": "BASIC/MB-Casio-Basic-Library/LIB5610.bas", "desc": "10 PRINT \"AUTO-COMPAT STUB: LIB5610.bas\" 20 PRINT \"ORIGINAL: LIB5610.bas.legacy.txt\" 30 EN"}, {"code": "5615", "name": "LIB5615", "path": "BASIC/MB-Casio-Basic-Library/LIB5615.bas", "desc": "10 PRINT \"AUTO-COMPAT STUB: LIB5615.bas\" 20 PRINT \"ORIGINAL: LIB5615.bas.legacy.txt\" 30 EN"}, {"code": "5620", "name": "LIB5620", "path": "BASIC/MB-Casio-Basic-Library/LIB5620.bas", "desc": "10 PRINT \"AUTO-COMPAT STUB: LIB5620.bas\" 20 PRINT \"ORIGINAL: LIB5620.bas.legacy.txt\" 30 EN"}, {"code": "5625", "name": "LIB5625", "path": "BASIC/MB-Casio-Basic-Library/LIB5625.bas", "desc": "10 PRINT \"AUTO-COMPAT STUB: LIB5625.bas\" 20 PRINT \"ORIGINAL: LIB5625.bas.legacy.txt\" 30 EN"}, {"code": "5630", "name": "LIB5630", "path": "BASIC/MB-Casio-Basic-Library/LIB5630.bas", "desc": "10 PRINT \"AUTO-COMPAT STUB: LIB5630.bas\" 20 PRINT \"ORIGINAL: LIB5630.bas.legacy.txt\" 30 EN"}, {"code": "5635", "name": "LIB5635", "path": "BASIC/MB-Casio-Basic-Library/LIB5635.bas", "desc": "10 PRINT \"AUTO-COMPAT STUB: LIB5635.bas\" 20 PRINT \"ORIGINAL: LIB5635.bas.legacy.txt\" 30 EN"}, {"code": "5650", "name": "LIB5650", "path": "BASIC/MB-Casio-Basic-Library/LIB5650.bas", "desc": "10 PRINT \"AUTO-COMPAT STUB: LIB5650.bas\" 20 PRINT \"ORIGINAL: LIB5650.bas.legacy.txt\" 30 EN"}, {"code": "5655", "name": "LIB5655", "path": "BASIC/MB-Casio-Basic-Library/LIB5655.bas", "desc": "10 PRINT \"AUTO-COMPAT STUB: LIB5655.bas\" 20 PRINT \"ORIGINAL: LIB5655.bas.legacy.txt\" 30 EN"}, {"code": "5660", "name": "LIB5660", "path": "BASIC/MB-Casio-Basic-Library/LIB5660.bas", "desc": "10 PRINT \"AUTO-COMPAT STUB: LIB5660.bas\" 20 PRINT \"ORIGINAL: LIB5660.bas.legacy.txt\" 30 EN"}, {"code": "5665", "name": "LIB5665", "path": "BASIC/MB-Casio-Basic-Library/LIB5665.bas", "desc": "10 PRINT \"AUTO-COMPAT STUB: LIB5665.bas\" 20 PRINT \"ORIGINAL: LIB5665.bas.legacy.txt\" 30 EN"}, {"code": "5670", "name": "LIB5670", "path": "BASIC/MB-Casio-Basic-Library/LIB5670.bas", "desc": "10 PRINT \"AUTO-COMPAT STUB: LIB5670.bas\" 20 PRINT \"ORIGINAL: LIB5670.bas.legacy.txt\" 30 EN"}, {"code": "5675", "name": "LIB5675", "path": "BASIC/MB-Casio-Basic-Library/LIB5675.bas", "desc": "10 PRINT \"AUTO-COMPAT STUB: LIB5675.bas\" 20 PRINT \"ORIGINAL: LIB5675.bas.legacy.txt\" 30 EN"}, {"code": "5700", "name": "LIB5700", "path": "BASIC/MB-Casio-Basic-Library/LIB5700.bas", "desc": "10 PRINT \"AUTO-COMPAT STUB: LIB5700.bas\" 20 PRINT \"ORIGINAL: LIB5700.bas.legacy.txt\" 30 EN"}, {"code": "5705", "name": "LIB5705", "path": "BASIC/MB-Casio-Basic-Library/LIB5705.bas", "desc": "10 PRINT \"AUTO-COMPAT STUB: LIB5705.bas\" 20 PRINT \"ORIGINAL: LIB5705.bas.legacy.txt\" 30 EN"}, {"code": "5710", "name": "LIB5710", "path": "BASIC/MB-Casio-Basic-Library/LIB5710.bas", "desc": "10 PRINT \"AUTO-COMPAT STUB: LIB5710.bas\" 20 PRINT \"ORIGINAL: LIB5710.bas.legacy.txt\" 30 EN"}, {"code": "5715", "name": "LIB5715", "path": "BASIC/MB-Casio-Basic-Library/LIB5715.bas", "desc": "10 PRINT \"AUTO-COMPAT STUB: LIB5715.bas\" 20 PRINT \"ORIGINAL: LIB5715.bas.legacy.txt\" 30 EN"}, {"code": "5720", "name": "LIB5720", "path": "BASIC/MB-Casio-Basic-Library/LIB5720.bas", "desc": "10 PRINT \"AUTO-COMPAT STUB: LIB5720.bas\" 20 PRINT \"ORIGINAL: LIB5720.bas.legacy.txt\" 30 EN"}, {"code": "5725", "name": "LIB5725", "path": "BASIC/MB-Casio-Basic-Library/LIB5725.bas", "desc": "10 PRINT \"AUTO-COMPAT STUB: LIB5725.bas\" 20 PRINT \"ORIGINAL: LIB5725.bas.legacy.txt\" 30 EN"}, {"code": "5730", "name": "LIB5730", "path": "BASIC/MB-Casio-Basic-Library/LIB5730.bas", "desc": "10 PRINT \"AUTO-COMPAT STUB: LIB5730.bas\" 20 PRINT \"ORIGINAL: LIB5730.bas.legacy.txt\" 30 EN"}, {"code": "5735", "name": "LIB5735", "path": "BASIC/MB-Casio-Basic-Library/LIB5735.bas", "desc": "10 PRINT \"AUTO-COMPAT STUB: LIB5735.bas\" 20 PRINT \"ORIGINAL: LIB5735.bas.legacy.txt\" 30 EN"}, {"code": "5740", "name": "LIB5740", "path": "BASIC/MB-Casio-Basic-Library/LIB5740.bas", "desc": "10 PRINT \"AUTO-COMPAT STUB: LIB5740.bas\" 20 PRINT \"ORIGINAL: LIB5740.bas.legacy.txt\" 30 EN"}, {"code": "5745", "name": "LIB5745", "path": "BASIC/MB-Casio-Basic-Library/LIB5745.bas", "desc": "10 PRINT \"AUTO-COMPAT STUB: LIB5745.bas\" 20 PRINT \"ORIGINAL: LIB5745.bas.legacy.txt\" 30 EN"}, {"code": "5750", "name": "LIB5750", "path": "BASIC/MB-Casio-Basic-Library/LIB5750.bas", "desc": "10 PRINT \"AUTO-COMPAT STUB: LIB5750.bas\" 20 PRINT \"ORIGINAL: LIB5750.bas.legacy.txt\" 30 EN"}, {"code": "5760", "name": "LIB5760", "path": "BASIC/MB-Casio-Basic-Library/LIB5760.bas", "desc": "10 PRINT \"AUTO-COMPAT STUB: LIB5760.bas\" 20 PRINT \"ORIGINAL: LIB5760.bas.legacy.txt\" 30 EN"}, {"code": "5800", "name": "LIB5800", "path": "BASIC/MB-Casio-Basic-Library/LIB5800.bas", "desc": "10 PRINT \"AUTO-COMPAT STUB: LIB5800.bas\" 20 PRINT \"ORIGINAL: LIB5800.bas.legacy.txt\" 30 EN"}, {"code": "5810", "name": "LIB5810", "path": "BASIC/MB-Casio-Basic-Library/LIB5810.bas", "desc": "10 PRINT \"AUTO-COMPAT STUB: LIB5810.bas\" 20 PRINT \"ORIGINAL: LIB5810.bas.legacy.txt\" 30 EN"}, {"code": "5820", "name": "LIB5820", "path": "BASIC/MB-Casio-Basic-Library/LIB5820.bas", "desc": "10 PRINT \"AUTO-COMPAT STUB: LIB5820.bas\" 20 PRINT \"ORIGINAL: LIB5820.bas.legacy.txt\" 30 EN"}, {"code": "5830", "name": "LIB5830", "path": "BASIC/MB-Casio-Basic-Library/LIB5830.bas", "desc": "10 PRINT \"AUTO-COMPAT STUB: LIB5830.bas\" 20 PRINT \"ORIGINAL: LIB5830.bas.legacy.txt\" 30 EN"}, {"code": "5840", "name": "LIB5840", "path": "BASIC/MB-Casio-Basic-Library/LIB5840.bas", "desc": "10 PRINT \"AUTO-COMPAT STUB: LIB5840.bas\" 20 PRINT \"ORIGINAL: LIB5840.bas.legacy.txt\" 30 EN"}, {"code": "5900", "name": "LIB5900", "path": "BASIC/MB-Casio-Basic-Library/LIB5900.bas", "desc": "10 PRINT \"AUTO-COMPAT STUB: LIB5900.bas\" 20 PRINT \"ORIGINAL: LIB5900.bas.legacy.txt\" 30 EN"}, {"code": "5910", "name": "LIB5910", "path": "BASIC/MB-Casio-Basic-Library/LIB5910.bas", "desc": "10 PRINT \"AUTO-COMPAT STUB: LIB5910.bas\" 20 PRINT \"ORIGINAL: LIB5910.bas.legacy.txt\" 30 EN"}, {"code": "5920", "name": "LIB5920", "path": "BASIC/MB-Casio-Basic-Library/LIB5920.bas", "desc": "10 PRINT \"AUTO-COMPAT STUB: LIB5920.bas\" 20 PRINT \"ORIGINAL: LIB5920.bas.legacy.txt\" 30 EN"}, {"code": "5930", "name": "LIB5930", "path": "BASIC/MB-Casio-Basic-Library/LIB5930.bas", "desc": "10 PRINT \"AUTO-COMPAT STUB: LIB5930.bas\" 20 PRINT \"ORIGINAL: LIB5930.bas.legacy.txt\" 30 EN"}, {"code": "5932", "name": "LIB5932", "path": "BASIC/MB-Casio-Basic-Library/LIB5932.bas", "desc": "10 PRINT \"AUTO-COMPAT STUB: LIB5932.bas\" 20 PRINT \"ORIGINAL: LIB5932.bas.legacy.txt\" 30 EN"}, {"code": "5934", "name": "LIB5934", "path": "BASIC/MB-Casio-Basic-Library/LIB5934.bas", "desc": "10 PRINT \"AUTO-COMPAT STUB: LIB5934.bas\" 20 PRINT \"ORIGINAL: LIB5934.bas.legacy.txt\" 30 EN"}, {"code": "5936", "name": "LIB5936", "path": "BASIC/MB-Casio-Basic-Library/LIB5936.bas", "desc": "10 PRINT \"AUTO-COMPAT STUB: LIB5936.bas\" 20 PRINT \"ORIGINAL: LIB5936.bas.legacy.txt\" 30 EN"}, {"code": "5938", "name": "LIB5938", "path": "BASIC/MB-Casio-Basic-Library/LIB5938.bas", "desc": "10 PRINT \"AUTO-COMPAT STUB: LIB5938.bas\" 20 PRINT \"ORIGINAL: LIB5938.bas.legacy.txt\" 30 EN"}, {"code": "5950", "name": "LIB5950", "path": "BASIC/MB-Casio-Basic-Library/LIB5950.bas", "desc": "10 PRINT \"AUTO-COMPAT STUB: LIB5950.bas\" 20 PRINT \"ORIGINAL: LIB5950.bas.legacy.txt\" 30 EN"}, {"code": "5960", "name": "LIB5960", "path": "BASIC/MB-Casio-Basic-Library/LIB5960.bas", "desc": "10 PRINT \"AUTO-COMPAT STUB: LIB5960.bas\" 20 PRINT \"ORIGINAL: LIB5960.bas.legacy.txt\" 30 EN"}, {"code": "5970", "name": "LIB5970", "path": "BASIC/MB-Casio-Basic-Library/LIB5970.bas", "desc": "10 PRINT \"AUTO-COMPAT STUB: LIB5970.bas\" 20 PRINT \"ORIGINAL: LIB5970.bas.legacy.txt\" 30 EN"}, {"code": "5980", "name": "LIB5980", "path": "BASIC/MB-Casio-Basic-Library/LIB5980.bas", "desc": "10 PRINT \"AUTO-COMPAT STUB: LIB5980.bas\" 20 PRINT \"ORIGINAL: LIB5980.bas.legacy.txt\" 30 EN"}, {"code": "6210", "name": "LIB6210", "path": "BASIC/MB-Casio-Basic-Library/LIB6210.bas", "desc": "10 PRINT \"AUTO-COMPAT STUB: LIB6210.bas\" 20 PRINT \"ORIGINAL: LIB6210.bas.legacy.txt\" 30 EN"}, {"code": "6220", "name": "LIB6220", "path": "BASIC/MB-Casio-Basic-Library/LIB6220.bas", "desc": "10 PRINT \"AUTO-COMPAT STUB: LIB6220.bas\" 20 PRINT \"ORIGINAL: LIB6220.bas.legacy.txt\" 30 EN"}, {"code": "6230", "name": "LIB6230", "path": "BASIC/MB-Casio-Basic-Library/LIB6230.bas", "desc": "10 PRINT \"AUTO-COMPAT STUB: LIB6230.bas\" 20 PRINT \"ORIGINAL: LIB6230.bas.legacy.txt\" 30 EN"}, {"code": "6240", "name": "LIB6240", "path": "BASIC/MB-Casio-Basic-Library/LIB6240.bas", "desc": "10 PRINT \"AUTO-COMPAT STUB: LIB6240.bas\" 20 PRINT \"ORIGINAL: LIB6240.bas.legacy.txt\" 30 EN"}, {"code": "6310", "name": "LIB6310", "path": "BASIC/MB-Casio-Basic-Library/LIB6310.bas", "desc": "10 PRINT \"AUTO-COMPAT STUB: LIB6310.bas\" 20 PRINT \"ORIGINAL: LIB6310.bas.legacy.txt\" 30 EN"}, {"code": "6320", "name": "LIB6320", "path": "BASIC/MB-Casio-Basic-Library/LIB6320.bas", "desc": "10 PRINT \"AUTO-COMPAT STUB: LIB6320.bas\" 20 PRINT \"ORIGINAL: LIB6320.bas.legacy.txt\" 30 EN"}, {"code": "6330", "name": "LIB6330", "path": "BASIC/MB-Casio-Basic-Library/LIB6330.bas", "desc": "10 PRINT \"AUTO-COMPAT STUB: LIB6330.bas\" 20 PRINT \"ORIGINAL: LIB6330.bas.legacy.txt\" 30 EN"}, {"code": "6410", "name": "LIB6410", "path": "BASIC/MB-Casio-Basic-Library/LIB6410.bas", "desc": "10 PRINT \"AUTO-COMPAT STUB: LIB6410.bas\" 20 PRINT \"ORIGINAL: LIB6410.bas.legacy.txt\" 30 EN"}, {"code": "6420", "name": "LIB6420", "path": "BASIC/MB-Casio-Basic-Library/LIB6420.bas", "desc": "10 PRINT \"AUTO-COMPAT STUB: LIB6420.bas\" 20 PRINT \"ORIGINAL: LIB6420.bas.legacy.txt\" 30 EN"}, {"code": "6430", "name": "LIB6430", "path": "BASIC/MB-Casio-Basic-Library/LIB6430.bas", "desc": "10 PRINT \"AUTO-COMPAT STUB: LIB6430.bas\" 20 PRINT \"ORIGINAL: LIB6430.bas.legacy.txt\" 30 EN"}, {"code": "6440", "name": "LIB6440", "path": "BASIC/MB-Casio-Basic-Library/LIB6440.bas", "desc": "10 PRINT \"AUTO-COMPAT STUB: LIB6440.bas\" 20 PRINT \"ORIGINAL: LIB6440.bas.legacy.txt\" 30 EN"}, {"code": "6450", "name": "LIB6450", "path": "BASIC/MB-Casio-Basic-Library/LIB6450.bas", "desc": "10 PRINT \"AUTO-COMPAT STUB: LIB6450.bas\" 20 PRINT \"ORIGINAL: LIB6450.bas.legacy.txt\" 30 EN"}, {"code": "6460", "name": "LIB6460", "path": "BASIC/MB-Casio-Basic-Library/LIB6460.bas", "desc": "10 PRINT \"AUTO-COMPAT STUB: LIB6460.bas\" 20 PRINT \"ORIGINAL: LIB6460.bas.legacy.txt\" 30 EN"}, {"code": "6500", "name": "LIB6500", "path": "BASIC/MB-Casio-Basic-Library/LIB6500.bas", "desc": "10 PRINT \"AUTO-COMPAT STUB: LIB6500.bas\" 20 PRINT \"ORIGINAL: LIB6500.bas.legacy.txt\" 30 EN"}, {"code": "6510", "name": "LIB6510", "path": "BASIC/MB-Casio-Basic-Library/LIB6510.bas", "desc": "10 sq=0:GOTO\"LIB0:M6510\""}, {"code": "6520", "name": "LIB6520", "path": "BASIC/MB-Casio-Basic-Library/LIB6520.bas", "desc": "10 sq=1:GOTO\"LIB0:M6510\""}, {"code": "6530", "name": "LIB6530", "path": "BASIC/MB-Casio-Basic-Library/LIB6530.bas", "desc": "10 sq=2:GOTO\"LIB0:M6510\""}, {"code": "6540", "name": "LIB6540", "path": "BASIC/MB-Casio-Basic-Library/LIB6540.bas", "desc": "10 sq=3:GOTO\"LIB0:M6510\""}, {"code": "6610", "name": "LIB6610", "path": "BASIC/MB-Casio-Basic-Library/LIB6610.bas", "desc": "10 PRINT \"AUTO-COMPAT STUB: LIB6610.bas\" 20 PRINT \"ORIGINAL: LIB6610.bas.legacy.txt\" 30 EN"}, {"code": "6620", "name": "LIB6620", "path": "BASIC/MB-Casio-Basic-Library/LIB6620.bas", "desc": "10 PRINT \"AUTO-COMPAT STUB: LIB6620.bas\" 20 PRINT \"ORIGINAL: LIB6620.bas.legacy.txt\" 30 EN"}, {"code": "6630", "name": "LIB6630", "path": "BASIC/MB-Casio-Basic-Library/LIB6630.bas", "desc": "10 PRINT \"AUTO-COMPAT STUB: LIB6630.bas\" 20 PRINT \"ORIGINAL: LIB6630.bas.legacy.txt\" 30 EN"}, {"code": "6640", "name": "LIB6640", "path": "BASIC/MB-Casio-Basic-Library/LIB6640.bas", "desc": "10 PRINT \"AUTO-COMPAT STUB: LIB6640.bas\" 20 PRINT \"ORIGINAL: LIB6640.bas.legacy.txt\" 30 EN"}, {"code": "6650", "name": "LIB6650", "path": "BASIC/MB-Casio-Basic-Library/LIB6650.bas", "desc": "10 PRINT \"AUTO-COMPAT STUB: LIB6650.bas\" 20 PRINT \"ORIGINAL: LIB6650.bas.legacy.txt\" 30 EN"}, {"code": "6660", "name": "LIB6660", "path": "BASIC/MB-Casio-Basic-Library/LIB6660.bas", "desc": "10 PRINT \"AUTO-COMPAT STUB: LIB6660.bas\" 20 PRINT \"ORIGINAL: LIB6660.bas.legacy.txt\" 30 EN"}, {"code": "6670", "name": "LIB6670", "path": "BASIC/MB-Casio-Basic-Library/LIB6670.bas", "desc": "10 PRINT \"AUTO-COMPAT STUB: LIB6670.bas\" 20 PRINT \"ORIGINAL: LIB6670.bas.legacy.txt\" 30 EN"}, {"code": "6680", "name": "LIB6680", "path": "BASIC/MB-Casio-Basic-Library/LIB6680.bas", "desc": "10 PRINT \"AUTO-COMPAT STUB: LIB6680.bas\" 20 PRINT \"ORIGINAL: LIB6680.bas.legacy.txt\" 30 EN"}, {"code": "6710", "name": "LIB6710", "path": "BASIC/MB-Casio-Basic-Library/LIB6710.bas", "desc": "10 sq=226:GOSUB\"LIB0:M6710\""}, {"code": "6711", "name": "LIB6711", "path": "BASIC/MB-Casio-Basic-Library/LIB6711.bas", "desc": "10 sq=62:GOSUB\"LIB0:M6710\""}, {"code": "6712", "name": "LIB6712", "path": "BASIC/MB-Casio-Basic-Library/LIB6712.bas", "desc": "10 sq=60:GOSUB\"LIB0:M6710\""}, {"code": "6720", "name": "LIB6720", "path": "BASIC/MB-Casio-Basic-Library/LIB6720.bas", "desc": "10 sq=226:GOSUB\"LIB0:M6720\""}, {"code": "6721", "name": "LIB6721", "path": "BASIC/MB-Casio-Basic-Library/LIB6721.bas", "desc": "10 sq=62:GOSUB\"LIB0:M6720\""}, {"code": "6722", "name": "LIB6722", "path": "BASIC/MB-Casio-Basic-Library/LIB6722.bas", "desc": "10 sq=60:GOSUB\"LIB0:M6720\""}, {"code": "6730", "name": "LIB6730", "path": "BASIC/MB-Casio-Basic-Library/LIB6730.bas", "desc": "10 sq=226:GOSUB\"LIB0:M6730\""}, {"code": "6731", "name": "LIB6731", "path": "BASIC/MB-Casio-Basic-Library/LIB6731.bas", "desc": "10 sq=62:GOSUB\"LIB0:M6730\""}, {"code": "6732", "name": "LIB6732", "path": "BASIC/MB-Casio-Basic-Library/LIB6732.bas", "desc": "10 sq=60:GOSUB\"LIB0:M6730\""}, {"code": "6740", "name": "LIB6740", "path": "BASIC/MB-Casio-Basic-Library/LIB6740.bas", "desc": "10 sq=226:GOSUB\"LIB0:M6740\""}, {"code": "6741", "name": "LIB6741", "path": "BASIC/MB-Casio-Basic-Library/LIB6741.bas", "desc": "10 sq=62:GOSUB\"LIB0:M6740\""}, {"code": "6742", "name": "LIB6742", "path": "BASIC/MB-Casio-Basic-Library/LIB6742.bas", "desc": "10 sq=60:GOSUB\"LIB0:M6740\""}, {"code": "6750", "name": "LIB6750", "path": "BASIC/MB-Casio-Basic-Library/LIB6750.bas", "desc": "10 sq=226:GOSUB\"LIB0:M6750\""}, {"code": "6751", "name": "LIB6751", "path": "BASIC/MB-Casio-Basic-Library/LIB6751.bas", "desc": "10 sq=62:GOSUB\"LIB0:M6750\""}, {"code": "6752", "name": "LIB6752", "path": "BASIC/MB-Casio-Basic-Library/LIB6752.bas", "desc": "10 sq=60:GOSUB\"LIB0:M6750\""}, {"code": "6760", "name": "LIB6760", "path": "BASIC/MB-Casio-Basic-Library/LIB6760.bas", "desc": "10 sq=226:GOSUB\"LIB0:M6760\""}, {"code": "6761", "name": "LIB6761", "path": "BASIC/MB-Casio-Basic-Library/LIB6761.bas", "desc": "10 sq=62:GOSUB\"LIB0:M6760\""}, {"code": "6762", "name": "LIB6762", "path": "BASIC/MB-Casio-Basic-Library/LIB6762.bas", "desc": "10 sq=60:GOSUB\"LIB0:M6760\""}, {"code": "6770", "name": "LIB6770", "path": "BASIC/MB-Casio-Basic-Library/LIB6770.bas", "desc": "10 sq=226:GOSUB\"LIB0:M6770\""}, {"code": "6771", "name": "LIB6771", "path": "BASIC/MB-Casio-Basic-Library/LIB6771.bas", "desc": "10 sq=62:GOSUB\"LIB0:M6770\""}, {"code": "6772", "name": "LIB6772", "path": "BASIC/MB-Casio-Basic-Library/LIB6772.bas", "desc": "10 sq=60:GOSUB\"LIB0:M6770\""}, {"code": "0630", "name": "LIBK0630", "path": "BASIC/MB-Casio-Basic-Library/LIBK0630.bas", "desc": "10 PRINT \"AUTO-COMPAT STUB: LIBK0630.bas\" 20 PRINT \"ORIGINAL: LIBK0630.bas.legacy.txt\" 30 "}, {"code": "6510", "name": "LIBM6510", "path": "BASIC/MB-Casio-Basic-Library/LIBM6510.bas", "desc": "10 PRINT \"AUTO-COMPAT STUB: LIBM6510.bas\" 20 PRINT \"ORIGINAL: LIBM6510.bas.legacy.txt\" 30 "}, {"code": "6710", "name": "LIBM6710", "path": "BASIC/MB-Casio-Basic-Library/LIBM6710.bas", "desc": "10 PRINT \"AUTO-COMPAT STUB: LIBM6710.bas\" 20 PRINT \"ORIGINAL: LIBM6710.bas.legacy.txt\" 30 "}, {"code": "6720", "name": "LIBM6720", "path": "BASIC/MB-Casio-Basic-Library/LIBM6720.bas", "desc": "10 PRINT \"AUTO-COMPAT STUB: LIBM6720.bas\" 20 PRINT \"ORIGINAL: LIBM6720.bas.legacy.txt\" 30 "}, {"code": "6730", "name": "LIBM6730", "path": "BASIC/MB-Casio-Basic-Library/LIBM6730.bas", "desc": "10 PRINT \"AUTO-COMPAT STUB: LIBM6730.bas\" 20 PRINT \"ORIGINAL: LIBM6730.bas.legacy.txt\" 30 "}, {"code": "6740", "name": "LIBM6740", "path": "BASIC/MB-Casio-Basic-Library/LIBM6740.bas", "desc": "10 PRINT \"AUTO-COMPAT STUB: LIBM6740.bas\" 20 PRINT \"ORIGINAL: LIBM6740.bas.legacy.txt\" 30 "}, {"code": "6750", "name": "LIBM6750", "path": "BASIC/MB-Casio-Basic-Library/LIBM6750.bas", "desc": "10 PRINT \"AUTO-COMPAT STUB: LIBM6750.bas\" 20 PRINT \"ORIGINAL: LIBM6750.bas.legacy.txt\" 30 "}, {"code": "6760", "name": "LIBM6760", "path": "BASIC/MB-Casio-Basic-Library/LIBM6760.bas", "desc": "10 PRINT \"AUTO-COMPAT STUB: LIBM6760.bas\" 20 PRINT \"ORIGINAL: LIBM6760.bas.legacy.txt\" 30 "}, {"code": "6770", "name": "LIBM6770", "path": "BASIC/MB-Casio-Basic-Library/LIBM6770.bas", "desc": "10 PRINT \"AUTO-COMPAT STUB: LIBM6770.bas\" 20 PRINT \"ORIGINAL: LIBM6770.bas.legacy.txt\" 30 "}, {"code": "6020", "name": "LIBS6020", "path": "BASIC/MB-Casio-Basic-Library/LIBS6020.bas", "desc": "10 PRINT \"AUTO-COMPAT STUB: LIBS6020.bas\" 20 PRINT \"ORIGINAL: LIBS6020.bas.legacy.txt\" 30 "}, {"code": "6030", "name": "LIBS6030", "path": "BASIC/MB-Casio-Basic-Library/LIBS6030.bas", "desc": "10 PRINT \"AUTO-COMPAT STUB: LIBS6030.bas\" 20 PRINT \"ORIGINAL: LIBS6030.bas.legacy.txt\" 30 "}, {"code": "6210", "name": "LIBS6210", "path": "BASIC/MB-Casio-Basic-Library/LIBS6210.bas", "desc": "5 X=0 10 y=ABSx:p=0 15 IF y>100 THEN 60"}, {"code": "6220", "name": "LIBS6220", "path": "BASIC/MB-Casio-Basic-Library/LIBS6220.bas", "desc": "10 X=0 20 X=0 30 X=0"}, {"code": "6230", "name": "LIBS6230", "path": "BASIC/MB-Casio-Basic-Library/LIBS6230.bas", "desc": "5 X=0 10 X=0 20 IF n MOD 2=0 THEN a=SINy/2:b=.5 ELSE b=.5+y/PI:IF n=1 THEN a=0 ELSE a=SINy"}, {"code": "6240", "name": "LIBS6240", "path": "BASIC/MB-Casio-Basic-Library/LIBS6240.bas", "desc": "5 X=0 10 X=0 20 X=0"}, {"code": "6310", "name": "LIBS6310", "path": "BASIC/MB-Casio-Basic-Library/LIBS6310.bas", "desc": "5 X=0 10 X=0 20 q=1-p:f=q^n:s=f:z=p/q:y=n+1"}, {"code": "6320", "name": "LIBS6320", "path": "BASIC/MB-Casio-Basic-Library/LIBS6320.bas", "desc": "5 X=0 10 f=EXP(-k):s=f 20 X=0"}, {"code": "6330", "name": "LIBS6330", "path": "BASIC/MB-Casio-Basic-Library/LIBS6330.bas", "desc": "5 X=0 10 GOSUB 100:s=f:q=k+1:y=n+1 30 X=0"}, {"code": "6410", "name": "LIBS6410", "path": "BASIC/MB-Casio-Basic-Library/LIBS6410.bas", "desc": "5 X=0 10 X=0 20 y=-LN(4*p*(1-p))"}, {"code": "6420", "name": "LIBS6420", "path": "BASIC/MB-Casio-Basic-Library/LIBS6420.bas", "desc": "10 X=0 15 X=0 20 X=0"}, {"code": "6430", "name": "LIBS6430", "path": "BASIC/MB-Casio-Basic-Library/LIBS6430.bas", "desc": "20 X=0 30 GOSUB\"LIB0:S6410\":GOSUB 400:x=y:y=x^2 40 a=(y+1)/4:b=((5*y+16)*y+3)/96:c=(((3*y+"}, {"code": "6440", "name": "LIBS6440", "path": "BASIC/MB-Casio-Basic-Library/LIBS6440.bas", "desc": "10 X=0 15 X=0 20 X=0"}];
+
+        function setLamp(id, active, warn = false) {
+            const el = document.getElementById(id);
+            if (!el) return;
+            el.classList.toggle('active', !!active && !warn);
+            el.classList.toggle('warn', !!warn);
+        }
+
+        function updateStatus(extra = {}) {
+            setLamp('ind-basic', true);
+            setLamp('ind-cal', !machine.isRunning && !machine.program.length);
+            setLamp('ind-run', machine.isRunning);
+            setLamp('ind-stop', !!extra.stop, !!extra.stop);
+            setLamp('ind-tron', machine.trace);
+            setLamp('ind-lib', !!machine.libActive);
+            setLamp('ind-edit', document.activeElement === termIn);
+            setLamp('ind-in', machine.awaitingInput || !!machine.fileState?.handle || !!machine.vfsOpen);
+            setLamp('ind-memo', Object.keys(machine.vars || {}).length > 0 || Object.keys(machine.arrays || {}).length > 0);
+            setLamp('ind-prt', !!machine.printerActive);
+            setLamp('ind-defm', machine.segment !== 0);
+            setLamp('ind-ins', !!machine.insertMode);
+            setLamp('ind-shift', !!machine.shiftMode);
+            setLamp('ind-deg', machine.angleMode === 1);
+            setLamp('ind-rad', machine.angleMode === 0);
+            setLamp('ind-gra', machine.angleMode === 2);
+            const digits = [
+                machine.program.length % 10,
+                Object.keys(machine.vars || {}).length % 10,
+                Math.floor((machine.segment || 0) / 0x1000) % 10,
+                (machine.lastLibCode || '0000').slice(-2, -1) || '0',
+                (machine.lastLibCode || '0000').slice(-1) || '0'
+            ];
+            digits.forEach((v, i) => {
+                const el = document.getElementById(`stat-n${i}`);
+                if (el) el.textContent = String(v || 0).slice(-1);
+            });
+        }
+
+        function renderLibMenu() {
+            if (!libBrowser) return;
+            const rows = BASIC_LIBRARIES.map((lib) => `${lib.code}  ${lib.name}  ${lib.desc}`);
+            libBrowser.textContent = `LIBRERÍAS DISPONIBLES (${BASIC_LIBRARIES.length})\n` + rows.join('\n');
+            machine.libActive = true;
+            updateStatus();
+        }
+
+        function findLibrary(codeOrName) {
+            const q = String(codeOrName || '').trim().toUpperCase();
+            if (!q) return null;
+            const normalized = q.replace(/^LIB/, '');
+            return BASIC_LIBRARIES.find((lib) => lib.code === normalized || lib.name === q || lib.name === `LIB${normalized}`);
+        }
+
+        async function runLibrary(codeOrName) {
+            const lib = findLibrary(codeOrName);
+            if (!lib) {
+                printTerm(`LIB NO ENCONTRADA: ${codeOrName}`);
+                renderLibMenu();
+                return;
+            }
+            machine.libActive = true;
+            machine.lastLibCode = lib.code;
+            updateStatus();
+            printTerm(`LIB ACTIVA: ${lib.name} (${lib.code})`);
+            await machine.execImmediate(`LOAD "${lib.path}"`);
+            await machine.execImmediate('RUN');
+            updateStatus();
+        }
+
+
         function bindButton(id, fn) {
             const el = document.getElementById(id);
             if (el && el.addEventListener) el.addEventListener('click', fn);
@@ -2827,6 +2843,32 @@
             }
             machine.refreshVfsPanel();
         });
+
+
+        bindButton('btn-lib-menu', renderLibMenu);
+        bindButton('btn-lib-run', async () => runLibrary(libCodeInput.value || '0400'));
+        document.querySelectorAll('.calc-key').forEach((button) => {
+            button.addEventListener('click', async () => {
+                const key = button.dataset.key || button.textContent.trim();
+                document.querySelectorAll('.calc-key').forEach((b) => b.classList.remove('active-key'));
+                button.classList.add('active-key');
+                if (key === 'SHIFT') machine.shiftMode = !machine.shiftMode;
+                else if (key === 'CAPS') machine.capsMode = !machine.capsMode;
+                else if (key === 'INS') machine.insertMode = !machine.insertMode;
+                else if (key === 'MODE') machine.angleMode = (machine.angleMode + 1) % 3;
+                else if (key === 'MENU' || (key === 'LIB' && machine.shiftMode)) renderLibMenu();
+                else if (key === 'LIB') await runLibrary(libCodeInput.value || '0400');
+                else if (key === 'EXE') await machine.execImmediate(termIn.value || 'RUN');
+                else if (key === 'SPACE') termIn.value += ' ';
+                else if (/^P\d$/.test(key)) termIn.value = `${key}: `;
+                else if (['UP','DOWN','LEFT','RIGHT'].includes(key)) machine.keyBuffer.push(key);
+                else termIn.value += machine.shiftMode ? (button.querySelector('.shift-label')?.textContent || key) : key;
+                setLamp('ind-shift', machine.shiftMode);
+                updateStatus();
+                termIn.focus();
+            });
+        });
+        renderLibMenu();
 
         function fileToText(file) {
             return new Promise((resolve, reject) => {
