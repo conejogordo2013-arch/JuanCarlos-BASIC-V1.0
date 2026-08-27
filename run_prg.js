@@ -70,7 +70,7 @@ function buildMockElements() {
       id,
       textContent: '',
       value: '',
-      classList: { add() {}, remove() {} },
+      classList: { add() {}, remove() {}, toggle() {} },
       addEventListener() {},
       removeEventListener() {},
       focus() {},
@@ -109,6 +109,8 @@ function bootInterpreter(htmlPath) {
 
   global.document = {
     getElementById: (id) => elements[id] || mk(id),
+    querySelectorAll: () => [],
+    querySelector: () => null,
     addEventListener() {},
     activeElement: null,
     documentElement: { style: { setProperty() {} } },
