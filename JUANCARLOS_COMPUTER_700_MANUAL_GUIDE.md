@@ -348,6 +348,14 @@ públicos** (incluido el menú `LIBK0630`), 21 módulos auxiliares y el índice 
 
 ### Catálogo completo de módulos públicos
 
+La lista se mantiene como inventario de las **120 bibliotecas públicas**. El
+estado es verificable y no una promesa: 🟢 solo se usa cuando existe una prueba
+de referencia; 🟡 significa que el módulo está disponible para carga/arranque
+y sigue en portabilidad; 🔴 identifica una función de hardware que aún no tiene
+un sustituto verificable en la JCC-700. Los 21 módulos auxiliares se enumeran
+por separado porque solo son funciones reales cuando los llama un módulo
+público.
+
 | Módulo | Qué hace (descripción funcional original) | Estado de función original |
 | --- | --- | --- |
 | `LIB0400` | Speicher- und Schnittstellen-Testprogramm | 🔴 No funciona: requiere hardware/periféricos Casio. |
@@ -481,6 +489,13 @@ distribuciones y contrastes para las bibliotecas públicas: `LIBM6510`,
 `LIBS6240`, `LIBS6310`, `LIBS6320`, `LIBS6330`, `LIBS6410`, `LIBS6420`,
 `LIBS6430` y `LIBS6440`.
 
+| Grupo | Cantidad | Estado actual verificable | Siguiente condición para 🟢 |
+| --- | ---: | --- | --- |
+| Bibliotecas públicas de cálculo, geometría, conversión y estadística | 116 | 🟡 Cargan; la interfaz o el flujo inicial está en portabilidad. | Caso de referencia por biblioteca. |
+| Sistema (`0400`, `0800`, `0900`, `1000`) y menú (`K0630`) | 5 | 🔴/🟡: dependen de memoria, comunicaciones, cinta o teclado especial. | Adaptador de dispositivo y prueba equivalente. |
+| Módulos auxiliares `LIBM*`/`LIBS*` | 21 | 🟠: se cargan desde el llamador, no como aplicaciones aisladas. | Prueba integrada del llamador. |
+| Índice `LIB_INFO` | 1 | ℹ️ Datos del catálogo, no una función ejecutable. | No aplica. |
+
 
 ---
 
@@ -501,6 +516,21 @@ ningún algoritmo como 🟢 sin una entrada y salida de referencia. Esto evita
 confundir una carga sintáctica con una respuesta matemática correcta. Un
 programa solo se asciende a 🟢 al añadir una prueba que compare un resultado
 conocido y que pase en el intérprete.
+
+### Progreso actual de portabilidad
+
+La colección completa de **142** ficheros carga en el intérprete y supera la
+comprobación de carga. También se han incorporado compatibilidades de sintaxis
+Casio para `MODE` compacto, `INPUT$`, `DIM` sin argumentos, operadores sin
+espacio (`ANDa`, `ORFRACx`) y manejadores `ON ERROR GOTO` con `ERR`/`ERL`.
+
+Este avance es de **compatibilidad de análisis y arranque**, no una promoción
+automática a 🟢. La auditoría de agosto de 2026 aún encuentra líneas Casio que
+el intérprete conserva como `compatSkipped` y flujos que requieren semántica de
+ficheros, memoria o periféricos. Por ello, el catálogo sigue en 🟡/🟠/🔴 hasta
+que cada biblioteca tenga el caso de referencia exigido en esta misma sección.
+No cambie un `LIB*.bas` para reducir esa lista: la corrección debe hacerse en
+el intérprete y en pruebas externas.
 
 ### 12.1 Comandos Casio implementados o adaptados
 

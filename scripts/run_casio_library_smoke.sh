@@ -21,21 +21,21 @@ failed=0
 for program in "${programs[@]}"; do
   output="$tmp_dir/$(basename "$program").out"
   if timeout "${TIMEOUT_SECONDS}s" node "$ROOT_DIR/run_prg.js" --file "$program" --smoke >"$output" 2>&1; then
-    ((completed += 1))
+    completed=$((completed + 1))
   elif [[ $? -eq 124 ]]; then
     # Esperar una tecla o un periférico es un estado válido de una biblioteca Casio.
-    ((timed_out += 1))
+    timed_out=$((timed_out + 1))
   else
     printf 'FALLO DE PROCESO: %s\n' "${program#"$ROOT_DIR/"}" >&2
     cat "$output" >&2
-    ((failed += 1))
+    failed=$((failed + 1))
     continue
   fi
 
   if grep -qE '^\?|\?[A-Za-z ]+ in [0-9]+' "$output"; then
     printf 'ERROR BASIC: %s\n' "${program#"$ROOT_DIR/"}" >&2
     cat "$output" >&2
-    ((failed += 1))
+    failed=$((failed + 1))
   fi
 done
 
