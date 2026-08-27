@@ -706,14 +706,25 @@
                 s = s.replace(/\bMODE(?=\d|[A-Za-z_])/gi, 'MODE ');
                 s = s.replace(/\bERASE(?=[A-Za-z_])/gi, 'ERASE ');
                 s = s.replace(/\bDIM(?=[A-Za-z_])/gi, 'DIM ');
+                // DATA y READ también se escriben pegados al primer valor o
+                // variable en los listados exportados por Casio.
+                s = s.replace(/\bDATA(?=[A-Za-z0-9_])/gi, 'DATA ');
+                s = s.replace(/\bREAD(?=[A-Za-z_])/gi, 'READ ');
                 // Casio permite INPUT@columna;variable para ubicar el cursor.
                 // La posición es visual; el intérprete conserva la lectura.
                 s = s.replace(/\bINPUT\s*@\s*\d+\s*;?/gi, 'INPUT ');
                 // INPUT$(n,@) lee una sola tecla del teclado Casio; n y @ son
                 // parámetros de dispositivo/posición, no parte del valor.
                 s = s.replace(/\bINPUT\$\s*\(\s*\d+\s*(?:,\s*@\s*)?\)/gi, 'INPUT$');
-                s = s.replace(/\b(IF|THEN|ELSE|FOR|TO|STEP|GOTO|GOSUB|RETURN|PRINT|LPRINT|INPUT|LOCATE|POKE|PEEK|DEFSEG|DEFCHR\$|NEXT|ON|AS)(?=[A-Za-z0-9_$&@(])/gi, '$1 ');
-                s = s.replace(/([A-Za-z0-9_$)])(MOD|AND|OR|TO|STEP|THEN|ELSE)(?=[A-Za-z0-9_$(])/gi, '$1 $2 ');
+                // No separar el sufijo `$`: `INPUT$` es una función distinta
+                // de la sentencia INPUT y las bibliotecas la usan para leer
+                // teclas sin introducir una respuesta artificial.
+                s = s.replace(/\b(IF|THEN|ELSE|FOR|TO|STEP|GOTO|GOSUB|RETURN|PRINT|LPRINT|INPUT|LOCATE|POKE|PEEK|DEFSEG|DEFCHR\$|NEXT|ON)(?=[A-Za-z0-9_&@(])/gi, '$1 ');
+                // Las fuentes Casio omiten el blanco después de operadores de
+                // palabra (por ejemplo `ANDa`, `ORFRACx` y `THEN200`).
+                // Delimitarlos antes de tokenizar evita que se conviertan en
+                // nombres de variable como ANDA u ORFRACX.
+                s = s.replace(/\b(MOD(?!E\b)|AND|OR|TO|STEP|THEN|ELSE)(?=[A-Za-z0-9_$(])/gi, '$1 ');
                 parts[i] = s;
             }
             return parts.join('"').replace(/[ 	]{2,}/g, ' ').trim();
@@ -826,7 +837,12 @@
                 // Operadores (Buscar el más largo primero)
                 let matchedOp = null;
                 for (let op of OPERATORS) {
-                    if (codeStr.substring(i, i + op.length).toUpperCase() === op) {
+                    const candidate = codeStr.substring(i, i + op.length).toUpperCase();
+                    // MOD/AND/OR son operadores de palabra, no prefijos: sin
+                    // este límite `MODE` se tokeniza erróneamente como MOD + E.
+                    const wordOperator = /^[A-Z]+$/.test(op);
+                    const nextChar = codeStr[i + op.length] || '';
+                    if (candidate === op && (!wordOperator || !/[A-Za-z0-9_$#.]/.test(nextChar))) {
                         matchedOp = op;
                         break;
                     }
@@ -1005,6 +1021,13 @@
 
             parsePrimary() {
                 let t = this.peek();
+
+                // ERR y ERL se usan como valores de estado en los manejadores
+                // `ON ERROR GOTO` de las bibliotecas Casio.
+                if (t.type === 'KEYWORD' && (t.value === 'ERR' || t.value === 'ERL')) {
+                    this.consume();
+                    return { type: 'CALL', name: t.value, args: [] };
+                }
 
                 if (t.type === 'NUMBER' || t.type === 'STRING') {
                     this.consume();
@@ -1303,6 +1326,12 @@
                     
                     case 'DIM':
                         let dims = [];
+                        // En el dialecto Casio `DIM` sin argumentos reinicia la
+                        // zona de arrays.  Las bibliotecas lo usan antes de un
+                        // `ERASE`/`DIM` posterior en la misma línea.
+                        if (this.peek().type === 'EOF' || this.peek().type === 'SEP') {
+                            return { type: 'DIM', arrays: dims, clearOnly: true };
+                        }
                         do {
                             let arrTok = this.consume();
                             let arrName = arrTok.value;
@@ -1328,14 +1357,25 @@
                         do {
                             let pt = this.peek();
                             if (pt.type === 'NUMBER' || pt.type === 'STRING') {
-                                dataVals.push(this.consume().value);
+                                let value = this.consume().value;
+                                // En DATA Casio un byte hexadecimal como `1E`
+                                // llega al lexer como NUMBER(1) + VAR(E).
+                                // Sin coma intermedia sigue siendo un literal.
+                                if (pt.type === 'NUMBER' && this.peek().type === 'VAR') {
+                                    value = String(value) + String(this.consume().value);
+                                }
+                                dataVals.push(value);
                             } else if (pt.type === 'OPERATOR' && pt.value === '-') {
                                 this.consume();
                                 let num = this.consume().value;
                                 dataVals.push(-num);
+                            } else if (pt.type === 'VAR' || pt.type === 'KEYWORD') {
+                                // Los listados Casio permiten DATA sin comillas
+                                // (incluidos bytes hexadecimales como 1E/F8).
+                                // Se conserva el literal para que READ lo
+                                // convierta según el tipo de destino.
+                                dataVals.push(String(this.consume().value));
                             } else {
-                                // Tratar vars como strings sin comillas si no son comillas (comportamiento de algunos BASICs)
-                                // Para simplicidad estricta exigimos strings o numeros
                                 throw new BasicError(1, "Se esperaba valor literal en DATA");
                             }
                         } while (this.match('PUNCT', ','));
@@ -1352,6 +1392,17 @@
                     case 'RESTORE': return { type: 'RESTORE' };
                     
                     case 'ON':
+                        if ((this.peek().type === 'KEYWORD' || this.peek().type === 'VAR') && this.peek().value === 'ERROR') {
+                            this.consume();
+                            if (this.match('KEYWORD', 'GOTO')) {
+                                return { type: 'ON ERROR GOTO', line: this.parseExpression() };
+                            }
+                            if (this.peek().type === 'NUMBER' && this.peek().value === 0) {
+                                this.consume();
+                                return { type: 'ON ERROR OFF' };
+                            }
+                            throw new BasicError(1, 'ON ERROR requiere GOTO o 0');
+                        }
                         let onExpr = this.parseExpression();
                         let targetType = this.consume().value; // GOTO o GOSUB
                         if (targetType !== 'GOTO' && targetType !== 'GOSUB') throw new BasicError(1, "Se esperaba GOTO/GOSUB en ON");
@@ -2355,6 +2406,8 @@
                     case 'RAN#': return this.nextRandom();
                     case 'RND': return this.nextRandom();
                     case 'PI': return Math.PI;
+                    case 'ERR': return this.errCode;
+                    case 'ERL': return this.errLine;
                     case 'FACT': return factInt(v);
                     case 'NPR': {
                         let n = Math.floor(args[0]), r = Math.floor(args[1] || 0);
@@ -2757,6 +2810,10 @@
             }
 
             async handleDim(stmt) {
+                if (stmt.clearOnly) {
+                    this.arrays = {};
+                    return {};
+                }
                 for (let a of stmt.arrays) {
                     if (a.kind === 'INSTANCE') {
                         let c = String(a.className).toUpperCase();
