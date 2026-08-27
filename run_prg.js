@@ -16,6 +16,7 @@ function parseArgs(argv) {
     direct: false,
     keys: '',
     inputs: [],
+    smoke: false,
     html: HTML_PATH,
   };
   const positional = [];
@@ -33,6 +34,8 @@ function parseArgs(argv) {
     } else if (a === '--inputs') {
       const raw = argv[++i] || '';
       args.inputs = raw.length ? raw.split(',') : [];
+    } else if (a === '--smoke') {
+      args.smoke = true;
     } else if (a === '--html') {
       args.html = argv[++i] || HTML_PATH;
     } else if (a === '--help' || a === '-h') {
@@ -61,7 +64,7 @@ function parseArgs(argv) {
 }
 
 function printHelp() {
-  console.log(`Uso:\n  node run_prg.js [opciones] [programa.bas]\n\nModos rápidos (sin comando largo):\n  node run_prg.js                 -> abre modo interactivo BASIC\n  node run_prg.js mi_programa.bas -> carga y ejecuta archivo\n  ./run_prg.js mi_programa.bas    -> igual (script ejecutable)\n\nOpciones:\n  -d, --direct           Ejecuta modo interactivo (REPL BASIC)\n  -f, --file <ruta>      Carga un .txt/.bas con líneas BASIC y luego RUN\n      --no-run           Con --file, carga pero no ejecuta RUN automáticamente\n      --keys <texto>     Precarga keyBuffer para INKEY$ (ej: --keys abc)\n      --inputs <csv>     Cola de respuestas para INPUT (ej: --inputs 3,10,HOLA)\n      --html <ruta>      Ruta alternativa al HTML del intérprete\n  -h, --help             Muestra esta ayuda\n\nEjemplos:\n  node run_prg.js\n  node run_prg.js --direct\n  node run_prg.js programa.txt\n  node run_prg.js --file programa.bas --inputs 3,5,7 --keys xyz\n`);
+  console.log(`Uso:\n  node run_prg.js [opciones] [programa.bas]\n\nModos rápidos (sin comando largo):\n  node run_prg.js                 -> abre modo interactivo BASIC\n  node run_prg.js mi_programa.bas -> carga y ejecuta archivo\n  ./run_prg.js mi_programa.bas    -> igual (script ejecutable)\n\nOpciones:\n  -d, --direct           Ejecuta modo interactivo (REPL BASIC)\n  -f, --file <ruta>      Carga un .txt/.bas con líneas BASIC y luego RUN\n      --no-run           Con --file, carga pero no ejecuta RUN automáticamente\n      --keys <texto>     Precarga keyBuffer para INKEY$ (ej: --keys abc)\n      --inputs <csv>     Cola de respuestas para INPUT (ej: --inputs 3,10,HOLA)\n      --smoke            Detiene RUN al pedir la primera entrada o tecla (para pruebas)\n      --html <ruta>      Ruta alternativa al HTML del intérprete\n  -h, --help             Muestra esta ayuda\n\nEjemplos:\n  node run_prg.js\n  node run_prg.js --direct\n  node run_prg.js programa.txt\n  node run_prg.js --file programa.bas --inputs 3,5,7 --keys xyz\n`);
 }
 
 function buildMockElements() {
@@ -222,6 +225,8 @@ async function main() {
   const args = parseArgs(process.argv.slice(2));
 
   const { machine, termOut } = bootInterpreter(args.html);
+
+  if (args.smoke) machine.stopOnInput = true;
 
   if (args.keys && args.keys.length) {
     machine.keyBuffer = args.keys.split('');

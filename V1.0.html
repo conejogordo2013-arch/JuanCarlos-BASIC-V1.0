@@ -674,7 +674,7 @@
             "NEW ALL", "NEW", "CLEAR", "RUN", "LIST ALL", "LIST", "EDIT", "VARLIST", "PASS", "FRE", "TROFF", "TRON", "MODE", "ERASE",
             "GOTO", "GOSUB", "RETURN", "ON ERROR GOTO", "ON ERROR", "RESUME", "ERR", "ERL", "ON",
             "IF", "THEN", "THENGOTO", "ELSE", "FOR", "TO", "STEP", "NEXT", "WHILE", "WEND", "DO", "UNTIL", "AS",
-            "STOP", "END", "REM", "LET", "PRINT USING", "PRINT", "LPRINT", "INPUT$", "INPUT", "LOCATE", "CLS", "BEEP", "BEEP1", "SOUND",
+            "STOP", "END", "REM", "LET", "PRINT USING", "PRINT", "LPRINT", "INPUT", "LOCATE", "CLS", "BEEP", "BEEP1", "SOUND",
             "DIM", "DATA", "READ", "RESTORE",
             "PEEK", "POKE", "DEFSEG", "DEFCHR$", "OPEN", "CLOSE", "SAVE", "LOAD", "NEWFUNCTION", "NEWFUNCTION$", "FUNCTION", "FUNCTION$", "GPHYCS", "GCLS", "CLASS", "TYPE", "METHOD", "INSTANCE", "SETPROP", "DEF", "WRITE", "READFILE", "PRINT#", "INPUT#", "TRY", "CATCH",
             "FILES", "MKFILE", "DELFILE"
@@ -692,8 +692,10 @@
             "HEX$", "HEXVAL", "INT$", "LOCATE$", "INSTR", "UPPER$", "LOWER$", "SPACE$", "LCOLOR", "NFUNC", "NFUNC$", "CALL", "PROP", "PEEK", "INPUT$", "TAB"
         ];
         const FUNCTIONS = [...CORE_FUNCTIONS];
-        const BARE_FUNCTIONS = new Set(["PI", "RAN#", "RND", "INKEY$", "PEEK"]);
-        const ADJACENT_KEYWORD_PREFIXES = ["THENGOTO", "DEFCHR$", "LPRINT", "PRINT", "GOSUB", "GOTO", "RETURN", "THEN", "ELSE", "POKE", "PEEK", "FOR", "NEXT", "TO", "IF"];
+        // INPUT$ admite la forma Casio sin argumentos después de normalizar
+        // INPUT$(1) e INPUT$(1,@). INKEY$ ya era una función desnuda.
+        const BARE_FUNCTIONS = new Set(["PI", "RAN#", "RND", "INKEY$", "INPUT$", "PEEK"]);
+        const ADJACENT_KEYWORD_PREFIXES = ["THENGOTO", "DEFCHR$", "LPRINT", "PRINT", "GOSUB", "GOTO", "RETURN", "THEN", "ELSE", "POKE", "PEEK", "FOR", "NEXT", "TO", "ON", "IF"];
 
         const OPERATORS = ["<>", "<=", ">=", "^", "*", "/", "MOD", "+", "-", "=", "<", ">", "AND", "OR", "NOT"];
         function normalizeCasioBasicLine(line) {
@@ -704,7 +706,13 @@
                 s = s.replace(/\bMODE(?=\d|[A-Za-z_])/gi, 'MODE ');
                 s = s.replace(/\bERASE(?=[A-Za-z_])/gi, 'ERASE ');
                 s = s.replace(/\bDIM(?=[A-Za-z_])/gi, 'DIM ');
-                s = s.replace(/\b(IF|THEN|ELSE|FOR|TO|STEP|GOTO|GOSUB|RETURN|PRINT|LPRINT|INPUT|LOCATE|POKE|PEEK|DEFSEG|DEFCHR\$|NEXT|AS)(?=[A-Za-z0-9_$&@(])/gi, '$1 ');
+                // Casio permite INPUT@columna;variable para ubicar el cursor.
+                // La posición es visual; el intérprete conserva la lectura.
+                s = s.replace(/\bINPUT\s*@\s*\d+\s*;?/gi, 'INPUT ');
+                // INPUT$(n,@) lee una sola tecla del teclado Casio; n y @ son
+                // parámetros de dispositivo/posición, no parte del valor.
+                s = s.replace(/\bINPUT\$\s*\(\s*\d+\s*(?:,\s*@\s*)?\)/gi, 'INPUT$');
+                s = s.replace(/\b(IF|THEN|ELSE|FOR|TO|STEP|GOTO|GOSUB|RETURN|PRINT|LPRINT|INPUT|LOCATE|POKE|PEEK|DEFSEG|DEFCHR\$|NEXT|ON|AS)(?=[A-Za-z0-9_$&@(])/gi, '$1 ');
                 s = s.replace(/([A-Za-z0-9_$)])(MOD|AND|OR|TO|STEP|THEN|ELSE)(?=[A-Za-z0-9_$(])/gi, '$1 $2 ');
                 parts[i] = s;
             }
@@ -720,6 +728,10 @@
                 this.basicLine = line;
             }
         }
+
+        // Señal interna para la ejecución no interactiva: alcanzar una entrada
+        // demuestra que el programa arrancó, pero no debe inventar un dato.
+        class BasicInputRequired extends Error {}
 
         const ERR_CODES = {
             1: "Syntax error",
@@ -864,7 +876,7 @@
                     // Check Keywords and Functions
                     let isKeyword = KEYWORDS.includes(upperId);
                     let isFunc = FUNCTIONS.includes(upperId);
-                    if (isFunc && nextNonWs === '(') {
+                    if (isFunc && (nextNonWs === '(' || BARE_FUNCTIONS.has(upperId))) {
                         isKeyword = false;
                     }
                     if (upperId === 'PEEK') {
@@ -1011,7 +1023,7 @@
                     let funcName = t.value;
                     let args = [];
                     // Handle functions without parenthesis like PI, RAN#
-                    if (funcName === 'PI' || funcName === 'RAN#') {
+                    if (funcName === 'PI' || funcName === 'RAN#' || funcName === 'RND' || funcName === 'INKEY$' || funcName === 'INPUT$') {
                         return { type: 'CALL', name: funcName, args: [] };
                     }
                     
@@ -2380,9 +2392,13 @@
                         return s.substring(start, start + len);
                     }
                     case 'PEEK': return this.memory[this.segment * 16 + Math.floor(v)] || 0;
-                    case 'INPUT$': return this.keyBuffer.length > 0 ? this.keyBuffer.shift() : 'X';
+                    case 'INPUT$':
+                        if (this.stopOnInput && this.keyBuffer.length === 0) throw new BasicInputRequired();
+                        return this.keyBuffer.length > 0 ? this.keyBuffer.shift() : 'X';
                     case 'TAB': return ' '.repeat(Math.max(0, Math.floor(v) - 1));
-                    case 'INKEY$': return this.keyBuffer.length > 0 ? this.keyBuffer.shift().toUpperCase() : '';
+                    case 'INKEY$':
+                        if (this.stopOnInput && this.keyBuffer.length === 0) throw new BasicInputRequired();
+                        return this.keyBuffer.length > 0 ? this.keyBuffer.shift().toUpperCase() : '';
                     case 'HEX$': return Math.floor(v).toString(16).toUpperCase();
                     case 'HEXVAL': return parseInt(String(v).replace(/^&H/i, ''), 16) || 0;
                     case 'INT$': return String(Math.trunc(v));
@@ -2516,7 +2532,33 @@
                 this.playSound(freq, dur, vol, wave);
             }
 
-            jumpToLine(lineNumber, sourceCmd = 'GOTO') {
+            async jumpToLibraryTarget(target, sourceCmd) {
+                const match = String(target || '').trim().toUpperCase().match(/^LIB\d*:\s*([A-Z]\d+)$/);
+                if (!match) throw new BasicError(2, `Destino no válido en ${sourceCmd}`);
+
+                const libraryName = `LIB${match[1]}`;
+                const library = BASIC_LIBRARIES.find((entry) => entry.name === libraryName);
+                if (!library || typeof globalThis.__basicLoadHook !== 'function') {
+                    throw new BasicError(2, `Biblioteca no disponible: ${libraryName}`);
+                }
+
+                let content;
+                try {
+                    content = await globalThis.__basicLoadHook(library.path);
+                } catch (e) {
+                    throw new BasicError(2, `No se pudo cargar ${libraryName}: ${e.message}`);
+                }
+
+                this.loadProgramFromText(content, true);
+                this.scanData();
+                this.pc = 0;
+                this.stmtIdx = 0;
+                printTerm(`LIB CALL: ${libraryName}`);
+                return { jumped: true };
+            }
+
+            async jumpToLine(lineNumber, sourceCmd = 'GOTO') {
+                if (typeof lineNumber === 'string') return this.jumpToLibraryTarget(lineNumber, sourceCmd);
                 let idx = this.findLineIndex(lineNumber);
                 if (idx === -1) throw new BasicError(2, `Línea no definida en ${sourceCmd}`);
                 this.pc = idx;
@@ -2562,6 +2604,27 @@
 
             async handleGosub(stmt) {
                 let tgtSub = this.evalExpr(stmt.lineExpr);
+                if (typeof tgtSub === 'string') {
+                    // Las bibliotecas Casio usan GOSUB "LIB0:Sxxxx" para invocar
+                    // módulos residentes. Conservamos el contexto para que RETURN
+                    // continúe en el programa llamador.
+                    let returnPc = this.pc;
+                    let returnStmt = this.stmtIdx + 1;
+                    if (returnPc >= 0 && returnStmt >= this.program[returnPc].stmts.length) {
+                        returnPc++;
+                        returnStmt = 0;
+                    }
+                    this.stacks.gosub.push({
+                        external: true,
+                        program: this.program,
+                        dataArray: this.dataArray,
+                        dataPtr: this.dataPtr,
+                        onErrorLine: this.onErrorLine,
+                        pc: returnPc,
+                        stmtIdx: returnStmt,
+                    });
+                    return this.jumpToLibraryTarget(tgtSub, 'GOSUB');
+                }
                 let idxSub = this.findLineIndex(tgtSub);
                 if (idxSub === -1) throw new BasicError(2, 'Línea no definida en GOSUB');
 
@@ -2581,6 +2644,12 @@
             async handleReturn() {
                 if (this.stacks.gosub.length === 0) throw new BasicError(9, 'RETURN sin GOSUB');
                 let frame = this.stacks.gosub.pop();
+                if (frame.external) {
+                    this.program = frame.program;
+                    this.dataArray = frame.dataArray;
+                    this.dataPtr = frame.dataPtr;
+                    this.onErrorLine = frame.onErrorLine;
+                }
                 this.pc = frame.pc;
                 this.stmtIdx = frame.stmtIdx;
                 return { jumped: true };
@@ -2680,6 +2749,7 @@
             }
 
             async handleInput(stmt) {
+                if (this.stopOnInput) throw new BasicInputRequired();
                 let inStr = await this.promptInput(stmt.prompt + '? ');
                 let parts = (stmt.vars.length === 1 ? [inStr] : inStr.split(',')).map(s => s.trim());
                 for (let i = 0; i < stmt.vars.length; i++) this.setVar(stmt.vars[i], parts[i] || '0');
@@ -2794,6 +2864,11 @@
 
                             if (this.stmtIdx === prevStmt) this.stmtIdx++;
                         } catch (e) {
+                            if (e instanceof BasicInputRequired) {
+                                printTerm('[INPUT REQUIRED]');
+                                this.isRunning = false;
+                                break;
+                            }
                             if (e instanceof BasicError) {
                                 this.errCode = e.code;
                                 this.errLine = lineObj.line;
