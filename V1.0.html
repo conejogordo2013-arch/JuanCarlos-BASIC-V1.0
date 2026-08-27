@@ -95,14 +95,16 @@
             text-transform: uppercase;
         }
 
-        #lcd-content {
-            position: absolute;
-            top: 5px;
-            left: 10px;
-            margin: 0;
-            pointer-events: none;
-            text-shadow: 1px 1px 0px rgba(255,255,255,0.2);
+        #lcd-pixels {
+            display: block;
+            width: 100%;
+            height: auto;
+            image-rendering: pixelated;
+            image-rendering: crisp-edges;
         }
+
+        /* Texto de respaldo para lectores de pantalla; la imagen visible es el LCD 5x7. */
+        #lcd-content { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: pre; }
 
         .cursor {
             background-color: var(--lcd-text);
@@ -365,20 +367,20 @@
         }
 
         /* JCC-700 skin: cuerpo tipo pocket computer Casio con LCD 32x2 */
-        .container { max-width: 980px; }
+        .container { max-width: 1320px; }
         .calculator { background: linear-gradient(145deg,#c7c7bd,#8c8f84); border: 5px solid #5d625b; border-radius: 10px; padding: 14px; box-shadow: inset 0 2px 8px rgba(255,255,255,.45), inset 0 -5px 12px rgba(0,0,0,.35), 0 12px 35px rgba(0,0,0,.55); }
         .brand { display:grid; grid-template-columns: 1fr auto auto; gap: 12px; align-items:end; color:#28302d; background:#d7d7cc; border:1px solid #777b70; border-radius:3px; padding:4px 8px; margin-bottom:8px; font-style:normal; letter-spacing:.8px; }
         .brand b { font-size:1.02rem; color:#111; }
         .brand em { font-size:.72rem; color:#6b1515; font-style:normal; }
         .lcd-bezel { background: linear-gradient(#5b6258,#20251f); border: 2px solid #111; border-radius: 4px; padding: 10px 14px; }
-        .lcd-screen { background:#aeb789; color:#253224; border: 4px solid #69705e; border-radius:2px; box-shadow: inset 0 0 12px rgba(21,35,20,.7); font-family:'Courier New',monospace; font-weight:700; letter-spacing:2px; image-rendering:pixelated; }
+        .lcd-screen { background:#aeb789; color:#253224; border: 4px solid #69705e; border-radius:2px; box-shadow: inset 0 0 12px rgba(21,35,20,.7); image-rendering:pixelated; aspect-ratio: 80 / 7; display:flex; align-items:center; padding:12px; min-height:96px; }
         .status-panel { background:#bfc3b0; border:1px solid #777b70; padding:4px; grid-template-columns: repeat(8, minmax(40px,1fr)); }
         .status-lamp { background:#aeb789; border-color:#747b67; color:#3e4938; }
         .status-lamp.active { background:#2c3829; color:#d6e2b7; box-shadow:none; }
         .status-digits { max-width: 260px; align-self:flex-end; }
         .status-digit { background:#aeb789; color:#253224; border-color:#747b67; font-weight:bold; }
         .keyboard-panel { background:#d0d1c6; border:2px solid #6d716a; border-radius:5px; padding:8px; box-shadow: inset 0 1px 6px rgba(0,0,0,.25); }
-        .top-row { grid-template-columns: repeat(9, minmax(44px,1fr)); }
+        .top-row { grid-template-columns: repeat(10, minmax(44px,1fr)); }
         .jcc-body-grid { display:grid; grid-template-columns: 1.75fr 1fr; gap:10px; align-items:start; }
         .alpha-pad,.numeric-pad { background:#a8aaa0; border:1px solid #777b70; border-radius:4px; padding:7px; }
         .alpha-row { grid-template-columns: repeat(10, minmax(32px,1fr)); }
@@ -392,6 +394,13 @@
         .calc-key.wide { grid-column: span 2; }
         .calc-key .shift-label { color:#8f1515; top:-8px; font-size:.52rem; }
         .jcc-key-help,.jcc-lcd-help { margin-top:8px; background:#b8bd8b; border:1px solid #6d715b; color:#27352b; border-radius:3px; padding:6px 8px; font-size:.68rem; line-height:1.35; }
+        /* Consola, herramientas y teclado forman una única estación JCC-700. */
+        .calculator .terminal-area { width:100%; box-sizing:border-box; margin-top:12px; height:320px; border-color:#5f665c; background:#20251f; }
+        .calculator .terminal-header { background:#485046; color:#ecf0dc; }
+        .calculator .tools-grid { width:100%; margin-top:12px; }
+        .calculator .panel { background:#c2c5b8; border-color:#6d716a; color:#202820; }
+        .calculator .panel h3 { color:#202820; }
+        .calculator .panel input, .calculator .panel textarea, .calculator .lib-browser, .calculator #vfs-list { background:#20251f; border-color:#5f665c; }
         @media (max-width: 760px) { .jcc-body-grid { grid-template-columns:1fr; } .brand { grid-template-columns:1fr; } .tools-grid { grid-template-columns:1fr; } }
 
     </style>
@@ -403,9 +412,10 @@
     <div class="container">
         <!-- Calculator Body (LCD) -->
         <div class="calculator">
-            <div class="brand"><span>CASIO FX-880P INSPIRED</span><b>JuanCarlos-COMPUTER-700</b><em>JCC-700 BASIC</em></div>
+            <div class="brand"><span>BASADA EN CASIO FX-880P</span><b>JuanCarlos-COMPUTER-700</b><em>JCC-700 BASIC</em></div>
             <div class="lcd-bezel">
                 <div class="lcd-screen" id="lcd-container">
+                    <canvas id="lcd-pixels" width="160" height="14" role="img" aria-label="Pantalla LCD de 32 columnas por 2 filas"></canvas>
                     <pre id="lcd-content"></pre>
                 </div>
             </div>
@@ -415,7 +425,7 @@
             </div>
             <div class="status-digits"><div class="status-digit" id="stat-n0">0</div><div class="status-digit" id="stat-n1">0</div><div class="status-digit" id="stat-n2">0</div><div class="status-digit" id="stat-n3">0</div><div class="status-digit" id="stat-n4">0</div></div>
             <div class="keyboard-panel" id="keyboard-panel">
-                <div class="key-row top-row"><button class="calc-key tiny" data-key="SHIFT">SHIFT</button><button class="calc-key tiny" data-key="MODE">MODE</button><button class="calc-key tiny" data-key="CAPS">CAPS</button><button class="calc-key tiny" data-key="MEM">MEMO</button><button class="calc-key tiny" data-key="INS"><span class="shift-label">DEL</span>INS</button><button class="calc-key tiny" data-key="EXT">EXT</button><button class="calc-key tiny" data-key="LIB">LIB</button><button class="calc-key tiny" data-key="ANS">ANS</button><button class="calc-key red" data-key="BRK">BRK</button></div>
+                <div class="key-row top-row"><button class="calc-key tiny" data-key="SHIFT">SHIFT</button><button class="calc-key tiny" data-key="MODE">MODE</button><button class="calc-key tiny" data-key="CAPS">CAPS</button><button class="calc-key tiny" data-key="MEM">MEMO</button><button class="calc-key tiny" data-key="INS"><span class="shift-label">DEL</span>INS</button><button class="calc-key tiny" data-key="EXT">EXT</button><button class="calc-key tiny" data-key="LIB">LIB</button><button class="calc-key tiny" data-key="ANS">ANS</button><button class="calc-key tiny" data-key="CLEAR">CLEAR</button><button class="calc-key red" data-key="BRK">BRK</button></div>
                 <div class="jcc-body-grid">
                     <div class="alpha-pad">
                         <div class="key-row alpha-row"><button class="calc-key" data-key="Q">Q</button><button class="calc-key" data-key="W">W</button><button class="calc-key" data-key="E">E</button><button class="calc-key" data-key="R">R</button><button class="calc-key" data-key="T">T</button><button class="calc-key" data-key="Y">Y</button><button class="calc-key" data-key="U">U</button><button class="calc-key" data-key="I">I</button><button class="calc-key" data-key="O">O</button><button class="calc-key" data-key="P">P</button></div>
@@ -432,9 +442,7 @@
                 </div>
                 <div class="jcc-key-help">MODE+0 CAL · MODE+1 BASIC · MODE+4 DEG · MODE+5 RAD · MODE+6 GRA · CAPS may/min · MEMO banco de datos · SHIFT+INS DEL · EXT símbolos · BRK detiene · EXE ejecuta · LIB+código+EXE biblioteca · ANS último resultado · DEFM memoria activa · DEFCHR$/DEFSEG caracteres personalizados 5x7.</div>
             </div>
-        </div>
-
-        <!-- Terminal Interface -->
+        <!-- Terminal Interface integrada en el cuerpo de la máquina -->
         <div class="terminal-area">
             <div class="terminal-header">
                 <span>TERMINAL I/O & EDITOR</span>
@@ -483,6 +491,7 @@
                 <div id="vfs-list">[SIN ARCHIVOS]</div>
             </div>
         </div>
+        </div>
     </div>
 
     <script>
@@ -490,6 +499,7 @@
         const termOut = document.getElementById('terminal-output');
         const termIn = document.getElementById('cmd-input');
         const lcdContent = document.getElementById('lcd-content');
+        const lcdPixels = document.getElementById('lcd-pixels');
         const promptChar = document.getElementById('prompt-char');
         const gfxCanvas = null; // JCC-700: sin Canvas 2D, gráficos mapeados al LCD 32x2
         const libCodeInput = document.getElementById('lib-code');
@@ -503,6 +513,14 @@
             termOut.textContent += text + (newline ? '\n' : '');
             termOut.scrollTop = termOut.scrollHeight;
             if (typeof updateStatus === 'function' && typeof machine !== 'undefined') updateStatus();
+        }
+
+        function mirrorInputOnLcd() {
+            if (typeof lcd === 'undefined' || document.activeElement !== termIn) return;
+            const command = String(termIn.value || '').toUpperCase();
+            const visible = `>${command}`.slice(-32);
+            lcd.clear();
+            lcd.print(visible);
         }
 
         class Gfx2D {
@@ -526,7 +544,37 @@
             }
         }
 
-        // --- PANTALLA LCD SIMULADA (32x2) ---
+        // --- PANTALLA LCD 32x2: matriz física de 5x7 píxeles por carácter ---
+        // Cada cadena contiene las cinco filas, de izquierda a derecha; 1 = píxel encendido.
+        const LCD_FONT_5X7 = {
+            ' ': ['00000','00000','00000','00000','00000','00000','00000'],
+            '0': ['01110','10001','10011','10101','11001','10001','01110'], '1': ['00100','01100','00100','00100','00100','00100','01110'],
+            '2': ['01110','10001','00001','00010','00100','01000','11111'], '3': ['11110','00001','00001','01110','00001','00001','11110'],
+            '4': ['00010','00110','01010','10010','11111','00010','00010'], '5': ['11111','10000','11110','00001','00001','10001','01110'],
+            '6': ['00110','01000','10000','11110','10001','10001','01110'], '7': ['11111','00001','00010','00100','01000','01000','01000'],
+            '8': ['01110','10001','10001','01110','10001','10001','01110'], '9': ['01110','10001','10001','01111','00001','00010','11100'],
+            'A': ['01110','10001','10001','11111','10001','10001','10001'], 'B': ['11110','10001','10001','11110','10001','10001','11110'],
+            'C': ['01110','10001','10000','10000','10000','10001','01110'], 'D': ['11110','10001','10001','10001','10001','10001','11110'],
+            'E': ['11111','10000','10000','11110','10000','10000','11111'], 'F': ['11111','10000','10000','11110','10000','10000','10000'],
+            'G': ['01110','10001','10000','10111','10001','10001','01110'], 'H': ['10001','10001','10001','11111','10001','10001','10001'],
+            'I': ['01110','00100','00100','00100','00100','00100','01110'], 'J': ['00001','00001','00001','00001','10001','10001','01110'],
+            'K': ['10001','10010','10100','11000','10100','10010','10001'], 'L': ['10000','10000','10000','10000','10000','10000','11111'],
+            'M': ['10001','11011','10101','10101','10001','10001','10001'], 'N': ['10001','11001','10101','10011','10001','10001','10001'],
+            'O': ['01110','10001','10001','10001','10001','10001','01110'], 'P': ['11110','10001','10001','11110','10000','10000','10000'],
+            'Q': ['01110','10001','10001','10001','10101','10010','01101'], 'R': ['11110','10001','10001','11110','10100','10010','10001'],
+            'S': ['01111','10000','10000','01110','00001','00001','11110'], 'T': ['11111','00100','00100','00100','00100','00100','00100'],
+            'U': ['10001','10001','10001','10001','10001','10001','01110'], 'V': ['10001','10001','10001','10001','10001','01010','00100'],
+            'W': ['10001','10001','10001','10101','10101','10101','01010'], 'X': ['10001','10001','01010','00100','01010','10001','10001'],
+            'Y': ['10001','10001','01010','00100','00100','00100','00100'], 'Z': ['11111','00001','00010','00100','01000','10000','11111'],
+            '.': ['00000','00000','00000','00000','00000','00110','00110'], ',': ['00000','00000','00000','00000','00110','00110','00100'],
+            ':': ['00000','00110','00110','00000','00110','00110','00000'], ';': ['00000','00110','00110','00000','00110','00110','00100'],
+            '!': ['00100','00100','00100','00100','00100','00000','00100'], '?': ['01110','10001','00001','00010','00100','00000','00100'],
+            '+': ['00000','00100','00100','11111','00100','00100','00000'], '-': ['00000','00000','00000','11111','00000','00000','00000'],
+            '=': ['00000','11111','00000','11111','00000','00000','00000'], '/': ['00001','00010','00100','01000','10000','00000','00000'],
+            '>': ['10000','01000','00100','00010','00100','01000','10000'], '<': ['00001','00010','00100','01000','00100','00010','00001'],
+            '"': ['01010','01010','00000','00000','00000','00000','00000'], "'": ['00100','00100','00000','00000','00000','00000','00000']
+        };
+
         class LCD {
             constructor() {
                 this.cols = 32;
@@ -534,7 +582,24 @@
                 this.buffer = Array(this.rows).fill('').map(() => ' '.repeat(this.cols));
                 this.cx = 0; // 0 a 31
                 this.cy = 0; // 0 a 1
+                this.customChars = new Map();
+                this.ctx = lcdPixels && typeof lcdPixels.getContext === 'function'
+                    ? lcdPixels.getContext('2d', { alpha: false }) : null;
                 this.updateDisplay();
+            }
+
+            defineCharacter(code, hexPattern) {
+                const bytes = String(hexPattern || '').replace(/[^0-9a-f]/gi, '').match(/.{1,2}/g) || [];
+                if (bytes.length < 5) throw new BasicError(1, 'DEFCHR$ requiere 5 bytes hexadecimales');
+                // El formato Casio usa cinco columnas de ocho bits; se muestran los 7 bits visibles.
+                const columns = bytes.slice(0, 5).map((hex) => parseInt(hex, 16));
+                const rows = Array.from({ length: 7 }, (_, y) => columns.map((column) => (column & (1 << (6 - y))) ? '1' : '0').join(''));
+                this.customChars.set(String.fromCharCode(Math.max(0, Math.min(255, Math.floor(code)))), rows);
+                this.updateDisplay();
+            }
+
+            glyphFor(char) {
+                return this.customChars.get(char) || LCD_FONT_5X7[char] || LCD_FONT_5X7['?'];
             }
 
             clear() {
@@ -585,10 +650,17 @@
             }
 
             updateDisplay() {
-                let out = this.buffer[0] + '\n' + this.buffer[1];
-                // Insertar cursor lógico si está dentro de la pantalla
-                if (this.cy < this.rows && this.cx < this.cols && document.activeElement !== termIn) {
-                    // Solo simulamos cursor en LCD si no estamos escribiendo en terminal
+                const out = this.buffer[0] + '\n' + this.buffer[1];
+                if (this.ctx) {
+                    this.ctx.fillStyle = '#aeb789';
+                    this.ctx.fillRect(0, 0, this.cols * 5, this.rows * 7);
+                    this.ctx.fillStyle = '#253224';
+                    this.buffer.forEach((line, row) => [...line].forEach((char, col) => {
+                        const glyph = this.glyphFor(char);
+                        glyph.forEach((pixels, y) => [...pixels].forEach((pixel, x) => {
+                            if (pixel === '1') this.ctx.fillRect(col * 5 + x, row * 7 + y, 1, 1);
+                        }));
+                    }));
                 }
                 lcdContent.textContent = out;
             }
@@ -1310,13 +1382,14 @@
                     case 'NEW ALL': return { type: 'NEW ALL' };
                     case 'CLEAR': return { type: 'CLEAR' };
                     case 'DEFCHR$':
+                        let charCode = { type: 'LITERAL', value: 0 };
                         if (this.match('PUNCT', '(')) {
-                            if (this.peek().type !== 'PUNCT' || this.peek().value !== ')') this.parseExpression();
+                            if (this.peek().type !== 'PUNCT' || this.peek().value !== ')') charCode = this.parseExpression();
                             this.match('PUNCT', ')');
                         }
                         this.match('OPERATOR', '=');
-                        if (this.peek().type !== 'EOF' && this.peek().type !== 'SEP') this.parseExpression();
-                        return { type: 'DEFCHR$' };
+                        const pattern = (this.peek().type !== 'EOF' && this.peek().type !== 'SEP') ? this.parseExpression() : { type: 'LITERAL', value: '' };
+                        return { type: 'DEFCHR$', charCode, pattern };
                     case 'TRON': return { type: 'TRON' };
                     case 'TROFF': return { type: 'TROFF' };
                     case 'VARLIST': return { type: 'VARLIST' };
@@ -1550,6 +1623,8 @@
                 this.vfsOpen = null;
                 this.sid = { regs: new Uint8Array(32), osc: null, gain: null, ctx: null };
                 this.prngState = 0x1234abcd;
+                this.programSlots = Array.from({ length: 10 }, () => []);
+                this.activeProgramSlot = 0;
                 this.seedDefaultLibraries();
                 document.addEventListener('keydown', (e) => {
                     if (this.isRunning && !this.awaitingInput) {
@@ -1627,7 +1702,7 @@
                     READ: async (stmt) => this.handleRead(stmt),
                     RESTORE: async () => { this.dataPtr = 0; return {}; },
                     ON: async (stmt) => this.handleOn(stmt),
-                    CLEAR: async () => { this.vars = {}; this.arrays = {}; return {}; },
+                    CLEAR: async () => { this.clearWorkspace(); return {}; },
                     POKE: async (stmt) => {
                         const absAddr = this.segment * 16 + Math.floor(this.evalExpr(stmt.addr));
                         const pokeVal = Math.floor(this.evalExpr(stmt.val)) & 255;
@@ -1668,9 +1743,8 @@
                         let x = Math.floor(rawX);
                         let y = Math.floor(rawY);
                         let ch = String(rawCh ?? '*');
-                        lcd.locate(x, y);
-                        lcd.print(ch[0] || '*');
-                        gfx.draw(x * 2, y * 2, ch);
+                        // GPHYCS usa coordenadas de píxel (160x14), reducidas al LCD de 32x2.
+                        gfx.draw(x, y, ch);
                         printTerm(`[GPHYCS ${x},${y}] ${ch[0] || '*'}`);
                         return {};
                     },
@@ -1801,7 +1875,10 @@
                         this.pc = this.program.length;
                         return { halted: true };
                     },
-                    'DEFCHR$': async () => ({}),
+                    'DEFCHR$': async (stmt) => {
+                        lcd.defineCharacter(this.evalExpr(stmt.charCode), this.evalExpr(stmt.pattern));
+                        return {};
+                    },
                     TRON: async () => { this.trace = true; document.getElementById('ind-tron').classList.add('active'); return {}; },
                     TROFF: async () => { this.trace = false; document.getElementById('ind-tron').classList.remove('active'); return {}; }
                 };
@@ -1840,6 +1917,39 @@
                 this.initCompatMemory();
                 lcd.clear();
                 this.prngState = 0x1234abcd;
+            }
+
+            clearWorkspace() {
+                // CLEAR libera el espacio de trabajo, pero conserva el programa cargado.
+                this.vars = {};
+                this.arrays = {};
+                this.dataArray = [];
+                this.dataPtr = 0;
+                this.stacks = { gosub: [], for: [], while: [], do: [] };
+                this.keyBuffer = [];
+                this.errCode = 0;
+                this.errLine = 0;
+                this.onErrorLine = -1;
+                this.segment = 0;
+                this.initCompatMemory();
+                lcd.clear();
+                updateStatus();
+            }
+
+            clearTerminal() {
+                termOut.textContent = '';
+                termIn.value = '';
+                lcd.clear();
+            }
+
+            selectProgramSlot(slot) {
+                const target = Math.max(0, Math.min(9, Math.floor(slot)));
+                this.programSlots[this.activeProgramSlot] = this.program.map((line) => ({ ...line, stmts: line.stmts.slice() }));
+                this.activeProgramSlot = target;
+                this.program = this.programSlots[target].map((line) => ({ ...line, stmts: line.stmts.slice() }));
+                this.resetState();
+                printTerm(`P:${target} SELECCIONADO (${this.program.length} LÍNEAS)`);
+                updateStatus();
             }
 
             deleteLine(lineNum) {
@@ -2206,9 +2316,11 @@
                     return f;
                 };
                 switch (name) {
-                    case 'SIN': return this.radToDeg(Math.sin(this.degToRad(v)));
-                    case 'COS': return this.radToDeg(Math.cos(this.degToRad(v)));
-                    case 'TAN': return this.radToDeg(Math.tan(this.degToRad(v)));
+                    // Las funciones trigonométricas reciben el ángulo según MODE,
+                    // pero devuelven el valor adimensional real, no otro ángulo.
+                    case 'SIN': return Math.sin(this.degToRad(v));
+                    case 'COS': return Math.cos(this.degToRad(v));
+                    case 'TAN': return Math.tan(this.degToRad(v));
                     case 'ASN': return this.radToDeg(Math.asin(v));
                     case 'ACS': return this.radToDeg(Math.acos(v));
                     case 'ATN': return this.radToDeg(Math.atan(v));
@@ -2723,6 +2835,26 @@
             async execImmediate(cmdStr) {
                 try {
                     cmdStr = normalizeCasioBasicLine(cmdStr);
+                    const slotCommand = String(cmdStr).match(/^\s*P\s*:\s*([0-9])\s*!?\s*$/i);
+                    if (slotCommand) {
+                        this.selectProgramSlot(Number(slotCommand[1]));
+                        return;
+                    }
+                    if (this.operationMode === 'CAL' && this.isCalculatorExpression(cmdStr)) {
+                        const tokens = tokenize(cmdStr);
+                        const parser = new Parser(tokens);
+                        const expression = parser.parseExpression();
+                        if (parser.peek().type !== 'EOF') throw new BasicError(1, 'Expresión de cálculo incompleta');
+                        const result = this.evalExpr(expression);
+                        if (typeof result !== 'number' || !Number.isFinite(result)) throw new BasicError(12, 'Resultado fuera de rango');
+                        this.lastAnswer = result;
+                        const display = `= ${Number.isInteger(result) ? result : Number(result.toPrecision(12))}`;
+                        lcd.clear();
+                        lcd.print(display);
+                        printTerm(display);
+                        updateStatus();
+                        return;
+                    }
                     const numbered = String(cmdStr).match(/^\s*(\d+)\s*(.*)$/);
                     if (numbered) {
                         let lineNum = parseInt(numbered[1], 10);
@@ -2748,8 +2880,7 @@
                             this.program = [];
                             this.resetState();
                         } else if (stmt.type === 'CLEAR') {
-                            this.vars = {};
-                            this.arrays = {};
+                            this.clearWorkspace();
                         } else if (stmt.type === 'VARLIST') {
                             for (let k in this.vars) printTerm(`${k} = ${this.vars[k]}`);
                             for (let k in this.arrays) printTerm(`${k}() [Array]`);
@@ -2773,6 +2904,14 @@
                     else printTerm(`?Error: ${e.message}`);
                     printTerm('READY');
                 }
+            }
+
+            isCalculatorExpression(source) {
+                const text = String(source || '').trim().toUpperCase();
+                if (!text || /^\d+\s/.test(text)) return false;
+                // En CAL solo se evalúan expresiones puras: no asignaciones ni órdenes BASIC.
+                return /^(?:[0-9.\s+*/^(),-]|PI|SIN|COS|TAN|ASN|ACS|ATN|LOG|LN|EXP|SQR|ABS|INT|FIX|FRAC|ROUND|FACT|NPR|NCR|MOD|RND|RAN#)+$/.test(text)
+                    && !text.includes('=');
             }
         }
 
@@ -2946,11 +3085,28 @@
                 else if (key === 'EXT') machine.extMode = !machine.extMode;
                 else if (key === 'MODE') { machine.awaitingModeDigit = true; printTerm('MODE: pulsa 0 CAL, 1 BASIC, 4 DEG, 5 RAD, 6 GRA'); }
                 else if (key === 'MEM') { machine.operationMode = 'MEMO'; machine.refreshVfsPanel(); }
+                else if (key === 'CLEAR' && machine.shiftMode) {
+                    machine.shiftMode = false;
+                    machine.clearTerminal();
+                    printTerm('TERMINAL LIMPIO');
+                }
+                else if (key === 'CLEAR') {
+                    machine.clearWorkspace();
+                    termIn.value = '';
+                    printTerm('CLEAR OK');
+                }
                 else if (key === 'ANS') termIn.value += String(machine.lastAnswer ?? 0);
                 else if (key === 'BRK') { machine.isRunning = false; printTerm('BREAK'); }
                 else if (key === 'MENU' || (key === 'LIB' && machine.shiftMode)) renderLibMenu();
                 else if (key === 'LIB') await runLibrary(libCodeInput.value || '0400');
-                else if (key === 'EXE') await machine.execImmediate(termIn.value || 'RUN');
+                else if (machine.shiftMode && /^[0-9]$/.test(key)) {
+                    machine.shiftMode = false;
+                    machine.selectProgramSlot(Number(key));
+                }
+                else if (key === 'EXE') {
+                    await machine.execImmediate(termIn.value || 'RUN');
+                    termIn.value = '';
+                }
                 else if (key === 'SPACE') termIn.value += ' ';
                 else if (/^P\d$/.test(key)) termIn.value = `${key}: `;
                 else if (['UP','DOWN','LEFT','RIGHT'].includes(key)) machine.keyBuffer.push(key);
@@ -2958,6 +3114,7 @@
                     const shifted = machine.shiftMode ? (button.querySelector('.shift-label')?.textContent || key) : key;
                     termIn.value += machine.capsMode ? shifted.toUpperCase() : shifted.toLowerCase();
                 }
+                mirrorInputOnLcd();
                 setLamp('ind-shift', machine.shiftMode || machine.awaitingModeDigit);
                 updateStatus();
                 termIn.focus();
@@ -2995,6 +3152,8 @@
                 termOut.scrollTop = termOut.scrollHeight;
             }
         });
+        termIn.addEventListener('input', mirrorInputOnLcd);
+        termIn.addEventListener('focus', mirrorInputOnLcd);
 
         // Initialize display
         document.getElementById('ind-deg').classList.add('active');
