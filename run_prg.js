@@ -184,6 +184,9 @@ async function runFileMode(machine, termOut, filePath, runAfterLoad) {
   await machine.execImmediate('NEW');
 
   for (const line of lines) {
+    // Los paquetes Casio pueden incluir índices .bas con texto descriptivo sin número de línea.
+    // El intérprete web también ignora esas líneas al cargar con LOAD.
+    if (!/^\s*\d+\b/.test(line)) continue;
     await machine.execImmediate(line);
   }
 
