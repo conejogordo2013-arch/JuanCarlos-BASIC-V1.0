@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Intérprete BASIC JuanCarlos</title>
+    <title>JuanCarlos-COMPUTER-700 / JCC-700</title>
     <style>
         :root {
             --lcd-bg: #9ba89e;
@@ -364,16 +364,46 @@
             padding: 6px;
         }
 
+        /* JCC-700 skin: cuerpo tipo pocket computer Casio con LCD 32x2 */
+        .container { max-width: 980px; }
+        .calculator { background: linear-gradient(145deg,#c7c7bd,#8c8f84); border: 5px solid #5d625b; border-radius: 10px; padding: 14px; box-shadow: inset 0 2px 8px rgba(255,255,255,.45), inset 0 -5px 12px rgba(0,0,0,.35), 0 12px 35px rgba(0,0,0,.55); }
+        .brand { display:grid; grid-template-columns: 1fr auto auto; gap: 12px; align-items:end; color:#28302d; background:#d7d7cc; border:1px solid #777b70; border-radius:3px; padding:4px 8px; margin-bottom:8px; font-style:normal; letter-spacing:.8px; }
+        .brand b { font-size:1.02rem; color:#111; }
+        .brand em { font-size:.72rem; color:#6b1515; font-style:normal; }
+        .lcd-bezel { background: linear-gradient(#5b6258,#20251f); border: 2px solid #111; border-radius: 4px; padding: 10px 14px; }
+        .lcd-screen { background:#aeb789; color:#253224; border: 4px solid #69705e; border-radius:2px; box-shadow: inset 0 0 12px rgba(21,35,20,.7); font-family:'Courier New',monospace; font-weight:700; letter-spacing:2px; image-rendering:pixelated; }
+        .status-panel { background:#bfc3b0; border:1px solid #777b70; padding:4px; grid-template-columns: repeat(8, minmax(40px,1fr)); }
+        .status-lamp { background:#aeb789; border-color:#747b67; color:#3e4938; }
+        .status-lamp.active { background:#2c3829; color:#d6e2b7; box-shadow:none; }
+        .status-digits { max-width: 260px; align-self:flex-end; }
+        .status-digit { background:#aeb789; color:#253224; border-color:#747b67; font-weight:bold; }
+        .keyboard-panel { background:#d0d1c6; border:2px solid #6d716a; border-radius:5px; padding:8px; box-shadow: inset 0 1px 6px rgba(0,0,0,.25); }
+        .top-row { grid-template-columns: repeat(9, minmax(44px,1fr)); }
+        .jcc-body-grid { display:grid; grid-template-columns: 1.75fr 1fr; gap:10px; align-items:start; }
+        .alpha-pad,.numeric-pad { background:#a8aaa0; border:1px solid #777b70; border-radius:4px; padding:7px; }
+        .alpha-row { grid-template-columns: repeat(10, minmax(32px,1fr)); }
+        .num-row { grid-template-columns: repeat(4, minmax(44px,1fr)); }
+        .calc-key { min-height:30px; border-radius:4px; border:1px solid #151515; background:linear-gradient(#565b58,#252927); color:#f1f1e9; box-shadow: inset 0 1px 1px rgba(255,255,255,.35), 0 2px 0 #111; font-weight:bold; font-size:.78rem; }
+        .calc-key.tiny { min-height:24px; font-size:.62rem; color:#1c2521; background:linear-gradient(#eceee2,#a9ada2); }
+        .calc-key.fn { background:linear-gradient(#eceee2,#a9ada2); color:#1c2521; }
+        .calc-key.op { background:linear-gradient(#323b38,#101211); color:#fff; }
+        .calc-key.red { background:linear-gradient(#e26b65,#8e2623); color:#fff; }
+        .calc-key.exe { background:linear-gradient(#2d3634,#0b0d0c); color:#fff; font-size:.7rem; }
+        .calc-key.wide { grid-column: span 2; }
+        .calc-key .shift-label { color:#8f1515; top:-8px; font-size:.52rem; }
+        .jcc-key-help,.jcc-lcd-help { margin-top:8px; background:#b8bd8b; border:1px solid #6d715b; color:#27352b; border-radius:3px; padding:6px 8px; font-size:.68rem; line-height:1.35; }
+        @media (max-width: 760px) { .jcc-body-grid { grid-template-columns:1fr; } .brand { grid-template-columns:1fr; } .tools-grid { grid-template-columns:1fr; } }
+
     </style>
 </head>
 <body>
 
-    <h1>JuanCarlos</h1>
+    <h1>JuanCarlos-COMPUTER-700</h1>
 
     <div class="container">
         <!-- Calculator Body (LCD) -->
         <div class="calculator">
-            <div class="brand">JuanCarlos <span style="font-size: 0.8rem; font-weight: normal;">BASIC JC V1.0</span></div>
+            <div class="brand"><span>CASIO FX-880P INSPIRED</span><b>JuanCarlos-COMPUTER-700</b><em>JCC-700 BASIC</em></div>
             <div class="lcd-bezel">
                 <div class="lcd-screen" id="lcd-container">
                     <pre id="lcd-content"></pre>
@@ -385,11 +415,22 @@
             </div>
             <div class="status-digits"><div class="status-digit" id="stat-n0">0</div><div class="status-digit" id="stat-n1">0</div><div class="status-digit" id="stat-n2">0</div><div class="status-digit" id="stat-n3">0</div><div class="status-digit" id="stat-n4">0</div></div>
             <div class="keyboard-panel" id="keyboard-panel">
-                <div class="key-row"><button class="calc-key" data-key="LIB"><span class="shift-label">MENU</span>LIB</button><button class="calc-key" data-key="MENU">MENU</button><button class="calc-key" data-key="IN">IN</button><button class="calc-key" data-key="OUT">OUT</button><button class="calc-key" data-key="CALC">CALC</button><button class="calc-key" data-key="MODE">MODE</button><button class="calc-key" data-key="CAPS">CAPS</button><button class="calc-key" data-key="MEM">MEM</button><button class="calc-key" data-key="INS">INS</button><button class="calc-key" data-key="SHIFT">SHIFT</button></div>
-                <div class="key-row"><button class="calc-key" data-key="LOG"><span class="shift-label">10^X</span>LOG</button><button class="calc-key" data-key="LN"><span class="shift-label">e^X</span>LN</button><button class="calc-key" data-key="HYP"><span class="shift-label">SET</span>HYP</button><button class="calc-key" data-key="SIN"><span class="shift-label">SIN-1</span>SIN</button><button class="calc-key" data-key="COS"><span class="shift-label">COS-1</span>COS</button><button class="calc-key" data-key="TAN"><span class="shift-label">TAN-1</span>TAN</button><button class="calc-key" data-key="&H"><span class="shift-label">HEX$(</span>&H</button><button class="calc-key" data-key="DEG("><span class="shift-label">DMS$(</span>DEG(</button><button class="calc-key" data-key="("><span class="shift-label">INT</span>(</button><button class="calc-key" data-key=")"><span class="shift-label">FRAC</span>)</button></div>
-                <div class="key-row"><button class="calc-key" data-key="UP">ARRIBA</button><button class="calc-key" data-key="DOWN">ABAJO</button><button class="calc-key" data-key="LEFT">IZQ</button><button class="calc-key" data-key="RIGHT">DER</button><button class="calc-key" data-key="SQR("><span class="shift-label">FACT</span>√</button><button class="calc-key" data-key="*">*</button><button class="calc-key" data-key="/">/</button><button class="calc-key" data-key="-">-</button><button class="calc-key" data-key="+">+</button><button class="calc-key" data-key=".">.</button></div>
-                <div class="key-row"><button class="calc-key" data-key="P0">P0</button><button class="calc-key" data-key="P1">P1</button><button class="calc-key" data-key="P2">P2</button><button class="calc-key" data-key="P3">P3</button><button class="calc-key" data-key="P4">P4</button><button class="calc-key" data-key="P5">P5</button><button class="calc-key" data-key="P6">P6</button><button class="calc-key" data-key="P7">P7</button><button class="calc-key" data-key="P8">P8</button><button class="calc-key" data-key="P9">P9</button></div>
-                <div class="key-row"><button class="calc-key" data-key="SPACE">SPACE</button><button class="calc-key" data-key="EXE">EXE</button></div>
+                <div class="key-row top-row"><button class="calc-key tiny" data-key="SHIFT">SHIFT</button><button class="calc-key tiny" data-key="MODE">MODE</button><button class="calc-key tiny" data-key="CAPS">CAPS</button><button class="calc-key tiny" data-key="MEM">MEMO</button><button class="calc-key tiny" data-key="INS"><span class="shift-label">DEL</span>INS</button><button class="calc-key tiny" data-key="EXT">EXT</button><button class="calc-key tiny" data-key="LIB">LIB</button><button class="calc-key tiny" data-key="ANS">ANS</button><button class="calc-key red" data-key="BRK">BRK</button></div>
+                <div class="jcc-body-grid">
+                    <div class="alpha-pad">
+                        <div class="key-row alpha-row"><button class="calc-key" data-key="Q">Q</button><button class="calc-key" data-key="W">W</button><button class="calc-key" data-key="E">E</button><button class="calc-key" data-key="R">R</button><button class="calc-key" data-key="T">T</button><button class="calc-key" data-key="Y">Y</button><button class="calc-key" data-key="U">U</button><button class="calc-key" data-key="I">I</button><button class="calc-key" data-key="O">O</button><button class="calc-key" data-key="P">P</button></div>
+                        <div class="key-row alpha-row"><button class="calc-key" data-key="A">A</button><button class="calc-key" data-key="S">S</button><button class="calc-key" data-key="D">D</button><button class="calc-key" data-key="F">F</button><button class="calc-key" data-key="G">G</button><button class="calc-key" data-key="H">H</button><button class="calc-key" data-key="J">J</button><button class="calc-key" data-key="K">K</button><button class="calc-key" data-key="L">L</button><button class="calc-key" data-key=",">,</button></div>
+                        <div class="key-row alpha-row"><button class="calc-key" data-key="Z">Z</button><button class="calc-key" data-key="X">X</button><button class="calc-key" data-key="C">C</button><button class="calc-key" data-key="V">V</button><button class="calc-key" data-key="B">B</button><button class="calc-key" data-key="N">N</button><button class="calc-key" data-key="M">M</button><button class="calc-key" data-key=";">;</button><button class="calc-key wide" data-key="SPACE">SPACE</button></div>
+                    </div>
+                    <div class="numeric-pad">
+                        <div class="key-row num-row"><button class="calc-key fn" data-key="SIN">SIN</button><button class="calc-key fn" data-key="COS">COS</button><button class="calc-key fn" data-key="TAN">TAN</button><button class="calc-key fn" data-key="LOG">LOG</button></div>
+                        <div class="key-row num-row"><button class="calc-key" data-key="7">7</button><button class="calc-key" data-key="8">8</button><button class="calc-key" data-key="9">9</button><button class="calc-key op" data-key="/">÷</button></div>
+                        <div class="key-row num-row"><button class="calc-key" data-key="4">4</button><button class="calc-key" data-key="5">5</button><button class="calc-key" data-key="6">6</button><button class="calc-key op" data-key="*">×</button></div>
+                        <div class="key-row num-row"><button class="calc-key" data-key="1">1</button><button class="calc-key" data-key="2">2</button><button class="calc-key" data-key="3">3</button><button class="calc-key op" data-key="-">−</button></div>
+                        <div class="key-row num-row"><button class="calc-key" data-key="0">0</button><button class="calc-key" data-key=".">.</button><button class="calc-key op" data-key="+">+</button><button class="calc-key exe" data-key="EXE">EXE</button></div>
+                    </div>
+                </div>
+                <div class="jcc-key-help">MODE+0 CAL · MODE+1 BASIC · MODE+4 DEG · MODE+5 RAD · MODE+6 GRA · CAPS may/min · MEMO banco de datos · SHIFT+INS DEL · EXT símbolos · BRK detiene · EXE ejecuta · LIB+código+EXE biblioteca · ANS último resultado · DEFM memoria activa · DEFCHR$/DEFSEG caracteres personalizados 5x7.</div>
             </div>
         </div>
 
@@ -1485,6 +1526,13 @@
 
                 this.trace = false;
                 this.angleMode = 1; // 0=RAD, 1=DEG, 2=GRA
+                this.operationMode = 'BASIC';
+                this.shiftMode = false;
+                this.capsMode = true;
+                this.insertMode = false;
+                this.extMode = false;
+                this.awaitingModeDigit = false;
+                this.lastAnswer = 0;
 
                 this.onErrorLine = -1;
                 this.errCode = 0;
@@ -2740,15 +2788,15 @@
         }
 
         function updateStatus(extra = {}) {
-            setLamp('ind-basic', true);
-            setLamp('ind-cal', !machine.isRunning && !machine.program.length);
+            setLamp('ind-basic', machine.operationMode !== 'CAL');
+            setLamp('ind-cal', machine.operationMode === 'CAL');
             setLamp('ind-run', machine.isRunning);
             setLamp('ind-stop', !!extra.stop, !!extra.stop);
             setLamp('ind-tron', machine.trace);
             setLamp('ind-lib', !!machine.libActive);
             setLamp('ind-edit', document.activeElement === termIn);
             setLamp('ind-in', machine.awaitingInput || !!machine.fileState?.handle || !!machine.vfsOpen);
-            setLamp('ind-memo', Object.keys(machine.vars || {}).length > 0 || Object.keys(machine.arrays || {}).length > 0);
+            setLamp('ind-memo', machine.operationMode === 'MEMO' || Object.keys(machine.vars || {}).length > 0 || Object.keys(machine.arrays || {}).length > 0);
             setLamp('ind-prt', !!machine.printerActive);
             setLamp('ind-defm', machine.segment !== 0);
             setLamp('ind-ins', !!machine.insertMode);
@@ -2888,18 +2936,29 @@
                 const key = button.dataset.key || button.textContent.trim();
                 document.querySelectorAll('.calc-key').forEach((b) => b.classList.remove('active-key'));
                 button.classList.add('active-key');
-                if (key === 'SHIFT') machine.shiftMode = !machine.shiftMode;
+                if (machine.awaitingModeDigit && /^[0-9]$/.test(key)) {
+                    machine.applyModeStatement({ args: [{ type: 'LITERAL', value: Number(key) }] });
+                    machine.awaitingModeDigit = false;
+                    printTerm(`MODE+${key}`);
+                } else if (key === 'SHIFT') machine.shiftMode = !machine.shiftMode;
                 else if (key === 'CAPS') machine.capsMode = !machine.capsMode;
                 else if (key === 'INS') machine.insertMode = !machine.insertMode;
-                else if (key === 'MODE') machine.angleMode = (machine.angleMode + 1) % 3;
+                else if (key === 'EXT') machine.extMode = !machine.extMode;
+                else if (key === 'MODE') { machine.awaitingModeDigit = true; printTerm('MODE: pulsa 0 CAL, 1 BASIC, 4 DEG, 5 RAD, 6 GRA'); }
+                else if (key === 'MEM') { machine.operationMode = 'MEMO'; machine.refreshVfsPanel(); }
+                else if (key === 'ANS') termIn.value += String(machine.lastAnswer ?? 0);
+                else if (key === 'BRK') { machine.isRunning = false; printTerm('BREAK'); }
                 else if (key === 'MENU' || (key === 'LIB' && machine.shiftMode)) renderLibMenu();
                 else if (key === 'LIB') await runLibrary(libCodeInput.value || '0400');
                 else if (key === 'EXE') await machine.execImmediate(termIn.value || 'RUN');
                 else if (key === 'SPACE') termIn.value += ' ';
                 else if (/^P\d$/.test(key)) termIn.value = `${key}: `;
                 else if (['UP','DOWN','LEFT','RIGHT'].includes(key)) machine.keyBuffer.push(key);
-                else termIn.value += machine.shiftMode ? (button.querySelector('.shift-label')?.textContent || key) : key;
-                setLamp('ind-shift', machine.shiftMode);
+                else {
+                    const shifted = machine.shiftMode ? (button.querySelector('.shift-label')?.textContent || key) : key;
+                    termIn.value += machine.capsMode ? shifted.toUpperCase() : shifted.toLowerCase();
+                }
+                setLamp('ind-shift', machine.shiftMode || machine.awaitingModeDigit);
                 updateStatus();
                 termIn.focus();
             });
