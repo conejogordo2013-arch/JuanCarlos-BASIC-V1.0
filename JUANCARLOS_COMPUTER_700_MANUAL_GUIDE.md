@@ -519,10 +519,7 @@ conocido y que pase en el intérprete.
 
 ### Progreso actual de portabilidad
 
-La colección completa de **142** ficheros carga en el intérprete y supera la
-comprobación de carga. También se han incorporado compatibilidades de sintaxis
-Casio para `MODE` compacto, `INPUT$`, `DIM` sin argumentos, operadores sin
-espacio (`ANDa`, `ORFRACx`) y manejadores `ON ERROR GOTO` con `ERR`/`ERL`.
+La **Scientific Library 120 / JCC-120** presenta 120 programas científicos principales y conserva **142** ficheros `.bas` en total contando menús y auxiliares. La colección completa carga en el intérprete y supera la comprobación de carga. También se han incorporado compatibilidades de sintaxis Casio para `MODE` compacto, `INPUT$`, `DIM` sin argumentos, `DATA` textual sin comillas, `RESTORE n`, operadores sin espacio (`ANDa`, `ORFRACx`) y manejadores `ON ERROR GOTO` con `ERR`/`ERL`.
 
 Este avance es de **compatibilidad de análisis y arranque**, no una promoción
 automática a 🟢. La auditoría de agosto de 2026 aún encuentra líneas Casio que
@@ -544,6 +541,7 @@ el intérprete y en pruebas externas.
 | `OPEN`, `CLOSE`, `PRINT#`, `INPUT#` | Trabaja con el VFS de la sesión, no con COM, cinta ni tarjeta Casio. |
 | `GOTO/GOSUB "LIB0:..."` | Resuelve módulos de biblioteca disponibles en el árbol mediante el cargador de la JCC-700. |
 | `INPUT$` e `INKEY$` | Lee el búfer de teclado. En el modo de prueba se detiene como `INPUT REQUIRED`, sin fabricar pulsaciones. |
+| `DATA` textual y `RESTORE n` | Conserva fórmulas/tablas sin comillas como texto y reposiciona `READ` por línea Casio. |
 
 Los puertos serie, cinta, impresora, ROM real, mapa de memoria del FX-850P y
 sus teclas físicas especiales no se pueden certificar como equivalentes en un

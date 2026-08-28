@@ -412,7 +412,7 @@
     <div class="container">
         <!-- Calculator Body (LCD) -->
         <div class="calculator">
-            <div class="brand"><span>BASADA EN CASIO FX-880P</span><b>JuanCarlos-COMPUTER-700</b><em>JCC-700 BASIC</em></div>
+            <div class="brand"><span>BASADA EN CASIO FX-880P</span><b>JuanCarlos-COMPUTER-700</b><em>JCC-700 BASIC · SCIENTIFIC LIBRARY 120</em></div>
             <div class="lcd-bezel">
                 <div class="lcd-screen" id="lcd-container">
                     <canvas id="lcd-pixels" width="160" height="14" role="img" aria-label="Pantalla LCD de 32 columnas por 2 filas"></canvas>
@@ -715,7 +715,7 @@
                 s = s.replace(/\bINPUT\s*@\s*\d+\s*;?/gi, 'INPUT ');
                 // INPUT$(n,@) lee una sola tecla del teclado Casio; n y @ son
                 // parámetros de dispositivo/posición, no parte del valor.
-                s = s.replace(/\bINPUT\$\s*\(\s*\d+\s*(?:,\s*@\s*)?\)/gi, 'INPUT$');
+                s = s.replace(/INPUT\$\s*\(\s*\d+\s*(?:,\s*(?:@|\d+)\s*)?\)/gi, 'INPUT$');
                 // No separar el sufijo `$`: `INPUT$` es una función distinta
                 // de la sentencia INPUT y las bibliotecas la usan para leer
                 // teclas sin introducir una respuesta artificial.
@@ -1352,34 +1352,30 @@
                         } while (this.match('PUNCT', ','));
                         return { type: 'DIM', arrays: dims };
 
-                    case 'DATA':
+                    case 'DATA': {
+                        const tokenText = (tok) => {
+                            if (!tok) return '';
+                            if (tok.type === 'STRING') return String(tok.value);
+                            return String(tok.value ?? '');
+                        };
+                        const finish = (items) => {
+                            if (items.length === 0) return '';
+                            if (items.length === 1 && items[0].type === 'NUMBER') return items[0].value;
+                            return items.map(tokenText).join('');
+                        };
                         let dataVals = [];
-                        do {
-                            let pt = this.peek();
-                            if (pt.type === 'NUMBER' || pt.type === 'STRING') {
-                                let value = this.consume().value;
-                                // En DATA Casio un byte hexadecimal como `1E`
-                                // llega al lexer como NUMBER(1) + VAR(E).
-                                // Sin coma intermedia sigue siendo un literal.
-                                if (pt.type === 'NUMBER' && this.peek().type === 'VAR') {
-                                    value = String(value) + String(this.consume().value);
-                                }
-                                dataVals.push(value);
-                            } else if (pt.type === 'OPERATOR' && pt.value === '-') {
-                                this.consume();
-                                let num = this.consume().value;
-                                dataVals.push(-num);
-                            } else if (pt.type === 'VAR' || pt.type === 'KEYWORD') {
-                                // Los listados Casio permiten DATA sin comillas
-                                // (incluidos bytes hexadecimales como 1E/F8).
-                                // Se conserva el literal para que READ lo
-                                // convierta según el tipo de destino.
-                                dataVals.push(String(this.consume().value));
+                        let current = [];
+                        while (this.peek().type !== 'EOF' && this.peek().type !== 'SEP') {
+                            if (this.match('PUNCT', ',')) {
+                                dataVals.push(finish(current));
+                                current = [];
                             } else {
-                                throw new BasicError(1, "Se esperaba valor literal en DATA");
+                                current.push(this.consume());
                             }
-                        } while (this.match('PUNCT', ','));
+                        }
+                        dataVals.push(finish(current));
                         return { type: 'DATA', values: dataVals };
+                    }
                     
                     case 'READ':
                         let readVars = [];
@@ -1389,7 +1385,13 @@
                         }
                         return { type: 'READ', vars: readVars };
                     
-                    case 'RESTORE': return { type: 'RESTORE' };
+                    case 'RESTORE': {
+                        let lineExpr = null;
+                        if (this.peek().type !== 'EOF' && !(this.peek().type === 'PUNCT' && this.peek().value === ':')) {
+                            lineExpr = this.parseExpression();
+                        }
+                        return { type: 'RESTORE', lineExpr };
+                    }
                     
                     case 'ON':
                         if ((this.peek().type === 'KEYWORD' || this.peek().type === 'VAR') && this.peek().value === 'ERROR') {
@@ -1763,7 +1765,7 @@
                     DIM: async (stmt) => this.handleDim(stmt),
                     DATA: async () => ({}),
                     READ: async (stmt) => this.handleRead(stmt),
-                    RESTORE: async () => { this.dataPtr = 0; return {}; },
+                    RESTORE: async (stmt) => this.handleRestore(stmt),
                     ON: async (stmt) => this.handleOn(stmt),
                     CLEAR: async () => { this.clearWorkspace(); return {}; },
                     POKE: async (stmt) => {
@@ -1966,6 +1968,7 @@
             }
 
             resetState() {
+                const keepStopOnInput = this.stopOnInput === true;
                 this.vars = {};
                 this.arrays = {};
                 this.dataArray = [];
@@ -1980,6 +1983,7 @@
                 this.initCompatMemory();
                 lcd.clear();
                 this.prngState = 0x1234abcd;
+                this.stopOnInput = keepStopOnInput;
             }
 
             clearWorkspace() {
@@ -2291,9 +2295,13 @@
 
             scanData() {
                 this.dataArray = [];
+                this.dataLineIndex = new Map();
                 for (let p of this.program) {
                     for (let s of p.stmts) {
-                        if (s.type === 'DATA') this.dataArray.push(...s.values);
+                        if (s.type === 'DATA') {
+                            if (!this.dataLineIndex.has(p.line)) this.dataLineIndex.set(p.line, this.dataArray.length);
+                            this.dataArray.push(...s.values);
+                        }
                     }
                 }
                 this.dataPtr = 0;
@@ -2830,6 +2838,22 @@
                     }
                     this.arrays[a.name] = { dims: ds, data: new Array(totalSize).fill(a.name.endsWith('$') ? '' : 0) };
                 }
+                return {};
+            }
+
+            async handleRestore(stmt) {
+                if (!stmt.lineExpr) {
+                    this.dataPtr = 0;
+                    return {};
+                }
+                const target = Math.floor(this.evalExpr(stmt.lineExpr));
+                if (!this.dataLineIndex) this.scanData();
+                let ptr = this.dataLineIndex.get(target);
+                if (ptr === undefined) {
+                    const nextLine = [...this.dataLineIndex.keys()].filter((line) => line >= target).sort((a, b) => a - b)[0];
+                    ptr = nextLine === undefined ? this.dataArray.length : this.dataLineIndex.get(nextLine);
+                }
+                this.dataPtr = ptr;
                 return {};
             }
 

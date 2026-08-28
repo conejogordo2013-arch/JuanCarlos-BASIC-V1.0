@@ -185,6 +185,7 @@ async function runFileMode(machine, termOut, filePath, runAfterLoad) {
     .filter((l) => l.length > 0);
 
   await machine.execImmediate('NEW');
+  if (machine.__smokeMode) machine.stopOnInput = true;
 
   for (const line of lines) {
     // Los paquetes Casio pueden incluir índices .bas con texto descriptivo sin número de línea.
@@ -226,7 +227,10 @@ async function main() {
 
   const { machine, termOut } = bootInterpreter(args.html);
 
-  if (args.smoke) machine.stopOnInput = true;
+  if (args.smoke) {
+    machine.stopOnInput = true;
+    machine.__smokeMode = true;
+  }
 
   if (args.keys && args.keys.length) {
     machine.keyBuffer = args.keys.split('');
