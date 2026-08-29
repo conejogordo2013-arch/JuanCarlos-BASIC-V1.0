@@ -1956,6 +1956,11 @@
                 this.memory[32 * 1024 - 129] = 0x80;
                 this.memory[0x6B4] = 128; // 32 KB RAM: 128/4 + 0*64
                 this.memory[0x6B5] = 0;
+                // Estado de tecla ENTER/EXE Casio: las rutinas de biblioteca
+                // miran PEEK(&H65B)-13 tras INPUT@ para saber si se confirmó
+                // el dato. 13 mantiene los formularios (p. ej. LIB5230)
+                // avanzando en JCC-700 en lugar de tratar cada entrada como BRK.
+                this.memory[0x65B] = 13;
                 this.memory[0x4000 * 16 + 0] = 0x43;
                 this.memory[0x4000 * 16 + 4] = 127; // ROM=(127+1)*2 = 256K
                 this.memory[0x4000 * 16 + 5] = 0;

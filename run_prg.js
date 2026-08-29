@@ -124,13 +124,16 @@ function bootInterpreter(htmlPath) {
   };
   global.__basicLoadHook = async (requestedPath) => {
     const candidate = String(requestedPath || '').trim();
-    const abs = path.resolve(process.cwd(), candidate);
+    const loadRoot = process.env.BASIC_LOAD_ROOT || process.cwd();
+    const abs = path.isAbsolute(candidate) ? candidate : path.resolve(loadRoot, candidate);
     if (!fs.existsSync(abs)) throw new Error(`LOAD: no existe ${candidate}`);
     return fs.readFileSync(abs, 'utf8');
   };
   global.__basicFileHook = {
     async open(requestedPath, mode) {
-      const abs = path.resolve(process.cwd(), String(requestedPath || '').trim());
+      const fileRoot = process.env.BASIC_FILE_ROOT || process.cwd();
+      const requested = String(requestedPath || '').trim();
+      const abs = path.isAbsolute(requested) ? requested : path.resolve(fileRoot, requested);
       const m = String(mode || 'R').toUpperCase();
       if (m === 'W') fs.writeFileSync(abs, '', 'utf8');
       if (m !== 'R' && m !== 'W' && m !== 'A') throw new Error(`modo no soportado: ${m}`);
