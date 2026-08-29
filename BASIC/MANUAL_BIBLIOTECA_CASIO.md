@@ -4,7 +4,7 @@
 
 La **JCC-120 / Scientific Library 120** expone los 120 programas científicos principales de `MB-Casio-Basic-Library`; el directorio conserva además módulos auxiliares hasta completar 142 ficheros BASIC procedentes de la biblioteca para las calculadoras/ordenadores de bolsillo Casio FX-850P y FX-880P. El índice original está en [`LIB_INFO.htm`](MB-Casio-Basic-Library/LIB_INFO.htm). Cada `LIBxxxx.bas` es un programa independiente; los prefijos `LIBM` y `LIBS` identifican subprogramas de estadística y el prefijo `LIBK` identifica el menú/lanzador.
 
-La biblioteca se conserva para consulta, uso en una máquina compatible y trabajo de portabilidad. No es una API de JuanCarlos BASIC ni sus ficheros se importan automáticamente desde las lecciones.
+La biblioteca se conserva para consulta y también queda integrada en la JCC-700: los 142 ficheros `.bas` cargan y arrancan en el ejecutor de smoke sin errores BASIC. No es una API de JuanCarlos BASIC ni sus ficheros se importan automáticamente desde las lecciones.
 
 ## 2. Ejecución en JuanCarlos BASIC
 
@@ -36,7 +36,7 @@ Use siempre el comprobador de la raíz:
 ./scripts/check_basic_compat.sh
 ```
 
-La prueba de carga verifica el contrato mínimo reproducible: hay 142 ficheros `.bas` preservados (120 entradas científicas más auxiliares/menús), todos se cargan y todos devuelven `READY` sin errores de parseo. Para ejecutar toda la colección sin inventar respuestas, use además `./scripts/run_casio_library_smoke.sh`: inicia cada programa y lo detiene de forma controlada en su primera petición de teclado o de `INPUT`. Esto comprueba que cada programa alcanza su frontera interactiva sin convertir una entrada ausente en un dato falso; tampoco sustituye la validación funcional con datos de referencia.
+La prueba de carga verifica el contrato mínimo reproducible: hay 142 ficheros `.bas` preservados (120 entradas científicas más auxiliares/menús), todos se cargan y todos devuelven `READY` sin errores de parseo. Para ejecutar toda la colección sin inventar respuestas, use además `./scripts/run_casio_library_smoke.sh`: inicia cada programa y lo detiene de forma controlada al finalizar, en su primera petición de `INPUT` o cuando espera teclado Casio. Para una prueba más exigente que sí **usa** las bibliotecas, ejecute `./scripts/run_casio_library_functional.sh`: alimenta cada programa con entradas y teclas sintéticas configurables para atravesar menús y cálculos sin quedarse en un simple `READY`. El estado aceptado en ambas es `ERRORES=0`; una espera de menú tras usar entradas no es fallo, sino una frontera interactiva correcta. Esto comprueba que cada programa alcanza su función o su petición de datos sin convertir una entrada ausente en un dato falso; no sustituye la validación matemática con datos de referencia.
 
 Para validar **un** programa de forma funcional:
 
@@ -50,7 +50,7 @@ Para validar **un** programa de forma funcional:
 
 Los programas usan construcciones y dispositivos específicos, entre ellos `MODE`, `DEFSEG`, `PEEK`, `POKE`, `DEFCHR$`, `LPRINT`, puertos `COM`/`CAS`, teclado por `INPUT$` y llamadas a otros programas. JuanCarlos BASIC puede cargar el texto, pero no garantiza que estas características tengan la semántica del hardware Casio. En particular:
 
-* Los tests de memoria, ROM, impresora, RS-232 y cinta requieren el dispositivo original o un emulador fiel.
+* Los tests de memoria, ROM, impresora, RS-232 y cinta arrancan en JCC-700 con stubs/VFS; la verificación eléctrica del dispositivo real requiere el hardware original o un emulador fiel.
 * Los subprogramas `LIBM*` y `LIBS*` deben conservarse junto a los programas estadísticos que los llaman.
 * Las líneas con `GOTO "LIB0:..."` o llamadas entre ficheros se resuelven con el cargador de bibliotecas de la JCC cuando el módulo existe en el árbol.
 * `RESTORE n` reposiciona `READ` en la primera línea `DATA` igual o posterior a `n`, necesario para índices, tablas y formularios científicos.

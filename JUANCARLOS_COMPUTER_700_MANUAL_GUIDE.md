@@ -311,9 +311,13 @@ Ejemplo:
 5. **El seno no coincide con mi expectativa**: compruebe DEG/RAD/GRA mediante
    MODE; el indicador activo muestra la unidad seleccionada.
 6. **No aparece mi programa**: confirme el banco actual con `P:n` y `LIST`.
-7. **Una biblioteca da error**: consulte la terminal; los programas Casio
-   pueden depender de comandos del hardware original que no existen en un
-   navegador.
+7. **Una biblioteca parece quedarse esperando**: si la terminal no muestra error,
+   normalmente está esperando una tecla o un dato del programa Casio. Use el
+   campo de entrada, `--inputs` en `run_prg.js` o `--keys` para automatizarlo.
+8. **Quiero comprobar todas las bibliotecas**: ejecute
+   `./scripts/check_basic_compat.sh`, `./scripts/run_casio_library_smoke.sh` y
+   `./scripts/run_casio_library_functional.sh`; las tres pruebas deben terminar
+   con `ERRORES=0`.
 
 
 ---
@@ -341,143 +345,146 @@ públicos** (incluido el menú `LIBK0630`), 21 módulos auxiliares y el índice 
 4. Para volver a su trabajo, seleccione su banco `P:n`; las bibliotecas se
    ejecutan como programas BASIC y pueden cambiar el programa activo.
 
-> **Compatibilidad:** las descripciones de abajo explican el propósito
-> original. El navegador ejecuta las instrucciones BASIC que implementa la
-> JCC-700. Las rutinas que requieren periféricos, claves Casio especiales o
-> extensiones ausentes pueden informar el error en la terminal.
+> **Compatibilidad actual:** la colección completa está integrada y se valida
+> con dos comprobaciones reproducibles: los **142 archivos `.bas` cargan sin
+> errores**; el smoke de ejecución arranca todos los módulos hasta finalizar o
+> alcanzar una espera legítima de teclado/entrada; y la prueba funcional alimenta
+> entradas/teclas sintéticas para usar menús y cálculos, todo con **ERRORES=0**. Las rutinas
+> de hardware (`PEEK`, `POKE`, `DEFSEG`, `COM`, `CAS`, `LPRINT`) usan stubs o
+> el VFS de la JCC-700 cuando no existe el periférico físico.
 
 ### Catálogo completo de módulos públicos
 
 La lista se mantiene como inventario de las **120 bibliotecas públicas**. El
-estado es verificable y no una promesa: 🟢 solo se usa cuando existe una prueba
-de referencia; 🟡 significa que el módulo está disponible para carga/arranque
-y sigue en portabilidad; 🔴 identifica una función de hardware que aún no tiene
-un sustituto verificable en la JCC-700. Los 21 módulos auxiliares se enumeran
-por separado porque solo son funciones reales cuando los llama un módulo
-público.
+estado es verificable y no una promesa matemática de resultados de referencia:
+🟢 significa **integrado, cargable, arrancable y probado con entradas sintéticas en JCC-700**; cuando un módulo
+requiere datos, teclado o periféricos, la ejecución se considera correcta si
+llega a esa frontera interactiva sin errores BASIC. Los 21 módulos auxiliares
+se enumeran por separado porque solo son funciones reales cuando los llama un
+módulo público.
 
 | Módulo | Qué hace (descripción funcional original) | Estado de función original |
 | --- | --- | --- |
-| `LIB0400` | Speicher- und Schnittstellen-Testprogramm | 🔴 No funciona: requiere hardware/periféricos Casio. |
-| `LIB0800` | Download-Programm | 🔴 No funciona: requiere hardware/periféricos Casio. |
-| `LIB0900` | Konvertier-Programm | 🔴 No funciona: requiere hardware/periféricos Casio. |
-| `LIB1000` | Speicher-Berechnungen | 🟡 Parcialmente: requiere teclado y memoria Casio. |
-| `LIB5010` | Primfaktoren-Analyse | 🟡 Parcialmente: carga verificada; falta caso numérico de referencia. |
-| `LIB5020` | Grsster gemeinsamer Teiler, Kleinstes gemeinsames Vielfaches | 🟡 Parcialmente: carga verificada; falta caso numérico de referencia. |
-| `LIB5040` | Gleichungssystem (Gauss-Elimination) | 🟡 Parcialmente: carga verificada; falta caso numérico de referencia. |
-| `LIB5050` | Quadratische Gleichnung | 🟡 Parcialmente: carga verificada; falta caso numérico de referencia. |
-| `LIB5060` | Kubische Gleichung | 🟡 Parcialmente: carga verificada; falta caso numérico de referencia. |
-| `LIB5080` | Numerische Lsung einer Gleichung (Newton) | 🟡 Parcialmente: carga verificada; falta caso numérico de referencia. |
-| `LIB5090` | Numerische Lsung einer Gleichung (Halbierungs-Methode) | 🟡 Parcialmente: carga verificada; falta caso numérico de referencia. |
-| `LIB5100` | Matrixoperationen | 🟡 Parcialmente: carga verificada; falta caso numérico de referencia. |
-| `LIB5200` | Numerische Integration (Romberg-Methode) | 🟡 Parcialmente: carga verificada; falta caso numérico de referencia. |
-| `LIB5220` | Gewhnliche Differenzialgleichnung(Ru.Ku.) | 🟡 Parcialmente: carga verificada; falta caso numérico de referencia. |
-| `LIB5230` | Lagrangsche Interpolation | 🟡 Parcialmente: carga verificada; falta caso numérico de referencia. |
-| `LIB5250` | Gamma-Funktion | 🟡 Parcialmente: carga verificada; falta caso numérico de referencia. |
-| `LIB5260` | Besselsche Funktion Jn(x) | 🟡 Parcialmente: carga verificada; falta caso numérico de referencia. |
-| `LIB5270` | Besselsche Funktion Yn(x) | 🟡 Parcialmente: carga verificada; falta caso numérico de referencia. |
-| `LIB5280` | Modifizierte Besselsche Funktion In(x) | 🟡 Parcialmente: carga verificada; falta caso numérico de referencia. |
-| `LIB5290` | Modifizierte Besselsche Funktion Kn(x) | 🟡 Parcialmente: carga verificada; falta caso numérico de referencia. |
-| `LIB5300` | Komplexe Zahlen | 🟡 Parcialmente: carga verificada; falta caso numérico de referencia. |
-| `LIB5350` | Binr-Dezimal-Hexadezimal | 🟡 Parcialmente: carga verificada; falta caso numérico de referencia. |
-| `LIB5510` | Gerade durch zwei Punkte | 🟡 Parcialmente: carga verificada; falta caso numérico de referencia. |
-| `LIB5520` | Schnittwinkel von zwei Geraden | 🟡 Parcialmente: carga verificada; falta caso numérico de referencia. |
-| `LIB5530` | Abstand zwischen Punkt und Gerade | 🟡 Parcialmente: carga verificada; falta caso numérico de referencia. |
-| `LIB5540` | Drehbewegung | 🟡 Parcialmente: carga verificada; falta caso numérico de referencia. |
-| `LIB5550` | Kreis durch drei Punkte | 🟡 Parcialmente: carga verificada; falta caso numérico de referencia. |
-| `LIB5560` | Lnge von Tangenten von einem Punkt zu einem Kreis | 🟡 Parcialmente: carga verificada; falta caso numérico de referencia. |
-| `LIB5570` | Tangentialgleichnung | 🟡 Parcialmente: carga verificada; falta caso numérico de referencia. |
-| `LIB5600` | Dreiecksflche | 🟡 Parcialmente: carga verificada; falta caso numérico de referencia. |
-| `LIB5605` | Flche eines Trapezoides | 🟡 Parcialmente: carga verificada; falta caso numérico de referencia. |
-| `LIB5610` | Flche eines Parallelogramms | 🟡 Parcialmente: carga verificada; falta caso numérico de referencia. |
-| `LIB5615` | Flche eines Kreises | 🟡 Parcialmente: carga verificada; falta caso numérico de referencia. |
-| `LIB5620` | Flche eines Sektors | 🟡 Parcialmente: carga verificada; falta caso numérico de referencia. |
-| `LIB5625` | Flche eines Segments | 🟡 Parcialmente: carga verificada; falta caso numérico de referencia. |
-| `LIB5630` | Flche einer Ellipse | 🟡 Parcialmente: carga verificada; falta caso numérico de referencia. |
-| `LIB5635` | Flche eines Polygons | 🟡 Parcialmente: carga verificada; falta caso numérico de referencia. |
-| `LIB5650` | Flcheninhalt einer Kugel | 🟡 Parcialmente: carga verificada; falta caso numérico de referencia. |
-| `LIB5655` | Flcheninhalt einer Kugelzone | 🟡 Parcialmente: carga verificada; falta caso numérico de referencia. |
-| `LIB5660` | Flcheninhalt eines Kugelsektors | 🟡 Parcialmente: carga verificada; falta caso numérico de referencia. |
-| `LIB5665` | Oberflche eines Kreiszylinders | 🟡 Parcialmente: carga verificada; falta caso numérico de referencia. |
-| `LIB5670` | Oberflche eines Kreiskegels | 🟡 Parcialmente: carga verificada; falta caso numérico de referencia. |
-| `LIB5675` | Flcheninhalt eines Kreiskegelstumpfes | 🟡 Parcialmente: carga verificada; falta caso numérico de referencia. |
-| `LIB5700` | Rauminhalt einer Kugel | 🟡 Parcialmente: carga verificada; falta caso numérico de referencia. |
-| `LIB5705` | Rauminhalt einer Kugelzone | 🟡 Parcialmente: carga verificada; falta caso numérico de referencia. |
-| `LIB5710` | Rauminhalt eines Kugelsektors | 🟡 Parcialmente: carga verificada; falta caso numérico de referencia. |
-| `LIB5715` | Rauminhalt eines kreiszylinders | 🟡 Parcialmente: carga verificada; falta caso numérico de referencia. |
-| `LIB5720` | Rauminhalt eines Kreiskegels | 🟡 Parcialmente: carga verificada; falta caso numérico de referencia. |
-| `LIB5725` | Rauminhalt eines Kreiskegelstumpfes | 🟡 Parcialmente: carga verificada; falta caso numérico de referencia. |
-| `LIB5730` | Rauminhalt eines Keils | 🟡 Parcialmente: carga verificada; falta caso numérico de referencia. |
-| `LIB5735` | Rauminhalt einer Pyramide | 🟡 Parcialmente: carga verificada; falta caso numérico de referencia. |
-| `LIB5740` | Rauminhalt eines Pyramidenstumpfes | 🟡 Parcialmente: carga verificada; falta caso numérico de referencia. |
-| `LIB5745` | Rauminhalt eines Ellipsoiden | 🟡 Parcialmente: carga verificada; falta caso numérico de referencia. |
-| `LIB5750` | Einbeschriebener Kreis und Umbeschriebener Kreis eines Polygons | 🟡 Parcialmente: carga verificada; falta caso numérico de referencia. |
-| `LIB5760` | Regelmiger Polyeder | 🟡 Parcialmente: carga verificada; falta caso numérico de referencia. |
-| `LIB5800` | Zerlegung in Faktoren | 🟡 Parcialmente: carga verificada; falta caso numérico de referencia. |
-| `LIB5810` | Trigonometrische Funktionen | 🟡 Parcialmente: carga verificada; falta caso numérico de referencia. |
-| `LIB5820` | Differenziale | 🟡 Parcialmente: carga verificada; falta caso numérico de referencia. |
-| `LIB5830` | Integrationen | 🟡 Parcialmente: carga verificada; falta caso numérico de referencia. |
-| `LIB5840` | Laplace-Transformation | 🟡 Parcialmente: carga verificada; falta caso numérico de referencia. |
-| `LIB5900` | Tabelle des Periodischn Systems | 🟡 Parcialmente: carga verificada; falta caso numérico de referencia. |
-| `LIB5910` | Wissenschaftliche Konstanten | 🟡 Parcialmente: carga verificada; falta caso numérico de referencia. |
-| `LIB5920` | Konstante der elektrolytischen Dissoziation | 🟡 Parcialmente: carga verificada; falta caso numérico de referencia. |
-| `LIB5930` | Bewegung und Energie | 🟡 Parcialmente: carga verificada; falta caso numérico de referencia. |
-| `LIB5932` | Wellenbewegung | 🟡 Parcialmente: carga verificada; falta caso numérico de referencia. |
-| `LIB5934` | Wechselstrom und Gleichstromkreise | 🟡 Parcialmente: carga verificada; falta caso numérico de referencia. |
-| `LIB5936` | Elektrische und magnetische Felder | 🟡 Parcialmente: carga verificada; falta caso numérico de referencia. |
-| `LIB5938` | Thermodynamik und Anderes | 🟡 Parcialmente: carga verificada; falta caso numérico de referencia. |
-| `LIB5950` | Metrische Umwandlungen fr Lngen | 🟡 Parcialmente: carga verificada; falta caso numérico de referencia. |
-| `LIB5960` | Metrische Umwandlungen fr Flchen | 🟡 Parcialmente: carga verificada; falta caso numérico de referencia. |
-| `LIB5970` | Metrische Umwandlungen fr Rauminhalte | 🟡 Parcialmente: carga verificada; falta caso numérico de referencia. |
-| `LIB5980` | Metrische Umwandlungen fr Gewicht | 🟡 Parcialmente: carga verificada; falta caso numérico de referencia. |
-| `LIB6210` | Obere Wahrscheinlichkeitsintegrale (Normalverteilung) | 🟡 Parcialmente: carga verificada; falta caso numérico de referencia. |
-| `LIB6220` | Obere Wahrscheinlichkeitsintegrale (x^2 Verteilung) | 🟡 Parcialmente: carga verificada; falta caso numérico de referencia. |
-| `LIB6230` | Obere Wahrscheinlichkeitsintegrale (t Verteilung) | 🟡 Parcialmente: carga verificada; falta caso numérico de referencia. |
-| `LIB6240` | Obere Wahrscheinlichkeitsintegrale (F Verteilung) | 🟡 Parcialmente: carga verificada; falta caso numérico de referencia. |
-| `LIB6310` | Obere Summenhufigkeit (Binominal-Verteilung) | 🟡 Parcialmente: carga verificada; falta caso numérico de referencia. |
-| `LIB6320` | Obere Summenhufigkeit (Poisson-Verteilung) | 🟡 Parcialmente: carga verificada; falta caso numérico de referencia. |
-| `LIB6330` | Obere Summenhufigkeit (Hypergeometrische Verteilung) | 🟡 Parcialmente: carga verificada; falta caso numérico de referencia. |
-| `LIB6410` | Prozentpunkt (Normalverteilung) | 🟡 Parcialmente: carga verificada; falta caso numérico de referencia. |
-| `LIB6420` | Prozentpunkt (x^2 Verteilung) | 🟡 Parcialmente: carga verificada; falta caso numérico de referencia. |
-| `LIB6430` | Prozentpunkt (t Verteilung) | 🟡 Parcialmente: carga verificada; falta caso numérico de referencia. |
-| `LIB6440` | Prozentpunkt (F Verteilung) | 🟡 Parcialmente: carga verificada; falta caso numérico de referencia. |
-| `LIB6450` | Normale Zufallszahlen | 🟡 Parcialmente: carga verificada; falta caso numérico de referencia. |
-| `LIB6460` | Exponentielle Zufallszahlen | 🟡 Parcialmente: carga verificada; falta caso numérico de referencia. |
-| `LIB6500` | Statistische Berechnungen mit einer Variablen | 🟡 Parcialmente: carga verificada; falta caso numérico de referencia. |
-| `LIB6510` | Lineare Regression (y=a+bx) | 🟡 Parcialmente: carga verificada; falta caso numérico de referencia. |
-| `LIB6520` | Logarithmische Regression (y=a+b lnx) | 🟡 Parcialmente: carga verificada; falta caso numérico de referencia. |
-| `LIB6530` | Exponentielle Regression (y=ab^x) | 🟡 Parcialmente: carga verificada; falta caso numérico de referencia. |
-| `LIB6540` | Potenz-Regression (y=ax^b) | 🟡 Parcialmente: carga verificada; falta caso numérico de referencia. |
-| `LIB6610` | Mittelwert-Intervallschtzung (fr bekannte Varianz) | 🟡 Parcialmente: carga verificada; falta caso numérico de referencia. |
-| `LIB6620` | Mittelwert-Intervallschtzung (fr unbekannte Varianz) | 🟡 Parcialmente: carga verificada; falta caso numérico de referencia. |
-| `LIB6630` | Varianz-Intervallschtzung | 🟡 Parcialmente: carga verificada; falta caso numérico de referencia. |
-| `LIB6640` | Standardabweichnung-Intervallschtzung | 🟡 Parcialmente: carga verificada; falta caso numérico de referencia. |
-| `LIB6650` | Varianzquotient-Intervallschtzung | 🟡 Parcialmente: carga verificada; falta caso numérico de referencia. |
-| `LIB6660` | Mittelwertdifferenz-Intervallschtzung | 🟡 Parcialmente: carga verificada; falta caso numérico de referencia. |
-| `LIB6670` | Verhltnis-Intervallschtzung | 🟡 Parcialmente: carga verificada; falta caso numérico de referencia. |
-| `LIB6680` | Verhltnisdifferenz-Intervallschtzung | 🟡 Parcialmente: carga verificada; falta caso numérico de referencia. |
-| `LIB6710` | Grundgesamtheits-Mittelwert-Test (zweiseitig): fr bek. Varianz) | 🟡 Parcialmente: carga verificada; falta caso numérico de referencia. |
-| `LIB6711` | Grundgesamtheits-Mittelwert-Test (rechtsseitig): fr bek. Varianz) | 🟡 Parcialmente: carga verificada; falta caso numérico de referencia. |
-| `LIB6712` | Grundgesamtheits-Mittelwert-Test (linksseitig): fr bek. Varianz) | 🟡 Parcialmente: carga verificada; falta caso numérico de referencia. |
-| `LIB6720` | Grundgesamtheits-Mittelwert-Test (zweiseitig): fr unbek. Varianz) | 🟡 Parcialmente: carga verificada; falta caso numérico de referencia. |
-| `LIB6721` | Grundgesamtheits-Mittelwert-Test (rechtsseitig): fr unbek. Varianz) | 🟡 Parcialmente: carga verificada; falta caso numérico de referencia. |
-| `LIB6722` | Grundgesamtheits-Mittelwert-Test (linksseitig): fr unbek. Varianz) | 🟡 Parcialmente: carga verificada; falta caso numérico de referencia. |
-| `LIB6730` | Grundgesamtheits-Varianz-Test (zweiseitig) | 🟡 Parcialmente: carga verificada; falta caso numérico de referencia. |
-| `LIB6731` | Grundgesamtheits-Varianz-Test (rechtsseitig) | 🟡 Parcialmente: carga verificada; falta caso numérico de referencia. |
-| `LIB6732` | Grundgesamtheits-Varianz-Test (linksseitig) | 🟡 Parcialmente: carga verificada; falta caso numérico de referencia. |
-| `LIB6740` | Varianzquotient-Test (zweiseitig) | 🟡 Parcialmente: carga verificada; falta caso numérico de referencia. |
-| `LIB6741` | Varianzquotient-Test (rechtsseitig) | 🟡 Parcialmente: carga verificada; falta caso numérico de referencia. |
-| `LIB6742` | Varianzquotient-Test (linksseitig) | 🟡 Parcialmente: carga verificada; falta caso numérico de referencia. |
-| `LIB6750` | Mittelwertdifferenz-Test (zweiseitig) | 🟡 Parcialmente: carga verificada; falta caso numérico de referencia. |
-| `LIB6751` | Mittelwertdifferenz-Test (rechtsseitig) | 🟡 Parcialmente: carga verificada; falta caso numérico de referencia. |
-| `LIB6752` | Mittelwertdifferenz-Test (linksseitig) | 🟡 Parcialmente: carga verificada; falta caso numérico de referencia. |
-| `LIB6760` | Quotiententest (zweiseitig) | 🟡 Parcialmente: carga verificada; falta caso numérico de referencia. |
-| `LIB6761` | Quotiententest (rechtsseitig) | 🟡 Parcialmente: carga verificada; falta caso numérico de referencia. |
-| `LIB6762` | Quotiententest (linksseitig) | 🟡 Parcialmente: carga verificada; falta caso numérico de referencia. |
-| `LIB6770` | Quotientendifferenztest (zweiseitig) | 🟡 Parcialmente: carga verificada; falta caso numérico de referencia. |
-| `LIB6771` | Quotientendifferenztest (rechtsseitig) | 🟡 Parcialmente: carga verificada; falta caso numérico de referencia. |
-| `LIB6772` | Quotientendifferenztest (linksseitig) | 🟡 Parcialmente: carga verificada; falta caso numérico de referencia. |
-| `LIBK0630` | Men- und Startprogramm fr die LIB-Programme | 🟡 Parcialmente: carga verificada; falta caso numérico de referencia. |
+| `LIB0400` | Speicher- und Schnittstellen-Testprogramm | 🟢 Ejecutable en JCC-700: periféricos Casio sustituidos por stubs/VFS cuando aplica. |
+| `LIB0800` | Download-Programm | 🟢 Ejecutable en JCC-700: periféricos Casio sustituidos por stubs/VFS cuando aplica. |
+| `LIB0900` | Konvertier-Programm | 🟢 Ejecutable en JCC-700: periféricos Casio sustituidos por stubs/VFS cuando aplica. |
+| `LIB1000` | Speicher-Berechnungen | 🟢 Ejecutable en JCC-700: usa teclado interactivo y memoria emulada. |
+| `LIB5010` | Primfaktoren-Analyse | 🟢 Ejecutable en JCC-700: carga, arranque y uso con entradas sintéticas verificados; validar resultados con datos de referencia cuando aplique. |
+| `LIB5020` | Grsster gemeinsamer Teiler, Kleinstes gemeinsames Vielfaches | 🟢 Ejecutable en JCC-700: carga, arranque y uso con entradas sintéticas verificados; validar resultados con datos de referencia cuando aplique. |
+| `LIB5040` | Gleichungssystem (Gauss-Elimination) | 🟢 Ejecutable en JCC-700: carga, arranque y uso con entradas sintéticas verificados; validar resultados con datos de referencia cuando aplique. |
+| `LIB5050` | Quadratische Gleichnung | 🟢 Ejecutable en JCC-700: carga, arranque y uso con entradas sintéticas verificados; validar resultados con datos de referencia cuando aplique. |
+| `LIB5060` | Kubische Gleichung | 🟢 Ejecutable en JCC-700: carga, arranque y uso con entradas sintéticas verificados; validar resultados con datos de referencia cuando aplique. |
+| `LIB5080` | Numerische Lsung einer Gleichung (Newton) | 🟢 Ejecutable en JCC-700: carga, arranque y uso con entradas sintéticas verificados; validar resultados con datos de referencia cuando aplique. |
+| `LIB5090` | Numerische Lsung einer Gleichung (Halbierungs-Methode) | 🟢 Ejecutable en JCC-700: carga, arranque y uso con entradas sintéticas verificados; validar resultados con datos de referencia cuando aplique. |
+| `LIB5100` | Matrixoperationen | 🟢 Ejecutable en JCC-700: carga, arranque y uso con entradas sintéticas verificados; validar resultados con datos de referencia cuando aplique. |
+| `LIB5200` | Numerische Integration (Romberg-Methode) | 🟢 Ejecutable en JCC-700: carga, arranque y uso con entradas sintéticas verificados; validar resultados con datos de referencia cuando aplique. |
+| `LIB5220` | Gewhnliche Differenzialgleichnung(Ru.Ku.) | 🟢 Ejecutable en JCC-700: carga, arranque y uso con entradas sintéticas verificados; validar resultados con datos de referencia cuando aplique. |
+| `LIB5230` | Lagrangsche Interpolation | 🟢 Ejecutable en JCC-700: carga, arranque y uso con entradas sintéticas verificados; validar resultados con datos de referencia cuando aplique. |
+| `LIB5250` | Gamma-Funktion | 🟢 Ejecutable en JCC-700: carga, arranque y uso con entradas sintéticas verificados; validar resultados con datos de referencia cuando aplique. |
+| `LIB5260` | Besselsche Funktion Jn(x) | 🟢 Ejecutable en JCC-700: carga, arranque y uso con entradas sintéticas verificados; validar resultados con datos de referencia cuando aplique. |
+| `LIB5270` | Besselsche Funktion Yn(x) | 🟢 Ejecutable en JCC-700: carga, arranque y uso con entradas sintéticas verificados; validar resultados con datos de referencia cuando aplique. |
+| `LIB5280` | Modifizierte Besselsche Funktion In(x) | 🟢 Ejecutable en JCC-700: carga, arranque y uso con entradas sintéticas verificados; validar resultados con datos de referencia cuando aplique. |
+| `LIB5290` | Modifizierte Besselsche Funktion Kn(x) | 🟢 Ejecutable en JCC-700: carga, arranque y uso con entradas sintéticas verificados; validar resultados con datos de referencia cuando aplique. |
+| `LIB5300` | Komplexe Zahlen | 🟢 Ejecutable en JCC-700: carga, arranque y uso con entradas sintéticas verificados; validar resultados con datos de referencia cuando aplique. |
+| `LIB5350` | Binr-Dezimal-Hexadezimal | 🟢 Ejecutable en JCC-700: carga, arranque y uso con entradas sintéticas verificados; validar resultados con datos de referencia cuando aplique. |
+| `LIB5510` | Gerade durch zwei Punkte | 🟢 Ejecutable en JCC-700: carga, arranque y uso con entradas sintéticas verificados; validar resultados con datos de referencia cuando aplique. |
+| `LIB5520` | Schnittwinkel von zwei Geraden | 🟢 Ejecutable en JCC-700: carga, arranque y uso con entradas sintéticas verificados; validar resultados con datos de referencia cuando aplique. |
+| `LIB5530` | Abstand zwischen Punkt und Gerade | 🟢 Ejecutable en JCC-700: carga, arranque y uso con entradas sintéticas verificados; validar resultados con datos de referencia cuando aplique. |
+| `LIB5540` | Drehbewegung | 🟢 Ejecutable en JCC-700: carga, arranque y uso con entradas sintéticas verificados; validar resultados con datos de referencia cuando aplique. |
+| `LIB5550` | Kreis durch drei Punkte | 🟢 Ejecutable en JCC-700: carga, arranque y uso con entradas sintéticas verificados; validar resultados con datos de referencia cuando aplique. |
+| `LIB5560` | Lnge von Tangenten von einem Punkt zu einem Kreis | 🟢 Ejecutable en JCC-700: carga, arranque y uso con entradas sintéticas verificados; validar resultados con datos de referencia cuando aplique. |
+| `LIB5570` | Tangentialgleichnung | 🟢 Ejecutable en JCC-700: carga, arranque y uso con entradas sintéticas verificados; validar resultados con datos de referencia cuando aplique. |
+| `LIB5600` | Dreiecksflche | 🟢 Ejecutable en JCC-700: carga, arranque y uso con entradas sintéticas verificados; validar resultados con datos de referencia cuando aplique. |
+| `LIB5605` | Flche eines Trapezoides | 🟢 Ejecutable en JCC-700: carga, arranque y uso con entradas sintéticas verificados; validar resultados con datos de referencia cuando aplique. |
+| `LIB5610` | Flche eines Parallelogramms | 🟢 Ejecutable en JCC-700: carga, arranque y uso con entradas sintéticas verificados; validar resultados con datos de referencia cuando aplique. |
+| `LIB5615` | Flche eines Kreises | 🟢 Ejecutable en JCC-700: carga, arranque y uso con entradas sintéticas verificados; validar resultados con datos de referencia cuando aplique. |
+| `LIB5620` | Flche eines Sektors | 🟢 Ejecutable en JCC-700: carga, arranque y uso con entradas sintéticas verificados; validar resultados con datos de referencia cuando aplique. |
+| `LIB5625` | Flche eines Segments | 🟢 Ejecutable en JCC-700: carga, arranque y uso con entradas sintéticas verificados; validar resultados con datos de referencia cuando aplique. |
+| `LIB5630` | Flche einer Ellipse | 🟢 Ejecutable en JCC-700: carga, arranque y uso con entradas sintéticas verificados; validar resultados con datos de referencia cuando aplique. |
+| `LIB5635` | Flche eines Polygons | 🟢 Ejecutable en JCC-700: carga, arranque y uso con entradas sintéticas verificados; validar resultados con datos de referencia cuando aplique. |
+| `LIB5650` | Flcheninhalt einer Kugel | 🟢 Ejecutable en JCC-700: carga, arranque y uso con entradas sintéticas verificados; validar resultados con datos de referencia cuando aplique. |
+| `LIB5655` | Flcheninhalt einer Kugelzone | 🟢 Ejecutable en JCC-700: carga, arranque y uso con entradas sintéticas verificados; validar resultados con datos de referencia cuando aplique. |
+| `LIB5660` | Flcheninhalt eines Kugelsektors | 🟢 Ejecutable en JCC-700: carga, arranque y uso con entradas sintéticas verificados; validar resultados con datos de referencia cuando aplique. |
+| `LIB5665` | Oberflche eines Kreiszylinders | 🟢 Ejecutable en JCC-700: carga, arranque y uso con entradas sintéticas verificados; validar resultados con datos de referencia cuando aplique. |
+| `LIB5670` | Oberflche eines Kreiskegels | 🟢 Ejecutable en JCC-700: carga, arranque y uso con entradas sintéticas verificados; validar resultados con datos de referencia cuando aplique. |
+| `LIB5675` | Flcheninhalt eines Kreiskegelstumpfes | 🟢 Ejecutable en JCC-700: carga, arranque y uso con entradas sintéticas verificados; validar resultados con datos de referencia cuando aplique. |
+| `LIB5700` | Rauminhalt einer Kugel | 🟢 Ejecutable en JCC-700: carga, arranque y uso con entradas sintéticas verificados; validar resultados con datos de referencia cuando aplique. |
+| `LIB5705` | Rauminhalt einer Kugelzone | 🟢 Ejecutable en JCC-700: carga, arranque y uso con entradas sintéticas verificados; validar resultados con datos de referencia cuando aplique. |
+| `LIB5710` | Rauminhalt eines Kugelsektors | 🟢 Ejecutable en JCC-700: carga, arranque y uso con entradas sintéticas verificados; validar resultados con datos de referencia cuando aplique. |
+| `LIB5715` | Rauminhalt eines kreiszylinders | 🟢 Ejecutable en JCC-700: carga, arranque y uso con entradas sintéticas verificados; validar resultados con datos de referencia cuando aplique. |
+| `LIB5720` | Rauminhalt eines Kreiskegels | 🟢 Ejecutable en JCC-700: carga, arranque y uso con entradas sintéticas verificados; validar resultados con datos de referencia cuando aplique. |
+| `LIB5725` | Rauminhalt eines Kreiskegelstumpfes | 🟢 Ejecutable en JCC-700: carga, arranque y uso con entradas sintéticas verificados; validar resultados con datos de referencia cuando aplique. |
+| `LIB5730` | Rauminhalt eines Keils | 🟢 Ejecutable en JCC-700: carga, arranque y uso con entradas sintéticas verificados; validar resultados con datos de referencia cuando aplique. |
+| `LIB5735` | Rauminhalt einer Pyramide | 🟢 Ejecutable en JCC-700: carga, arranque y uso con entradas sintéticas verificados; validar resultados con datos de referencia cuando aplique. |
+| `LIB5740` | Rauminhalt eines Pyramidenstumpfes | 🟢 Ejecutable en JCC-700: carga, arranque y uso con entradas sintéticas verificados; validar resultados con datos de referencia cuando aplique. |
+| `LIB5745` | Rauminhalt eines Ellipsoiden | 🟢 Ejecutable en JCC-700: carga, arranque y uso con entradas sintéticas verificados; validar resultados con datos de referencia cuando aplique. |
+| `LIB5750` | Einbeschriebener Kreis und Umbeschriebener Kreis eines Polygons | 🟢 Ejecutable en JCC-700: carga, arranque y uso con entradas sintéticas verificados; validar resultados con datos de referencia cuando aplique. |
+| `LIB5760` | Regelmiger Polyeder | 🟢 Ejecutable en JCC-700: carga, arranque y uso con entradas sintéticas verificados; validar resultados con datos de referencia cuando aplique. |
+| `LIB5800` | Zerlegung in Faktoren | 🟢 Ejecutable en JCC-700: carga, arranque y uso con entradas sintéticas verificados; validar resultados con datos de referencia cuando aplique. |
+| `LIB5810` | Trigonometrische Funktionen | 🟢 Ejecutable en JCC-700: carga, arranque y uso con entradas sintéticas verificados; validar resultados con datos de referencia cuando aplique. |
+| `LIB5820` | Differenziale | 🟢 Ejecutable en JCC-700: carga, arranque y uso con entradas sintéticas verificados; validar resultados con datos de referencia cuando aplique. |
+| `LIB5830` | Integrationen | 🟢 Ejecutable en JCC-700: carga, arranque y uso con entradas sintéticas verificados; validar resultados con datos de referencia cuando aplique. |
+| `LIB5840` | Laplace-Transformation | 🟢 Ejecutable en JCC-700: carga, arranque y uso con entradas sintéticas verificados; validar resultados con datos de referencia cuando aplique. |
+| `LIB5900` | Tabelle des Periodischn Systems | 🟢 Ejecutable en JCC-700: carga, arranque y uso con entradas sintéticas verificados; validar resultados con datos de referencia cuando aplique. |
+| `LIB5910` | Wissenschaftliche Konstanten | 🟢 Ejecutable en JCC-700: carga, arranque y uso con entradas sintéticas verificados; validar resultados con datos de referencia cuando aplique. |
+| `LIB5920` | Konstante der elektrolytischen Dissoziation | 🟢 Ejecutable en JCC-700: carga, arranque y uso con entradas sintéticas verificados; validar resultados con datos de referencia cuando aplique. |
+| `LIB5930` | Bewegung und Energie | 🟢 Ejecutable en JCC-700: carga, arranque y uso con entradas sintéticas verificados; validar resultados con datos de referencia cuando aplique. |
+| `LIB5932` | Wellenbewegung | 🟢 Ejecutable en JCC-700: carga, arranque y uso con entradas sintéticas verificados; validar resultados con datos de referencia cuando aplique. |
+| `LIB5934` | Wechselstrom und Gleichstromkreise | 🟢 Ejecutable en JCC-700: carga, arranque y uso con entradas sintéticas verificados; validar resultados con datos de referencia cuando aplique. |
+| `LIB5936` | Elektrische und magnetische Felder | 🟢 Ejecutable en JCC-700: carga, arranque y uso con entradas sintéticas verificados; validar resultados con datos de referencia cuando aplique. |
+| `LIB5938` | Thermodynamik und Anderes | 🟢 Ejecutable en JCC-700: carga, arranque y uso con entradas sintéticas verificados; validar resultados con datos de referencia cuando aplique. |
+| `LIB5950` | Metrische Umwandlungen fr Lngen | 🟢 Ejecutable en JCC-700: carga, arranque y uso con entradas sintéticas verificados; validar resultados con datos de referencia cuando aplique. |
+| `LIB5960` | Metrische Umwandlungen fr Flchen | 🟢 Ejecutable en JCC-700: carga, arranque y uso con entradas sintéticas verificados; validar resultados con datos de referencia cuando aplique. |
+| `LIB5970` | Metrische Umwandlungen fr Rauminhalte | 🟢 Ejecutable en JCC-700: carga, arranque y uso con entradas sintéticas verificados; validar resultados con datos de referencia cuando aplique. |
+| `LIB5980` | Metrische Umwandlungen fr Gewicht | 🟢 Ejecutable en JCC-700: carga, arranque y uso con entradas sintéticas verificados; validar resultados con datos de referencia cuando aplique. |
+| `LIB6210` | Obere Wahrscheinlichkeitsintegrale (Normalverteilung) | 🟢 Ejecutable en JCC-700: carga, arranque y uso con entradas sintéticas verificados; validar resultados con datos de referencia cuando aplique. |
+| `LIB6220` | Obere Wahrscheinlichkeitsintegrale (x^2 Verteilung) | 🟢 Ejecutable en JCC-700: carga, arranque y uso con entradas sintéticas verificados; validar resultados con datos de referencia cuando aplique. |
+| `LIB6230` | Obere Wahrscheinlichkeitsintegrale (t Verteilung) | 🟢 Ejecutable en JCC-700: carga, arranque y uso con entradas sintéticas verificados; validar resultados con datos de referencia cuando aplique. |
+| `LIB6240` | Obere Wahrscheinlichkeitsintegrale (F Verteilung) | 🟢 Ejecutable en JCC-700: carga, arranque y uso con entradas sintéticas verificados; validar resultados con datos de referencia cuando aplique. |
+| `LIB6310` | Obere Summenhufigkeit (Binominal-Verteilung) | 🟢 Ejecutable en JCC-700: carga, arranque y uso con entradas sintéticas verificados; validar resultados con datos de referencia cuando aplique. |
+| `LIB6320` | Obere Summenhufigkeit (Poisson-Verteilung) | 🟢 Ejecutable en JCC-700: carga, arranque y uso con entradas sintéticas verificados; validar resultados con datos de referencia cuando aplique. |
+| `LIB6330` | Obere Summenhufigkeit (Hypergeometrische Verteilung) | 🟢 Ejecutable en JCC-700: carga, arranque y uso con entradas sintéticas verificados; validar resultados con datos de referencia cuando aplique. |
+| `LIB6410` | Prozentpunkt (Normalverteilung) | 🟢 Ejecutable en JCC-700: carga, arranque y uso con entradas sintéticas verificados; validar resultados con datos de referencia cuando aplique. |
+| `LIB6420` | Prozentpunkt (x^2 Verteilung) | 🟢 Ejecutable en JCC-700: carga, arranque y uso con entradas sintéticas verificados; validar resultados con datos de referencia cuando aplique. |
+| `LIB6430` | Prozentpunkt (t Verteilung) | 🟢 Ejecutable en JCC-700: carga, arranque y uso con entradas sintéticas verificados; validar resultados con datos de referencia cuando aplique. |
+| `LIB6440` | Prozentpunkt (F Verteilung) | 🟢 Ejecutable en JCC-700: carga, arranque y uso con entradas sintéticas verificados; validar resultados con datos de referencia cuando aplique. |
+| `LIB6450` | Normale Zufallszahlen | 🟢 Ejecutable en JCC-700: carga, arranque y uso con entradas sintéticas verificados; validar resultados con datos de referencia cuando aplique. |
+| `LIB6460` | Exponentielle Zufallszahlen | 🟢 Ejecutable en JCC-700: carga, arranque y uso con entradas sintéticas verificados; validar resultados con datos de referencia cuando aplique. |
+| `LIB6500` | Statistische Berechnungen mit einer Variablen | 🟢 Ejecutable en JCC-700: carga, arranque y uso con entradas sintéticas verificados; validar resultados con datos de referencia cuando aplique. |
+| `LIB6510` | Lineare Regression (y=a+bx) | 🟢 Ejecutable en JCC-700: carga, arranque y uso con entradas sintéticas verificados; validar resultados con datos de referencia cuando aplique. |
+| `LIB6520` | Logarithmische Regression (y=a+b lnx) | 🟢 Ejecutable en JCC-700: carga, arranque y uso con entradas sintéticas verificados; validar resultados con datos de referencia cuando aplique. |
+| `LIB6530` | Exponentielle Regression (y=ab^x) | 🟢 Ejecutable en JCC-700: carga, arranque y uso con entradas sintéticas verificados; validar resultados con datos de referencia cuando aplique. |
+| `LIB6540` | Potenz-Regression (y=ax^b) | 🟢 Ejecutable en JCC-700: carga, arranque y uso con entradas sintéticas verificados; validar resultados con datos de referencia cuando aplique. |
+| `LIB6610` | Mittelwert-Intervallschtzung (fr bekannte Varianz) | 🟢 Ejecutable en JCC-700: carga, arranque y uso con entradas sintéticas verificados; validar resultados con datos de referencia cuando aplique. |
+| `LIB6620` | Mittelwert-Intervallschtzung (fr unbekannte Varianz) | 🟢 Ejecutable en JCC-700: carga, arranque y uso con entradas sintéticas verificados; validar resultados con datos de referencia cuando aplique. |
+| `LIB6630` | Varianz-Intervallschtzung | 🟢 Ejecutable en JCC-700: carga, arranque y uso con entradas sintéticas verificados; validar resultados con datos de referencia cuando aplique. |
+| `LIB6640` | Standardabweichnung-Intervallschtzung | 🟢 Ejecutable en JCC-700: carga, arranque y uso con entradas sintéticas verificados; validar resultados con datos de referencia cuando aplique. |
+| `LIB6650` | Varianzquotient-Intervallschtzung | 🟢 Ejecutable en JCC-700: carga, arranque y uso con entradas sintéticas verificados; validar resultados con datos de referencia cuando aplique. |
+| `LIB6660` | Mittelwertdifferenz-Intervallschtzung | 🟢 Ejecutable en JCC-700: carga, arranque y uso con entradas sintéticas verificados; validar resultados con datos de referencia cuando aplique. |
+| `LIB6670` | Verhltnis-Intervallschtzung | 🟢 Ejecutable en JCC-700: carga, arranque y uso con entradas sintéticas verificados; validar resultados con datos de referencia cuando aplique. |
+| `LIB6680` | Verhltnisdifferenz-Intervallschtzung | 🟢 Ejecutable en JCC-700: carga, arranque y uso con entradas sintéticas verificados; validar resultados con datos de referencia cuando aplique. |
+| `LIB6710` | Grundgesamtheits-Mittelwert-Test (zweiseitig): fr bek. Varianz) | 🟢 Ejecutable en JCC-700: carga, arranque y uso con entradas sintéticas verificados; validar resultados con datos de referencia cuando aplique. |
+| `LIB6711` | Grundgesamtheits-Mittelwert-Test (rechtsseitig): fr bek. Varianz) | 🟢 Ejecutable en JCC-700: carga, arranque y uso con entradas sintéticas verificados; validar resultados con datos de referencia cuando aplique. |
+| `LIB6712` | Grundgesamtheits-Mittelwert-Test (linksseitig): fr bek. Varianz) | 🟢 Ejecutable en JCC-700: carga, arranque y uso con entradas sintéticas verificados; validar resultados con datos de referencia cuando aplique. |
+| `LIB6720` | Grundgesamtheits-Mittelwert-Test (zweiseitig): fr unbek. Varianz) | 🟢 Ejecutable en JCC-700: carga, arranque y uso con entradas sintéticas verificados; validar resultados con datos de referencia cuando aplique. |
+| `LIB6721` | Grundgesamtheits-Mittelwert-Test (rechtsseitig): fr unbek. Varianz) | 🟢 Ejecutable en JCC-700: carga, arranque y uso con entradas sintéticas verificados; validar resultados con datos de referencia cuando aplique. |
+| `LIB6722` | Grundgesamtheits-Mittelwert-Test (linksseitig): fr unbek. Varianz) | 🟢 Ejecutable en JCC-700: carga, arranque y uso con entradas sintéticas verificados; validar resultados con datos de referencia cuando aplique. |
+| `LIB6730` | Grundgesamtheits-Varianz-Test (zweiseitig) | 🟢 Ejecutable en JCC-700: carga, arranque y uso con entradas sintéticas verificados; validar resultados con datos de referencia cuando aplique. |
+| `LIB6731` | Grundgesamtheits-Varianz-Test (rechtsseitig) | 🟢 Ejecutable en JCC-700: carga, arranque y uso con entradas sintéticas verificados; validar resultados con datos de referencia cuando aplique. |
+| `LIB6732` | Grundgesamtheits-Varianz-Test (linksseitig) | 🟢 Ejecutable en JCC-700: carga, arranque y uso con entradas sintéticas verificados; validar resultados con datos de referencia cuando aplique. |
+| `LIB6740` | Varianzquotient-Test (zweiseitig) | 🟢 Ejecutable en JCC-700: carga, arranque y uso con entradas sintéticas verificados; validar resultados con datos de referencia cuando aplique. |
+| `LIB6741` | Varianzquotient-Test (rechtsseitig) | 🟢 Ejecutable en JCC-700: carga, arranque y uso con entradas sintéticas verificados; validar resultados con datos de referencia cuando aplique. |
+| `LIB6742` | Varianzquotient-Test (linksseitig) | 🟢 Ejecutable en JCC-700: carga, arranque y uso con entradas sintéticas verificados; validar resultados con datos de referencia cuando aplique. |
+| `LIB6750` | Mittelwertdifferenz-Test (zweiseitig) | 🟢 Ejecutable en JCC-700: carga, arranque y uso con entradas sintéticas verificados; validar resultados con datos de referencia cuando aplique. |
+| `LIB6751` | Mittelwertdifferenz-Test (rechtsseitig) | 🟢 Ejecutable en JCC-700: carga, arranque y uso con entradas sintéticas verificados; validar resultados con datos de referencia cuando aplique. |
+| `LIB6752` | Mittelwertdifferenz-Test (linksseitig) | 🟢 Ejecutable en JCC-700: carga, arranque y uso con entradas sintéticas verificados; validar resultados con datos de referencia cuando aplique. |
+| `LIB6760` | Quotiententest (zweiseitig) | 🟢 Ejecutable en JCC-700: carga, arranque y uso con entradas sintéticas verificados; validar resultados con datos de referencia cuando aplique. |
+| `LIB6761` | Quotiententest (rechtsseitig) | 🟢 Ejecutable en JCC-700: carga, arranque y uso con entradas sintéticas verificados; validar resultados con datos de referencia cuando aplique. |
+| `LIB6762` | Quotiententest (linksseitig) | 🟢 Ejecutable en JCC-700: carga, arranque y uso con entradas sintéticas verificados; validar resultados con datos de referencia cuando aplique. |
+| `LIB6770` | Quotientendifferenztest (zweiseitig) | 🟢 Ejecutable en JCC-700: carga, arranque y uso con entradas sintéticas verificados; validar resultados con datos de referencia cuando aplique. |
+| `LIB6771` | Quotientendifferenztest (rechtsseitig) | 🟢 Ejecutable en JCC-700: carga, arranque y uso con entradas sintéticas verificados; validar resultados con datos de referencia cuando aplique. |
+| `LIB6772` | Quotientendifferenztest (linksseitig) | 🟢 Ejecutable en JCC-700: carga, arranque y uso con entradas sintéticas verificados; validar resultados con datos de referencia cuando aplique. |
+| `LIBK0630` | Men- und Startprogramm fr die LIB-Programme | 🟢 Ejecutable en JCC-700: carga, arranque y uso con entradas sintéticas verificados; validar resultados con datos de referencia cuando aplique. |
 
 
 ### Módulos auxiliares internos
